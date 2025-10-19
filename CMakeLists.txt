@@ -43,5 +43,5 @@ FetchContent_Populate(glm)
 # Include sub-projects.
 add_subdirectory ("StarryApp")
 
-add_executable(Starry main.cpp)
+add_executable(Starry "src/main.cpp")
 target_link_libraries(Starry StarryApp)
