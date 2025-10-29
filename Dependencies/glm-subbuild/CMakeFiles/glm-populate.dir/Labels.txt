@@ -1,0 +1,14 @@
+# Target labels
+ glm-populate
+# Source files and their labels
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/CMakeFiles/glm-populate
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/CMakeFiles/glm-populate.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/CMakeFiles/glm-populate-complete.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-build.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-configure.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-download.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-install.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-mkdir.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-patch.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-test.rule
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/glm-populate-prefix/src/glm-populate-stamp/glm-populate-update.rule

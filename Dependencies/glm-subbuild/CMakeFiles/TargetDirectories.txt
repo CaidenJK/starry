@@ -1,0 +1,3 @@
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/CMakeFiles/glm-populate.dir
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/CMakeFiles/edit_cache.dir
+D:/Projects/Dev/Starry/Dependencies/glm-subbuild/CMakeFiles/rebuild_cache.dir
