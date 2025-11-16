@@ -9,10 +9,10 @@ set(SOURCES src/Application.cpp)
 
 # Set Headers
 set(HEADERS 
-	src/headers/Application.h
-	src/headers/Window.h
-	src/headers/Renderer.h
-	src/headers/Scene.h
+	"include/Application.h"
+	"include/Window.h"
+	"include/Renderer.h"
+	"include/Scene.h"
 )
 
 # Create Library
@@ -21,7 +21,7 @@ add_library(StarryApp ${SOURCES} ${HEADERS})
 # Gather Dependency Include Directories
 target_include_directories(StarryApp
   PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/headers
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}
