@@ -1,0 +1,45 @@
+﻿# CMakeList.txt : CMake project for StarryApp, include source and define
+# project specific logic here.
+
+# Add project
+project(StarryRender VERSION 0.0.1 LANGUAGES C CXX)
+
+# Set Sources
+
+set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
+
+set(SOURCES 
+    ${SOURCE_DIR}/Hello.cpp
+)
+
+# Set Headers
+
+set(HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+
+set(HEADERS 
+	${HEADER_DIR}/Hello.h
+)
+
+set(VULKAN_DIR 
+	"C:/VulkanSDK/1.4.313.2"
+)
+
+# Create Library
+add_library(StarryRender ${SOURCES} ${HEADERS})
+
+# Gather Dependency Include Directories
+target_include_directories(StarryRender
+  PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${glfw_SOURCE_DIR}/include
+    ${glad_SOURCE_DIR}/include
+    ${glm_SOURCE_DIR}
+	${VULKAN_DIR}/Include
+)
+
+# C++ 20
+if (CMAKE_VERSION VERSION_GREATER 3.12)
+  set_property(TARGET StarryRender PROPERTY CXX_STANDARD 20)
+endif()
+
+# TODO: Add tests

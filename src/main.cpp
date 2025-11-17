@@ -1,5 +1,15 @@
-#include "../StarryApp/src/headers/Application.h"
+#include "StarryApplication.h"
 
 int main() {
-	return 0;
+    StarryApplication app;
+
+    try {
+        app.run();
+    }
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
