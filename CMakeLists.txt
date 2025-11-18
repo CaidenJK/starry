@@ -11,18 +11,15 @@ set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/Dependencies")
 set(VULKAN_DIR "C:/VulkanSDK/1.4.313.2")
 
 # Set Sources
-
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 
 set(SOURCES
     ${SOURCE_DIR}/main.cpp
-    ${SOURCE_DIR}/StarryApplication.cpp
 )
 
 # Set Headers
-
 set(HEADERS
-    ${SOURCE_DIR}/StarryApplication.h
+    
 )
 
 # Enable Hot Reload for MSVC compilers if supported.
@@ -79,6 +76,12 @@ add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
 
 # Add executable
 add_executable(Starry ${SOURCES} ${HEADERS})
+
+# Explicit Include Directories
+target_include_directories(Starry
+  PUBLIC
+   "${CMAKE_SOURCE_DIR}/StarryRender/include"
+)
 
 # Link Libraries
 target_link_libraries(Starry glm)

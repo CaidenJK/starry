@@ -1,7 +1,7 @@
-#include "StarryApplication.h"
+#include "starryrender/Application.h"
 
 int main() {
-    StarryApplication app;
+    StarryRender::Application app;
 
     try {
         app.run();

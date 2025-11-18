@@ -9,27 +9,26 @@ project(StarryRender VERSION 0.0.1 LANGUAGES C CXX)
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 set(SOURCES 
-    ${SOURCE_DIR}/Hello.cpp
+    "${SOURCE_DIR}/Window.cpp"
+    "${SOURCE_DIR}/Application.cpp"
+    "${SOURCE_DIR}/Renderer.cpp"
 )
 
 # Set Headers
 
-set(HEADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
-
-set(HEADERS 
-	${HEADER_DIR}/Hello.h
-)
+set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starryrender")
 
 set(VULKAN_DIR 
 	"C:/VulkanSDK/1.4.313.2"
 )
 
 # Create Library
-add_library(StarryRender ${SOURCES} ${HEADERS})
+add_library(StarryRender ${SOURCES})
 
 # Gather Dependency Include Directories
 target_include_directories(StarryRender
   PUBLIC
+    ${INCLUDE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
