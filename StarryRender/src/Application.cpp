@@ -20,7 +20,7 @@ namespace StarryRender {
 		CHECK_ERROR(renderer);
 
 #ifdef SUCCESS_VALIDATION
-		std::cout << "Starry Render initialized successfully!" << std::endl;
+		std::cout << "Starry Render initialized successfully!\n" << std::endl;
 #endif
 	}
 	void Application::renderLoop() {
@@ -31,11 +31,11 @@ namespace StarryRender {
 
 	// Destroy renderer then window last
 	void Application::cleanup() {
-		delete(renderer);
-		delete(window);
+		delete renderer;
+		delete window;
 
 #ifdef SUCCESS_VALIDATION
-		std::cout << "Starry Render exited successfully!" << std::endl;
+		std::cout << "Starry Render exited successfully!\n" << std::endl;
 #endif
 	}
 }
