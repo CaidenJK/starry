@@ -8,10 +8,10 @@
 #define DEFULAT_NAME "Starry Driver"
 
 namespace StarryRender {
-	class Renderer {
+	class RenderDevice {
 	public:
-		Renderer(const char* name = DEFULAT_NAME);
-		~Renderer();
+		RenderDevice(const char* name = DEFULAT_NAME);
+		~RenderDevice();
 
 		bool getError() { return error; }
 

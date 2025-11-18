@@ -11,7 +11,7 @@ set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(SOURCES 
     "${SOURCE_DIR}/Window.cpp"
     "${SOURCE_DIR}/Application.cpp"
-    "${SOURCE_DIR}/Renderer.cpp"
+    "${SOURCE_DIR}/RenderDevice.cpp"
 )
 
 # Set Headers

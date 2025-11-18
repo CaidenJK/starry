@@ -16,7 +16,7 @@ namespace StarryRender {
 	void Application::initVulkan() {
 		window = new Window{};
 		CHECK_ERROR(window);
-		renderer = new Renderer{};
+		renderer = new RenderDevice{};
 		CHECK_ERROR(renderer);
 
 #ifdef SUCCESS_VALIDATION

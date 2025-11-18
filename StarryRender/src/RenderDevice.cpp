@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "RenderDevice.h"
 
 #include <stdexcept>
 #include <iostream>
@@ -23,7 +23,7 @@ namespace StarryRender {
 		}
 	}
 
-	void Renderer::debugMessengerCreateInfoFactory(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+	void RenderDevice::debugMessengerCreateInfoFactory(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -31,11 +31,11 @@ namespace StarryRender {
 		createInfo.pfnUserCallback = debugCallback;
 	}
 
-	Renderer::Renderer(const char* name) : name(name) {
+	RenderDevice::RenderDevice(const char* name) : name(name) {
 		initVulkan();
 	}
 
-	Renderer::~Renderer() {
+	RenderDevice::~RenderDevice() {
 		if (enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 		}
@@ -43,7 +43,7 @@ namespace StarryRender {
 		vkDestroyInstance(instance, nullptr);
 	}
 
-	void Renderer::initVulkan() {
+	void RenderDevice::initVulkan() {
 		checkValidationLayerSupport(); if (error) { return; }
 
 		createInstance(); if (error) { return; }
@@ -52,7 +52,7 @@ namespace StarryRender {
 		checkVKExtensions();
 	}
 
-	void Renderer::setupDebugMessenger() {
+	void RenderDevice::setupDebugMessenger() {
 		if (!enableValidationLayers) return;
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
@@ -67,7 +67,7 @@ namespace StarryRender {
 		}
 	}
 
-	void Renderer::checkValidationLayerSupport() {
+	void RenderDevice::checkValidationLayerSupport() {
 #ifndef NDEBUG
 		enableValidationLayers = true;
 #endif
@@ -98,7 +98,7 @@ namespace StarryRender {
 		}
 	}
 
-	void Renderer::checkVKExtensions() {
+	void RenderDevice::checkVKExtensions() {
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 		vkExtensions.resize(extensionCount);
@@ -117,7 +117,7 @@ namespace StarryRender {
 		std::cout << std::endl;
 	}
 
-	std::vector<const char*> Renderer::getRequiredGLFWExtensions() {
+	std::vector<const char*> RenderDevice::getRequiredGLFWExtensions() {
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -131,7 +131,7 @@ namespace StarryRender {
 		return extensions;
 	}
 
-	void Renderer::createInstance() {
+	void RenderDevice::createInstance() {
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = name;
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -169,7 +169,7 @@ namespace StarryRender {
 		}
 	}
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL Renderer::debugCallback(
+	VKAPI_ATTR VkBool32 VKAPI_CALL RenderDevice::debugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,

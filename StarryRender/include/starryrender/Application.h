@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Window.h"
-#include "Renderer.h"
+#include "RenderDevice.h"
 
 #include <iostream>
 
@@ -29,6 +29,6 @@ namespace StarryRender {
         void cleanup();
 
         Window* window = nullptr;
-        Renderer* renderer = nullptr;
+        RenderDevice* renderer = nullptr;
     };
 }
