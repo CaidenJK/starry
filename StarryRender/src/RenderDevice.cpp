@@ -57,7 +57,7 @@ namespace StarryRender {
 		createInfo.pfnUserCallback = debugCallback;
 	}
 
-	RenderDevice::RenderDevice(Window* windowReference, const char* name) : windowReference(windowReference), name(name) {
+	RenderDevice::RenderDevice(Window*& windowReference, const char* name) : windowReference(windowReference), name(name) {
 		initVulkan();
 	}
 
@@ -67,7 +67,7 @@ namespace StarryRender {
 		if (enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 		}
-		if (windowReference != nullptr) { windowReference->destroySurface(instance); }
+		vkDestroySurfaceKHR(instance, surface, nullptr);
 
 		vkDestroyInstance(instance, nullptr);
 	}
@@ -193,7 +193,7 @@ namespace StarryRender {
 
 	void RenderDevice::createSurface() {
 		if (windowReference != nullptr) {
-			windowReference->createSurface(instance);
+			windowReference->createSurface(instance, surface);
 			error = windowReference->getError();
 		}
 		else {
@@ -243,7 +243,9 @@ namespace StarryRender {
 		// Find a queue that supports VK_QUEUE_GRAPHICS_BIT
 		int i = 0;
 		for (const auto& queueFamily : queueFamilies) {
-			if (windowReference->queryDeviceSupportKHR(device, i)) {
+			VkBool32 presentSupport = false;
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+			if (presentSupport) {
 				indices.presentFamily = i;
 			}
 			

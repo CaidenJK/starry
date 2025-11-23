@@ -30,7 +30,7 @@ namespace StarryRender {
 
 
 	public:
-		RenderDevice(Window* windowReference, const char* name = DEFAULT_NAME);
+		RenderDevice(Window*& windowReference, const char* name = DEFAULT_NAME);
 		~RenderDevice();
 
 		bool getError() { return error; }
@@ -75,14 +75,16 @@ namespace StarryRender {
 
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 		VkDevice device = VK_NULL_HANDLE;
+		
+		VkSurfaceKHR surface = VK_NULL_HANDLE;
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 
 		VkDebugUtilsMessengerEXT debugMessenger;
 
-		// Window outlives RenderDevice
-		Window* windowReference;
+		// Window outlives RenderDevice for now
+		Window*& windowReference;
 
 		bool error = false;
 	};

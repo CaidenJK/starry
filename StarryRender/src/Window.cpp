@@ -68,19 +68,9 @@ namespace StarryRender {
 		return window;
 	}
 
-	void Window::createSurface(VkInstance& instance) {
+	void Window::createSurface(VkInstance& instance, VkSurfaceKHR& surface) {
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
 			THROW_ERROR("Failed to create window surface!");
 		}
-	}
-
-	void Window::destroySurface(VkInstance& instance) {
-		vkDestroySurfaceKHR(instance, surface, nullptr);
-	}
-
-	bool Window::queryDeviceSupportKHR(VkPhysicalDevice& device, int number) {
-		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, number, surface, &presentSupport);
-		return presentSupport;
 	}
 }

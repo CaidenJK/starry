@@ -20,17 +20,20 @@
 	std::cout << "----------------------------------------\n" << std::endl
 
 #else
-#define INITIALIZE_SUCCESS
-#define EXIT_SUCCESS
+#define STARRY_INITIALIZE_SUCCESS
+#define STARRY_EXIT_SUCCESS
 
 #endif
 
 #include "Application.h"
 
 #define CHECK_ERROR(obj) \
-	if (obj->getError()) { \
+	error = obj->getError(); \
+	if (error) { \
 		std::cerr << "Program ended prematurly due to an error." << std::endl; \
 	}
+
+#define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
 	void Application::init() {
@@ -51,5 +54,12 @@ namespace StarryRender {
 		delete window;
 
 		STARRY_EXIT_SUCCESS;
+	}
+
+	void Application::run() {
+		printVersion();
+		ERROR_VOLATILE(init());
+		renderLoop();
+		cleanup();
 	}
 }

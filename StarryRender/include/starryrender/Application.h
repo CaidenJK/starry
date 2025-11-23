@@ -13,12 +13,9 @@ namespace StarryRender {
         Application() {};
         ~Application() {};
 
-        void run() {
-            printVersion();
-            init();
-            renderLoop();
-            cleanup();
-        }
+		bool getError() { return error; }
+
+        void run();
 
     private:
         void printVersion() {
@@ -30,5 +27,7 @@ namespace StarryRender {
 
         Window* window = nullptr;
         RenderDevice* renderer = nullptr;
+
+        bool error = false;
     };
 }
