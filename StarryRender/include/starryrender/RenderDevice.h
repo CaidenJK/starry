@@ -14,7 +14,7 @@ namespace StarryRender {
 	class RenderDevice {
 		// Helper structs
 		struct DeviceInfo {
-			bool isSuitible;
+			bool isSuitible = false;
 			int score = 0;
 			char name[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];
 		};
@@ -26,6 +26,11 @@ namespace StarryRender {
 			bool isComplete() {
 				return graphicsFamily.has_value() && presentFamily.has_value();
 			}
+		};
+		struct SwapChainSupportDetails {
+			VkSurfaceCapabilitiesKHR capabilities;
+			std::vector<VkSurfaceFormatKHR> formats;
+			std::vector<VkPresentModeKHR> presentModes;
 		};
 
 
@@ -48,6 +53,7 @@ namespace StarryRender {
 		void createInstance();
 		void checkVKExtensions();
 		void createLogicalDevice();
+		void createSwapChain();
 
 		std::vector<const char*> getRequiredGLFWExtensions();
 		void checkValidationLayerSupport();
@@ -61,22 +67,36 @@ namespace StarryRender {
 		DeviceInfo isDeviceSuitable(VkPhysicalDevice device);
 
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+
+		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
+		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		const char* name;
 		
 		std::vector<VkExtensionProperties> vkExtensions;
-		const std::vector<const char*> validationLayers = { "VK_LAYER_KHRONOS_validation" };
+		const std::vector<const char*> validationLayers = { 
+			"VK_LAYER_KHRONOS_validation" 
+		};
 		bool enableValidationLayers = false;
+
+		const std::vector<const char*> deviceExtensions = {
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
+		};
 		
 		VkInstance instance;
-		VkApplicationInfo appInfo{};
-		VkInstanceCreateInfo createInfo{};
-		VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 		VkDevice device = VK_NULL_HANDLE;
 		
 		VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+		VkSwapchainKHR swapChain;
+		std::vector<VkImage> swapChainImages;
+		VkFormat swapChainImageFormat;
+		VkExtent2D swapChainExtent;
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;

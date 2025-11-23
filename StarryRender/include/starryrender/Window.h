@@ -18,7 +18,8 @@ namespace StarryRender
 		void pollEvents() const;
 		GLFWwindow* getGLFWwindow() const;
 
-		void createSurface(VkInstance& instance, VkSurfaceKHR& surface);
+		void createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface);
+		void getFramebufferSize(int& width, int& height);
 
 		bool getError() { return error; }
 

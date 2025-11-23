@@ -68,9 +68,13 @@ namespace StarryRender {
 		return window;
 	}
 
-	void Window::createSurface(VkInstance& instance, VkSurfaceKHR& surface) {
+	void Window::createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface) {
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
 			THROW_ERROR("Failed to create window surface!");
 		}
+	}
+
+	void Window::getFramebufferSize(int& width, int& height) {
+		glfwGetFramebufferSize(window, &width, &height);
 	}
 }
