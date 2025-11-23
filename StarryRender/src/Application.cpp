@@ -4,7 +4,27 @@
 #include <stdexcept>
 #include <cstdlib>
 
-#define SUCCESS_VALIDATION
+#ifndef NDEBUG
+	#define SUCCESS_VALIDATION
+#endif
+
+#ifdef SUCCESS_VALIDATION
+#define STARRY_INITIALIZE_SUCCESS \
+	std::cout << "----------------------------------------\n"; \
+	std::cout << "Starry Render initialized successfully!\n"; \
+	std::cout << "----------------------------------------\n" << std::endl
+
+#define STARRY_EXIT_SUCCESS \
+	std::cout << "----------------------------------------\n"; \
+	std::cout << "Starry Render exited successfully!\n"; \
+	std::cout << "----------------------------------------\n" << std::endl
+
+#else
+#define INITIALIZE_SUCCESS
+#define EXIT_SUCCESS
+
+#endif
+
 #include "Application.h"
 
 #define CHECK_ERROR(obj) \
@@ -13,15 +33,11 @@
 	}
 
 namespace StarryRender {
-	void Application::initVulkan() {
-		window = new Window{};
-		CHECK_ERROR(window);
-		renderer = new RenderDevice{};
-		CHECK_ERROR(renderer);
-
-#ifdef SUCCESS_VALIDATION
-		std::cout << "Starry Render initialized successfully!\n" << std::endl;
-#endif
+	void Application::init() {
+		window = new Window{}; CHECK_ERROR(window);
+		renderer = new RenderDevice{window}; CHECK_ERROR(renderer);
+		
+		STARRY_INITIALIZE_SUCCESS;
 	}
 	void Application::renderLoop() {
 		while (!window->shouldClose()) {
@@ -34,8 +50,6 @@ namespace StarryRender {
 		delete renderer;
 		delete window;
 
-#ifdef SUCCESS_VALIDATION
-		std::cout << "Starry Render exited successfully!\n" << std::endl;
-#endif
+		STARRY_EXIT_SUCCESS;
 	}
 }

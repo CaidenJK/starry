@@ -18,6 +18,11 @@ namespace StarryRender
 		void pollEvents() const;
 		GLFWwindow* getGLFWwindow() const;
 
+		void createSurface(VkInstance& instance);
+		void destroySurface(VkInstance& instance);
+		
+		bool queryDeviceSupportKHR(VkPhysicalDevice& device, int number);
+
 		bool getError() { return error; }
 
 	private:
@@ -27,6 +32,7 @@ namespace StarryRender
 		int height;
 		const char* title;
 		GLFWwindow* window;
+		VkSurfaceKHR surface = VK_NULL_HANDLE;
 
 		bool error = false;
 	};

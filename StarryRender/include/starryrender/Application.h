@@ -15,7 +15,7 @@ namespace StarryRender {
 
         void run() {
             printVersion();
-            initVulkan();
+            init();
             renderLoop();
             cleanup();
         }
@@ -24,7 +24,7 @@ namespace StarryRender {
         void printVersion() {
             std::cout << "Hello! Starry Application Version: " << STARRY_APP_VERSION << std::endl;
         }
-        void initVulkan();
+        void init();
         void renderLoop();
         void cleanup();
 

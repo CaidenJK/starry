@@ -2,6 +2,29 @@
 
 #include <iostream>
 
+#ifndef NDEBUG
+#define SUCCESS_VALIDATION
+#endif
+
+#ifdef SUCCESS_VALIDATION
+
+#define THROW_ERROR(msg) \
+	error = true; \
+	std::cerr << "Device ERROR: " << msg << std::endl; \
+	return;
+
+#define ALERT_MSG(msg) \
+	std::cout << msg
+
+#else
+#define THROW_ERROR(msg) \
+	error = true; \
+	return;
+
+#define ALERT_MSG(msg)
+
+#endif
+
 namespace StarryRender {
 	Window::Window(int width, int height, const char* title)
 		: width(width), height(height), title(title), window(nullptr)
@@ -17,11 +40,7 @@ namespace StarryRender {
 	void Window::initWindow()
 	{
 		if (!glfwInit()) {
-			error = true;
-#ifdef SUCCESS_VALIDATION
-			std::cerr << "GLFW initialization failed!" << std::endl;
-#endif
-			return;
+			THROW_ERROR("GLFW initialization failed!");
 		}
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -32,11 +51,7 @@ namespace StarryRender {
 		if (!window)
 		{
 			glfwTerminate();
-			error = true;
-#ifdef SUCCESS_VALIDATION
-			std::cerr << "GLFW failed to create window!" << std::endl;
-#endif
-			return;
+			THROW_ERROR("GLFW failed to create window!");
 		}
 
 	}
@@ -51,5 +66,21 @@ namespace StarryRender {
 	GLFWwindow* Window::getGLFWwindow() const
 	{
 		return window;
+	}
+
+	void Window::createSurface(VkInstance& instance) {
+		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
+			THROW_ERROR("Failed to create window surface!");
+		}
+	}
+
+	void Window::destroySurface(VkInstance& instance) {
+		vkDestroySurfaceKHR(instance, surface, nullptr);
+	}
+
+	bool Window::queryDeviceSupportKHR(VkPhysicalDevice& device, int number) {
+		VkBool32 presentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, number, surface, &presentSupport);
+		return presentSupport;
 	}
 }

@@ -1,7 +1,33 @@
 #include "RenderDevice.h"
 
-#include <stdexcept>
 #include <iostream>
+#include <map>
+#include <set>
+
+#ifndef NDEBUG
+	#define SUCCESS_VALIDATION
+#endif
+
+#ifdef SUCCESS_VALIDATION
+
+#define THROW_ERROR(msg) \
+	error = true; \
+	std::cerr << "Device ERROR: " << msg << std::endl; \
+	return;
+
+#define ALERT_MSG(msg) \
+	std::cout << msg
+
+#else
+#define THROW_ERROR(msg) \
+	error = true; \
+	return;
+
+#define ALERT_MSG(msg)
+
+#endif
+
+#define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
 
@@ -31,25 +57,33 @@ namespace StarryRender {
 		createInfo.pfnUserCallback = debugCallback;
 	}
 
-	RenderDevice::RenderDevice(const char* name) : name(name) {
+	RenderDevice::RenderDevice(Window* windowReference, const char* name) : windowReference(windowReference), name(name) {
 		initVulkan();
 	}
 
 	RenderDevice::~RenderDevice() {
+		vkDestroyDevice(device, nullptr);
+
 		if (enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 		}
+		if (windowReference != nullptr) { windowReference->destroySurface(instance); }
 
 		vkDestroyInstance(instance, nullptr);
 	}
 
 	void RenderDevice::initVulkan() {
-		checkValidationLayerSupport(); if (error) { return; }
+		ERROR_VOLATILE(checkValidationLayerSupport());
 
-		createInstance(); if (error) { return; }
+		ERROR_VOLATILE(createInstance());
 
-		setupDebugMessenger(); if (error) { return; }
+		ERROR_VOLATILE(setupDebugMessenger());
 		checkVKExtensions();
+
+		ERROR_VOLATILE(createSurface());
+
+		ERROR_VOLATILE(pickPhysicalDevice());
+		ERROR_VOLATILE(createLogicalDevice());
 	}
 
 	void RenderDevice::setupDebugMessenger() {
@@ -59,11 +93,7 @@ namespace StarryRender {
 		debugMessengerCreateInfoFactory(createInfo);
 
 		if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-			error = true;
-#ifdef SUCCESS_VALIDATION
-			std::cerr << "Could not setup debug messenger!" << std::endl;
-#endif
-			return;
+			THROW_ERROR("Could not setup debug messenger!");
 		}
 	}
 
@@ -89,11 +119,7 @@ namespace StarryRender {
 			}
 
 			if (!layerFound) {
-				error = true;
-#ifdef SUCCESS_VALIDATION
-				std::cerr << "Validation layers requested, but not avalible!" << std::endl;
-#endif
-				return;
+				THROW_ERROR("Validation layer requested not available!");
 			}
 		}
 	}
@@ -104,17 +130,17 @@ namespace StarryRender {
 		vkExtensions.resize(extensionCount);
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, vkExtensions.data());
 
-		std::cout << "Available extensions:";
+		ALERT_MSG("Avalible Vulkan Extensions: ");
 		if (extensionCount == 0) {
-			std::cout << "\tNo extensions found.";
+			ALERT_MSG("\tNo extensions found.");
 		}
 		else {
-			std::cout << "\n";
+			ALERT_MSG("\n");
 			for (const auto& extension : vkExtensions) {
-				std::cout << '\t' << extension.extensionName << '\n';
+				ALERT_MSG('\t' << extension.extensionName << '\n');
 			}
 		}
-		std::cout << std::endl;
+		ALERT_MSG(std::endl);
 	}
 
 	std::vector<const char*> RenderDevice::getRequiredGLFWExtensions() {
@@ -161,12 +187,143 @@ namespace StarryRender {
 		
 
 		if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-			error = true;
-#ifdef SUCCESS_VALIDATION
-			std::cerr << "Vulkan initialization failed!" << std::endl;
-#endif
-			return;
+			THROW_ERROR("Vulkan instance creation failed!");
 		}
+	}
+
+	void RenderDevice::createSurface() {
+		if (windowReference != nullptr) {
+			windowReference->createSurface(instance);
+			error = windowReference->getError();
+		}
+		else {
+			THROW_ERROR("Window reference is null, cannot create surface!");
+		}
+	}
+
+	void RenderDevice::pickPhysicalDevice() {
+		uint32_t deviceCount = 0;
+		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+
+		if (deviceCount == 0) {
+			THROW_ERROR("Failed to find GPUs with Vulkan support!");
+		}
+
+		std::vector<VkPhysicalDevice> devices(deviceCount);
+		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+		ALERT_MSG("Available Vulkan Devices: \n");
+		std::multimap<int, VkPhysicalDevice> candidates;
+		for (const auto& device : devices) {
+			VkPhysicalDeviceProperties deviceProperties;
+			vkGetPhysicalDeviceProperties(device, &deviceProperties);
+			DeviceInfo deviceInfo = isDeviceSuitable(device);
+
+			if (deviceInfo.isSuitible) {
+				ALERT_MSG("\t" << deviceInfo.name << ", score: " << deviceInfo.score << "\n");
+				candidates.insert(std::make_pair(deviceInfo.score, device));
+			}
+		}
+
+		if (candidates.rbegin()->first < 1) {
+			THROW_ERROR("Failed to find a suitable GPU!");
+		}
+		physicalDevice = candidates.rbegin()->second;
+	}
+
+	RenderDevice::QueueFamilyIndices RenderDevice::findQueueFamilies(VkPhysicalDevice device) {
+		QueueFamilyIndices indices;
+
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+		// Find a queue that supports VK_QUEUE_GRAPHICS_BIT
+		int i = 0;
+		for (const auto& queueFamily : queueFamilies) {
+			if (windowReference->queryDeviceSupportKHR(device, i)) {
+				indices.presentFamily = i;
+			}
+			
+			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				indices.graphicsFamily = i;
+			}
+
+			if (indices.isComplete()) { break; }
+			i++;
+		}
+
+		return indices;
+	}
+
+	RenderDevice::DeviceInfo RenderDevice::isDeviceSuitable(VkPhysicalDevice device) {
+		VkPhysicalDeviceProperties deviceProperties;
+		vkGetPhysicalDeviceProperties(device, &deviceProperties);
+
+		VkPhysicalDeviceFeatures deviceFeatures;
+		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
+
+		DeviceInfo info;
+		QueueFamilyIndices indices = findQueueFamilies(device);
+		info.score = 1;
+		strcpy_s(info.name, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE, deviceProperties.deviceName);
+
+		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+			info.score += 1000;
+		}
+		
+		// Texture max size
+		info.score += deviceProperties.limits.maxImageDimension2D;
+
+		info.isSuitible = indices.isComplete() && info.score > 0;
+		return info;
+	}
+
+	void RenderDevice::createLogicalDevice() {
+		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		std::set<uint32_t> uniqueQueueFamilies = { indices.graphicsFamily.value(), indices.presentFamily.value() };
+
+		float queuePriority = 1.0f;
+		for (uint32_t queueFamily : uniqueQueueFamilies) {
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueCount = 1;
+			queueCreateInfo.pQueuePriorities = &queuePriority;
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
+
+		VkPhysicalDeviceFeatures deviceFeatures{};
+
+		VkDeviceCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+
+		createInfo.pQueueCreateInfos = queueCreateInfos.data();
+		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+		createInfo.pEnabledFeatures = &deviceFeatures;
+
+		createInfo.enabledExtensionCount = 0;
+
+		if (enableValidationLayers) {
+			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+			createInfo.ppEnabledLayerNames = validationLayers.data();
+		}
+		else {
+			createInfo.enabledLayerCount = 0;
+		}
+
+		// No device specific extensions needed yet
+
+		if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+			THROW_ERROR("Failed to create logical device!");
+		}
+
+		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL RenderDevice::debugCallback(
