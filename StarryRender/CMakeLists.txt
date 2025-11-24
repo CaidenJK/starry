@@ -45,3 +45,4 @@ if (CMAKE_VERSION VERSION_GREATER 3.12)
 endif()
 
 # TODO: Add tests
+# PROBLEM: Code not portable because of vulkan sdk path
