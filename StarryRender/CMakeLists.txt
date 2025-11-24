@@ -12,6 +12,7 @@ set(SOURCES
     "${SOURCE_DIR}/Window.cpp"
     "${SOURCE_DIR}/Application.cpp"
     "${SOURCE_DIR}/RenderDevice.cpp"
+    "${SOURCE_DIR}/RenderPipeline.cpp"
 )
 
 # Set Headers
@@ -21,6 +22,8 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starryrender")
 set(VULKAN_DIR 
 	"C:/VulkanSDK/1.4.313.2"
 )
+
+execute_process(COMMAND cmd /C "${CMAKE_CURRENT_SOURCE_DIR}/shaders/compile.bat" )
 
 # Create Library
 add_library(StarryRender ${SOURCES})

@@ -4,6 +4,7 @@
 #include "RenderDevice.h"
 
 #include <iostream>
+#include <memory>
 
 #define STARRY_APP_VERSION "0.0.1"
  
@@ -25,8 +26,9 @@ namespace StarryRender {
         void renderLoop();
         void cleanup();
 
-        Window* window = nullptr;
-        RenderDevice* renderer = nullptr;
+        std::shared_ptr<Window> window = nullptr;
+        std::shared_ptr<RenderDevice> renderer = nullptr;
+		std::shared_ptr<RenderPipeline> pipeline = nullptr;
 
         bool error = false;
     };

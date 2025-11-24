@@ -5,8 +5,11 @@
 
 #include <vector>
 #include <optional>
+#include <string>
+#include <memory>
 
 #include "Window.h"
+#include "RenderPipeline.h"
 
 #define DEFAULT_NAME "My Starry App"
 
@@ -35,11 +38,14 @@ namespace StarryRender {
 
 
 	public:
-		RenderDevice(Window*& windowReference, const char* name = DEFAULT_NAME);
+		RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name = DEFAULT_NAME);
 		~RenderDevice();
 
 		bool getError() { return error; }
 		VkInstance getInstance() { return instance; }
+
+		void setPipeline(std::shared_ptr<RenderPipeline>& pipelineTarget);
+		void setPipeline(std::string& vertShader, std::string& fragShader);
 
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -107,7 +113,9 @@ namespace StarryRender {
 		VkDebugUtilsMessengerEXT debugMessenger;
 
 		// Window outlives RenderDevice for now
-		Window*& windowReference;
+		std::weak_ptr<Window> windowReference;
+
+		std::shared_ptr<RenderPipeline> pipeline = nullptr;
 
 		bool error = false;
 	};

@@ -17,7 +17,13 @@
 #define THROW_ERROR(msg) \
 	error = true; \
 	std::cerr << "Device ERROR: " << msg << std::endl; \
-	return;
+	return
+
+#define THROW_ERROR_RETURN(msg, x) \
+	error = true; \
+	std::cerr << "Device ERROR: " << msg << std::endl; \
+	return x
+
 
 #define ALERT_MSG(msg) \
 	std::cout << msg
@@ -25,13 +31,24 @@
 #else
 #define THROW_ERROR(msg) \
 	error = true; \
-	return;
+	return
 
 #define ALERT_MSG(msg)
+
+#define THROW_ERROR_RETURN(msg, x) \
+	error = true; \
+	return x
 
 #endif
 
 #define ERROR_VOLATILE(x) x; if (error) { return; }
+
+#define START_WEAK_PTR \
+	if (std::shared_ptr<Window> window = windowReference.lock()) {
+#define END_WEAK_PTR(x) \
+	} else { \
+		THROW_ERROR_RETURN("Window reference is expired!", x); \
+	}
 
 namespace StarryRender {
 
@@ -61,7 +78,8 @@ namespace StarryRender {
 		createInfo.pfnUserCallback = debugCallback;
 	}
 
-	RenderDevice::RenderDevice(Window*& windowReference, const char* name) : windowReference(windowReference), name(name) {
+	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name) {
+		windowReference = windowPointer;
 		initVulkan();
 	}
 
@@ -207,13 +225,10 @@ namespace StarryRender {
 	}
 
 	void RenderDevice::createSurface() {
-		if (windowReference != nullptr) {
-			windowReference->createVulkanSurface(instance, surface);
-			error = windowReference->getError();
-		}
-		else {
-			THROW_ERROR("Window reference is null, cannot create surface!");
-		}
+		START_WEAK_PTR
+			window->createVulkanSurface(instance, surface);
+			error = window->getError();
+		END_WEAK_PTR()
 	}
 
 	void RenderDevice::pickPhysicalDevice() {
@@ -394,7 +409,9 @@ namespace StarryRender {
 		}
 		else {
 			int width, height;
-			windowReference->getFramebufferSize(width, height);
+			START_WEAK_PTR
+				window->getFramebufferSize(width, height);
+			END_WEAK_PTR({})
 
 			VkExtent2D actualExtent = {
 				static_cast<uint32_t>(width),
@@ -459,7 +476,7 @@ namespace StarryRender {
 
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+		ERROR_VOLATILE(VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities));
 
 		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
@@ -539,6 +556,18 @@ namespace StarryRender {
 				THROW_ERROR("Failed to create image views!");
 			}
 		}
+	}
+
+	void RenderDevice::setPipeline(std::shared_ptr<RenderPipeline>& pipelineTarget) {
+		pipeline = pipelineTarget;
+	}
+
+	void RenderDevice::setPipeline(std::string& vertShader, std::string& fragShader) {
+		if (!instance) {
+			THROW_ERROR("Vulkan instance not initialized! Can't set pipeline.");
+		}
+		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader);
+		error = pipeline->getError();
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL RenderDevice::debugCallback(

@@ -11,7 +11,13 @@
 #define THROW_ERROR(msg) \
 	error = true; \
 	std::cerr << "Device ERROR: " << msg << std::endl; \
-	return;
+	return
+
+#define THROW_ERROR_RETURN(msg, x) \
+	error = true; \
+	std::cerr << "Device ERROR: " << msg << std::endl; \
+	return x
+
 
 #define ALERT_MSG(msg) \
 	std::cout << msg
@@ -19,9 +25,13 @@
 #else
 #define THROW_ERROR(msg) \
 	error = true; \
-	return;
+	return
 
 #define ALERT_MSG(msg)
+
+#define THROW_ERROR_RETURN(msg, x) \
+	error = true; \
+	return x
 
 #endif
 

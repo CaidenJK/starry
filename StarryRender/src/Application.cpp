@@ -30,15 +30,21 @@
 #define CHECK_ERROR(obj) \
 	error = obj->getError(); \
 	if (error) { \
-		std::cerr << "Program ended prematurly due to an error." << std::endl; \
+		std::cerr << "\n----------> Program ended prematurly due to an error.\n" << std::endl; \
+		return; \
 	}
 
 #define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
 	void Application::init() {
-		window = new Window{}; CHECK_ERROR(window);
-		renderer = new RenderDevice{window}; CHECK_ERROR(renderer);
+		window = std::make_shared<Window>(); CHECK_ERROR(window);
+		renderer = std::make_shared<RenderDevice>(window); CHECK_ERROR(renderer);
+
+		pipeline = std::make_shared<RenderPipeline>("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(pipeline);
+		renderer->setPipeline(pipeline); CHECK_ERROR(renderer);
+		// Instead of Check error, just have if(error) {return} at the header of each member function. 
+		// That way it'll just run through every function and declare an error at the end cleanly.
 		
 		STARRY_INITIALIZE_SUCCESS;
 	}
@@ -50,8 +56,8 @@ namespace StarryRender {
 
 	// Destroy renderer then window last
 	void Application::cleanup() {
-		delete renderer;
-		delete window;
+		renderer.reset();
+		window.reset();
 
 		STARRY_EXIT_SUCCESS;
 	}
