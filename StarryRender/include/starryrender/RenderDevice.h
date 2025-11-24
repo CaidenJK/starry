@@ -54,6 +54,7 @@ namespace StarryRender {
 		void checkVKExtensions();
 		void createLogicalDevice();
 		void createSwapChain();
+		void createImageViews();
 
 		std::vector<const char*> getRequiredGLFWExtensions();
 		void checkValidationLayerSupport();
@@ -97,6 +98,8 @@ namespace StarryRender {
 		std::vector<VkImage> swapChainImages;
 		VkFormat swapChainImageFormat;
 		VkExtent2D swapChainExtent;
+
+		std::vector<VkImageView> swapChainImageViews;
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
