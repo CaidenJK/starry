@@ -566,7 +566,7 @@ namespace StarryRender {
 		if (!instance) {
 			THROW_ERROR("Vulkan instance not initialized! Can't set pipeline.");
 		}
-		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device);
+		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device, swapChainExtent);
 		error = pipeline->getError();
 	}
 

@@ -12,13 +12,13 @@ namespace StarryRender {
 	class RenderPipeline {
 	public:
 		RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
-		RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef);
+		RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef, VkExtent2D& swapChainExtent);
 		~RenderPipeline();
 
 		bool getError() { return error; }
 		void loadShadersFromFiles(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 
-		void constructPipeline(VkDevice& deviceRef);
+		void constructPipeline(VkDevice& deviceRef, VkExtent2D& swapChainExtent);
 
 	private:
 		void initPipeline();
@@ -42,7 +42,13 @@ namespace StarryRender {
 
 		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {};
 
-		VkDevice device;
+		VkExtent2D extent;
+		VkViewport viewport{};
+		VkRect2D scissor{};
+
+		VkPipelineLayout pipelineLayout;
+
+		VkDevice device = VK_NULL_HANDLE;
 
 		bool error = false;
 	};
