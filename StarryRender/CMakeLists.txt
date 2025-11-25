@@ -18,12 +18,14 @@ set(SOURCES
 # Set Headers
 
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starryrender")
+set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 
 set(VULKAN_DIR 
 	"C:/VulkanSDK/1.4.313.2"
 )
 
-execute_process(COMMAND cmd /C "${CMAKE_CURRENT_SOURCE_DIR}/shaders/compile.bat" )
+execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/simple_shader.vert -o ${SHADER_DIR}/vert.spv" )
+execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/simple_shader.frag -o ${SHADER_DIR}/frag.spv" )
 
 # Create Library
 add_library(StarryRender ${SOURCES})
