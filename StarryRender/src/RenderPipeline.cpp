@@ -39,17 +39,72 @@
 #define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
-	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
+	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath), device(deviceRef) {
+		ERROR_VOLATILE(initPipeline());
+		constructPipeline(device);
+	}
+
+	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
 		initPipeline();
 	}
 
 	RenderPipeline::~RenderPipeline() {
-
+		if (vertShaderModule != VK_NULL_HANDLE) {
+			vkDestroyShaderModule(device, vertShaderModule, nullptr);
+		}
+		if (fragShaderModule != VK_NULL_HANDLE) {
+			vkDestroyShaderModule(device, fragShaderModule, nullptr);
+		}
 	}
 
 	void RenderPipeline::initPipeline() {
 		ERROR_VOLATILE(loadVertexShaderFromFile());
 		ERROR_VOLATILE(loadFragmentShaderFromFile());
+	}
+
+	void RenderPipeline::constructPipeline(VkDevice& deviceRef) {
+		if (vertShaderModule != VK_NULL_HANDLE || fragShaderModule != VK_NULL_HANDLE || error == true) {
+			ALERT_MSG("Warning: constructPipeline called more than once. All calls other than the first are skipped." << std::endl);
+			return;
+		}
+		device = deviceRef;
+		ERROR_VOLATILE(vertShaderModule = createShaderModule(device, vertexShaderCode, error));
+		ERROR_VOLATILE(vertShaderModule = createShaderModule(device, vertexShaderCode, error));
+		ERROR_VOLATILE(bindShaderStages());
+		//ERROR_VOLATILE(constructPipelineLayout());
+	}
+
+	VkShaderModule RenderPipeline::createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error) {
+		VkShaderModuleCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize = code.size();
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+
+		VkShaderModule shaderModule;
+		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+			THROW_ERROR_RETURN("Failed to create shader module.", {});
+		}
+		return shaderModule;
+	}
+
+	void RenderPipeline::bindShaderStages() {
+		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
+		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+		vertShaderStageInfo.module = vertShaderModule;
+		vertShaderStageInfo.pName = "main";
+
+		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
+		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+		fragShaderStageInfo.module = fragShaderModule;
+		fragShaderStageInfo.pName = "main";
+
+		shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
+	}
+
+	void RenderPipeline::constructPipelineLayout() {
+		
 	}
 
 	void RenderPipeline::loadVertexShaderFromFile() {
