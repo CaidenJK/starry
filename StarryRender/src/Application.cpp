@@ -41,8 +41,7 @@ namespace StarryRender {
 		window = std::make_shared<Window>(); CHECK_ERROR(window);
 		renderer = std::make_shared<RenderDevice>(window); CHECK_ERROR(renderer);
 
-		pipeline = std::make_shared<RenderPipeline>("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(pipeline);
-		renderer->setPipeline(pipeline); CHECK_ERROR(renderer);
+		renderer->setPipeline("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(renderer);
 		// Instead of Check error, just have if(error) {return} at the header of each member function. 
 		// That way it'll just run through every function and declare an error at the end cleanly.
 		

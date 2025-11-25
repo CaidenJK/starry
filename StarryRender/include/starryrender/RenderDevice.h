@@ -45,7 +45,7 @@ namespace StarryRender {
 		VkInstance getInstance() { return instance; }
 
 		void setPipeline(std::shared_ptr<RenderPipeline>& pipelineTarget);
-		void setPipeline(std::string& vertShader, std::string& fragShader);
+		void setPipeline(const std::string& vertShader, const std::string& fragShader);
 
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

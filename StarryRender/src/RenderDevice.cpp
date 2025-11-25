@@ -84,6 +84,9 @@ namespace StarryRender {
 	}
 
 	RenderDevice::~RenderDevice() {
+		ERROR_VOLATILE();
+
+		pipeline.reset();
 		vkDestroySwapchainKHR(device, swapChain, nullptr);
 		for (auto imageView : swapChainImageViews) {
 			vkDestroyImageView(device, imageView, nullptr);
@@ -562,11 +565,11 @@ namespace StarryRender {
 		pipeline = pipelineTarget;
 	}
 
-	void RenderDevice::setPipeline(std::string& vertShader, std::string& fragShader) {
+	void RenderDevice::setPipeline(const std::string& vertShader, const std::string& fragShader) {
 		if (!instance) {
 			THROW_ERROR("Vulkan instance not initialized! Can't set pipeline.");
 		}
-		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device, swapChainExtent);
+		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device, swapChainImageFormat, swapChainExtent);
 		error = pipeline->getError();
 	}
 

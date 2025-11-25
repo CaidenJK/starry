@@ -39,9 +39,9 @@
 #define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
-	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef, VkExtent2D& swapChainExtent): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
+	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
 		ERROR_VOLATILE(initPipeline());
-		constructPipeline(deviceRef, swapChainExtent);
+		constructPipeline(deviceRef, swapChainImageFormat, swapChainExtent);
 	}
 
 	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
@@ -49,12 +49,19 @@ namespace StarryRender {
 	}
 
 	RenderPipeline::~RenderPipeline() {
+		ERROR_VOLATILE();
+		if (device == VK_NULL_HANDLE) {
+			THROW_ERROR("Device never set!");
+		}
 		if (vertShaderModule != VK_NULL_HANDLE) {
 			vkDestroyShaderModule(device, vertShaderModule, nullptr);
 		}
 		if (fragShaderModule != VK_NULL_HANDLE) {
 			vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		}
+
+		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+		vkDestroyRenderPass(device, renderPass, nullptr);
 	}
 
 	void RenderPipeline::initPipeline() {
@@ -62,7 +69,7 @@ namespace StarryRender {
 		ERROR_VOLATILE(loadFragmentShaderFromFile());
 	}
 
-	void RenderPipeline::constructPipeline(VkDevice& deviceRef, VkExtent2D& swapChainExtent) {
+	void RenderPipeline::constructPipeline(VkDevice& deviceRef, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent) {
 		if (vertShaderModule != VK_NULL_HANDLE || fragShaderModule != VK_NULL_HANDLE || error == true) {
 			ALERT_MSG("Warning: constructPipeline called more than once. All calls other than the first are skipped." << std::endl);
 			return;
@@ -73,7 +80,9 @@ namespace StarryRender {
 		ERROR_VOLATILE(bindShaderStages());
 
 		extent = swapChainExtent;
+		imageFormat = swapChainImageFormat;
 
+		ERROR_VOLATILE(createRenderPass());
 		ERROR_VOLATILE(constructPipelineLayout());
 	}
 
@@ -104,6 +113,40 @@ namespace StarryRender {
 		fragShaderStageInfo.pName = "main";
 
 		shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
+	}
+
+	void RenderPipeline::createRenderPass() {
+		VkAttachmentDescription colorAttachment{};
+		colorAttachment.format = imageFormat;
+		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+
+		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
+		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+		VkAttachmentReference colorAttachmentRef{};
+		colorAttachmentRef.attachment = 0;
+		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+		VkSubpassDescription subpass{};
+		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		subpass.colorAttachmentCount = 1;
+		subpass.pColorAttachments = &colorAttachmentRef;
+
+		VkRenderPassCreateInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		renderPassInfo.attachmentCount = 1;
+		renderPassInfo.pAttachments = &colorAttachment;
+		renderPassInfo.subpassCount = 1;
+		renderPassInfo.pSubpasses = &subpass;
+
+		if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+			THROW_ERROR("Failed to create render pass!");
+		}
 	}
 
 	void RenderPipeline::constructPipelineLayout() {
