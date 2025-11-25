@@ -52,6 +52,8 @@ namespace StarryRender {
 		VkRenderPass renderPass;
 		VkPipelineLayout pipelineLayout;
 
+		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
+
 		VkDevice device = VK_NULL_HANDLE;
 
 		bool error = false;
