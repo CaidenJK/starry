@@ -88,7 +88,7 @@ namespace StarryRender {
 
 		pipeline.reset();
 		vkDestroySwapchainKHR(device, swapChain, nullptr);
-		for (auto imageView : swapChainImageViews) {
+		for (auto imageView : swapChainData.swapChainImageViews) {
 			vkDestroyImageView(device, imageView, nullptr);
 		}
 
@@ -526,23 +526,23 @@ namespace StarryRender {
 		}
 
 		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
-		swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+		swapChainData.swapChainImages.resize(imageCount);
+		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainData.swapChainImages.data());
 
 
-		swapChainImageFormat = surfaceFormat.format;
-		swapChainExtent = extent;
+		swapChainData.swapChainImageFormat = surfaceFormat.format;
+		swapChainData.swapChainExtent = extent;
 	}
 
 	void RenderDevice::createImageViews() {
-		swapChainImageViews.resize(swapChainImages.size());
+		swapChainData.swapChainImageViews.resize(swapChainData.swapChainImages.size());
 
-		for (size_t i = 0; i < swapChainImages.size(); i++) {
+		for (size_t i = 0; i < swapChainData.swapChainImages.size(); i++) {
 			VkImageViewCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.image = swapChainImages[i];
+			createInfo.image = swapChainData.swapChainImages[i];
 			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = swapChainImageFormat;
+			createInfo.format = swapChainData.swapChainImageFormat;
 
 			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -555,7 +555,7 @@ namespace StarryRender {
 			createInfo.subresourceRange.baseArrayLayer = 0;
 			createInfo.subresourceRange.layerCount = 1;
 
-			if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
+			if (vkCreateImageView(device, &createInfo, nullptr, &swapChainData.swapChainImageViews[i]) != VK_SUCCESS) {
 				THROW_ERROR("Failed to create image views!");
 			}
 		}
@@ -569,7 +569,7 @@ namespace StarryRender {
 		if (!instance) {
 			THROW_ERROR("Vulkan instance not initialized! Can't set pipeline.");
 		}
-		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device, swapChainImageFormat, swapChainExtent);
+		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device, swapChainData);
 		error = pipeline->getError();
 	}
 

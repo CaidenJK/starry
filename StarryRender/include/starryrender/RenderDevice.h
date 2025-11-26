@@ -36,7 +36,6 @@ namespace StarryRender {
 			std::vector<VkPresentModeKHR> presentModes;
 		};
 
-
 	public:
 		RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name = DEFAULT_NAME);
 		~RenderDevice();
@@ -101,11 +100,7 @@ namespace StarryRender {
 		VkSurfaceKHR surface = VK_NULL_HANDLE;
 
 		VkSwapchainKHR swapChain;
-		std::vector<VkImage> swapChainImages;
-		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
-
-		std::vector<VkImageView> swapChainImageViews;
+		SwapChainMetaData swapChainData;
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;

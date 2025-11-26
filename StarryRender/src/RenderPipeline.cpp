@@ -39,9 +39,9 @@
 #define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
-	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
+	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef, SwapChainMetaData& swapChainData): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
 		ERROR_VOLATILE(initPipeline());
-		constructPipeline(deviceRef, swapChainImageFormat, swapChainExtent);
+		constructPipeline(deviceRef, swapChainData);
 	}
 
 	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
@@ -71,7 +71,7 @@ namespace StarryRender {
 		ERROR_VOLATILE(loadFragmentShaderFromFile());
 	}
 
-	void RenderPipeline::constructPipeline(VkDevice& deviceRef, VkFormat& swapChainImageFormat, VkExtent2D& swapChainExtent) {
+	void RenderPipeline::constructPipeline(VkDevice& deviceRef, SwapChainMetaData& swapChainData) {
 		if (vertShaderModule != VK_NULL_HANDLE || fragShaderModule != VK_NULL_HANDLE || error == true) {
 			ALERT_MSG("Warning: constructPipeline called more than once. All calls other than the first are skipped." << std::endl);
 			return;
@@ -81,11 +81,10 @@ namespace StarryRender {
 		ERROR_VOLATILE(fragShaderModule = createShaderModule(device, fragmentShaderCode, error));
 		ERROR_VOLATILE(bindShaderStages());
 
-		extent = swapChainExtent;
-		imageFormat = swapChainImageFormat;
+		ERROR_VOLATILE(createRenderPass(swapChainData));
+		ERROR_VOLATILE(constructPipelineLayout(swapChainData));
 
-		ERROR_VOLATILE(createRenderPass());
-		ERROR_VOLATILE(constructPipelineLayout());
+		ERROR_VOLATILE(createFramebuffers(swapChainData));
 	}
 
 	VkShaderModule RenderPipeline::createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error) {
@@ -117,9 +116,9 @@ namespace StarryRender {
 		shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
 	}
 
-	void RenderPipeline::createRenderPass() {
+	void RenderPipeline::createRenderPass(SwapChainMetaData& swapChainData) {
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = imageFormat;
+		colorAttachment.format = swapChainData.swapChainImageFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -151,7 +150,7 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout() {
+	void RenderPipeline::constructPipelineLayout(SwapChainMetaData& swapChainData) {
 		// No vertex data
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -169,13 +168,13 @@ namespace StarryRender {
 		// Viewport and scissor
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = (float)extent.width;
-		viewport.height = (float)extent.height;
+		viewport.width = (float)swapChainData.swapChainExtent.width;
+		viewport.height = (float)swapChainData.swapChainExtent.height;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 
 		scissor.offset = { 0, 0 };
-		scissor.extent = extent;
+		scissor.extent = swapChainData.swapChainExtent;
 
 		std::vector<VkDynamicState> dynamicStates = {
 			VK_DYNAMIC_STATE_VIEWPORT,
@@ -276,6 +275,10 @@ namespace StarryRender {
 			THROW_ERROR("Failed to create graphics pipeline!");
 		}
 		ALERT_MSG("Successful Pipeline Creation!\n" << std::endl;);
+	}
+
+	void RenderPipeline::createFramebuffers(SwapChainMetaData& swapChainData) {
+		swapChainFramebuffers.resize(swapChainData.swapChainImageViews.size());
 	}
 
 	void RenderPipeline::loadVertexShaderFromFile() {
