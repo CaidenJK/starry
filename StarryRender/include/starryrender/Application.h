@@ -20,7 +20,7 @@ namespace StarryRender {
 
     private:
         void printVersion() {
-            std::cout << "Hello! Starry Application Version: " << STARRY_APP_VERSION << std::endl;
+            std::cout << "Hello! Starry Application Version: " << STARRY_APP_VERSION << "\n" << std::endl;
         }
         void init();
         void renderLoop();

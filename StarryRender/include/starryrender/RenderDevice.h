@@ -48,6 +48,10 @@ namespace StarryRender {
 
 		void Init();
 
+		void Draw();
+
+		void WaitIdle();
+
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -56,6 +60,8 @@ namespace StarryRender {
 			void* pUserData);
 
 	private:
+		static const int MAX_FRAMES_IN_FLIGHT = 2;
+
 		void initVulkan();
 		void createInstance();
 		void checkVKExtensions();
@@ -64,6 +70,7 @@ namespace StarryRender {
 		void createImageViews();
 		void createCommmandPool();
 		void createCommandBuffer();
+		void createSyncObjects();
 
 		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
@@ -113,6 +120,11 @@ namespace StarryRender {
 
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
+		
+		// Presentation
+		VkSemaphore imageAvailableSemaphore = VK_NULL_HANDLE;
+		VkSemaphore renderFinishedSemaphore = VK_NULL_HANDLE;
+		VkFence inFlightFence = VK_NULL_HANDLE;
 
 		VkDebugUtilsMessengerEXT debugMessenger;
 

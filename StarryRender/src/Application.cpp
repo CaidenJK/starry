@@ -34,8 +34,6 @@
 		return; \
 	}
 
-#define ERROR_VOLATILE(x) x; if (error) { return; }
-
 namespace StarryRender {
 	void Application::init() {
 		window = std::make_shared<Window>(); CHECK_ERROR(window);
@@ -52,7 +50,9 @@ namespace StarryRender {
 	void Application::renderLoop() {
 		while (!window->shouldClose()) {
 			window->pollEvents();
+			renderer->Draw(); CHECK_ERROR(renderer);
 		}
+		renderer->WaitIdle();
 	}
 
 	// Destroy renderer then window last
@@ -65,7 +65,7 @@ namespace StarryRender {
 
 	void Application::run() {
 		printVersion();
-		ERROR_VOLATILE(init());
+		init();
 		renderLoop();
 		cleanup();
 	}

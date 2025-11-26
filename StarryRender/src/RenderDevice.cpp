@@ -84,6 +84,7 @@ namespace StarryRender {
 	}
 
 	RenderDevice::~RenderDevice() {
+		// Future know where it errored as to clean up nessecary objects
 		ERROR_VOLATILE();
 
 		pipeline.reset();
@@ -94,6 +95,16 @@ namespace StarryRender {
 
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
+		}
+
+		if (imageAvailableSemaphore != VK_NULL_HANDLE) {
+			vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+		}
+		if (renderFinishedSemaphore != VK_NULL_HANDLE) {
+			vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+		}
+		if (inFlightFence != VK_NULL_HANDLE) {
+			vkDestroyFence(device, inFlightFence, nullptr);
 		}
 
 		vkDestroyDevice(device, nullptr);
@@ -578,13 +589,24 @@ namespace StarryRender {
 	}
 
 	void RenderDevice::Init() {
+		ERROR_VOLATILE()
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
 		}
-		commandBuffer = VK_NULL_HANDLE;
+		if (imageAvailableSemaphore != VK_NULL_HANDLE) {
+			vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
+		}
+		if (renderFinishedSemaphore != VK_NULL_HANDLE) {
+			vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
+		}
+		if (inFlightFence != VK_NULL_HANDLE) {
+			vkDestroyFence(device, inFlightFence, nullptr);
+		}
+
 		ERROR_VOLATILE(createCommmandPool());
 		ERROR_VOLATILE(createCommandBuffer());
 
+		ERROR_VOLATILE(createSyncObjects());
 	}
 
 	void RenderDevice::createCommmandPool() {
@@ -609,6 +631,21 @@ namespace StarryRender {
 
 		if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
 			THROW_ERROR("Failed to allocate command buffer!");
+		}
+	}
+
+	void RenderDevice::createSyncObjects() {
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
+			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
+			THROW_ERROR("Failed to create syncronization objects!");
 		}
 	}
 
@@ -665,6 +702,61 @@ namespace StarryRender {
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 			THROW_ERROR("Failed to record command buffer!");
 		}
+	}
+
+	void RenderDevice::Draw() {
+		ERROR_VOLATILE();
+		if (pipeline == nullptr ||
+			commandPool == VK_NULL_HANDLE ||
+			imageAvailableSemaphore == VK_NULL_HANDLE ||
+			renderFinishedSemaphore == VK_NULL_HANDLE ||
+			inFlightFence == VK_NULL_HANDLE) {
+			THROW_ERROR("Draw called before Device was fully initilized.");
+		}
+
+		vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &inFlightFence);
+
+		// Aquire image from swapchain
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+		vkResetCommandBuffer(commandBuffer, 0);
+		recordCommandBuffer(commandBuffer, imageIndex);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS) {
+			THROW_ERROR("Failed to submit draw command buffer!");
+		}
+
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+		VkSwapchainKHR swapChains[] = { swapChain };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pResults = nullptr; // Optional
+
+		vkQueuePresentKHR(presentQueue, &presentInfo);
+	}
+
+	void RenderDevice::WaitIdle() {
+		vkDeviceWaitIdle(device);
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL RenderDevice::debugCallback(
