@@ -28,6 +28,11 @@ namespace StarryRender {
 
 		void constructPipeline(VkDevice& deviceRef, SwapChainMetaData& swapChainData);
 
+		std::vector<VkFramebuffer>& getFramebuffers() { return swapChainFramebuffers; }
+		VkRenderPass& getRenderPass() { return renderPass; }
+
+		VkPipeline& getGraphicsPipeline() { return graphicsPipeline; }
+
 	private:
 		void initPipeline();
 		void bindShaderStages();

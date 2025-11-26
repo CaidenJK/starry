@@ -63,6 +63,9 @@ namespace StarryRender {
 		void createSwapChain();
 		void createImageViews();
 		void createCommmandPool();
+		void createCommandBuffer();
+
+		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 		std::vector<const char*> getRequiredGLFWExtensions();
 		void checkValidationLayerSupport();
@@ -109,6 +112,7 @@ namespace StarryRender {
 		VkQueue presentQueue;
 
 		VkCommandPool commandPool = VK_NULL_HANDLE;
+		VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 
 		VkDebugUtilsMessengerEXT debugMessenger;
 
