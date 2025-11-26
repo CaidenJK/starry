@@ -60,6 +60,10 @@ namespace StarryRender {
 			vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		}
 
+		for (auto framebuffer : swapChainFramebuffers) {
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
+
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 		vkDestroyRenderPass(device, renderPass, nullptr);
 
@@ -85,6 +89,7 @@ namespace StarryRender {
 		ERROR_VOLATILE(constructPipelineLayout(swapChainData));
 
 		ERROR_VOLATILE(createFramebuffers(swapChainData));
+		ALERT_MSG("Successful Pipeline Creation!\n" << std::endl;);
 	}
 
 	VkShaderModule RenderPipeline::createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error) {
@@ -274,11 +279,29 @@ namespace StarryRender {
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 			THROW_ERROR("Failed to create graphics pipeline!");
 		}
-		ALERT_MSG("Successful Pipeline Creation!\n" << std::endl;);
 	}
 
 	void RenderPipeline::createFramebuffers(SwapChainMetaData& swapChainData) {
 		swapChainFramebuffers.resize(swapChainData.swapChainImageViews.size());
+
+		for (size_t i = 0; i < swapChainData.swapChainImageViews.size(); i++) {
+			VkImageView attachments[] = {
+				swapChainData.swapChainImageViews[i]
+			};
+
+			VkFramebufferCreateInfo framebufferInfo{};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = renderPass;
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = attachments;
+			framebufferInfo.width = swapChainData.swapChainExtent.width;
+			framebufferInfo.height = swapChainData.swapChainExtent.height;
+			framebufferInfo.layers = 1;
+
+			if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+				THROW_ERROR("Failed to create a required framebuffers!");
+			}
+		}
 	}
 
 	void RenderPipeline::loadVertexShaderFromFile() {
