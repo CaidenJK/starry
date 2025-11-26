@@ -92,6 +92,10 @@ namespace StarryRender {
 			vkDestroyImageView(device, imageView, nullptr);
 		}
 
+		if (commandPool != VK_NULL_HANDLE) {
+			vkDestroyCommandPool(device, commandPool, nullptr);
+		}
+
 		vkDestroyDevice(device, nullptr);
 
 		if (enableValidationLayers) {
@@ -571,6 +575,23 @@ namespace StarryRender {
 		}
 		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device, swapChainData);
 		error = pipeline->getError();
+	}
+
+	void RenderDevice::Init() {
+		ERROR_VOLATILE(createCommmandPool());
+	}
+
+	void RenderDevice::createCommmandPool() {
+		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
+
+		if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+			THROW_ERROR("Failed to create command pool!");
+		}
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL RenderDevice::debugCallback(

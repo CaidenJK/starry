@@ -46,6 +46,8 @@ namespace StarryRender {
 		void setPipeline(std::shared_ptr<RenderPipeline>& pipelineTarget);
 		void setPipeline(const std::string& vertShader, const std::string& fragShader);
 
+		void Init();
+
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -60,6 +62,7 @@ namespace StarryRender {
 		void createLogicalDevice();
 		void createSwapChain();
 		void createImageViews();
+		void createCommmandPool();
 
 		std::vector<const char*> getRequiredGLFWExtensions();
 		void checkValidationLayerSupport();
@@ -104,6 +107,8 @@ namespace StarryRender {
 
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
+
+		VkCommandPool commandPool = VK_NULL_HANDLE;
 
 		VkDebugUtilsMessengerEXT debugMessenger;
 
