@@ -19,6 +19,9 @@ mono_crash.*
 # Dependencies built by CMake
 Dependencies/
 
+# Compiled Shaders
+*.spv
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
