@@ -97,13 +97,13 @@ namespace StarryRender {
 			vkDestroyCommandPool(device, commandPool, nullptr);
 		}
 
-		if (imageAvailableSemaphore != VK_NULL_HANDLE) {
+		for (auto imageAvailableSemaphore : imageAvailableSemaphores) {
 			vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 		}
-		if (renderFinishedSemaphore != VK_NULL_HANDLE) {
+		for (auto renderFinishedSemaphore : renderFinishedSemaphores) {
 			vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
 		}
-		if (inFlightFence != VK_NULL_HANDLE) {
+		for (auto inFlightFence : inFlightFences) {
 			vkDestroyFence(device, inFlightFence, nullptr);
 		}
 
@@ -593,18 +593,21 @@ namespace StarryRender {
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
 		}
-		if (imageAvailableSemaphore != VK_NULL_HANDLE) {
+		for (auto imageAvailableSemaphore : imageAvailableSemaphores) {
 			vkDestroySemaphore(device, imageAvailableSemaphore, nullptr);
 		}
-		if (renderFinishedSemaphore != VK_NULL_HANDLE) {
+		imageAvailableSemaphores.clear();
+		for (auto renderFinishedSemaphore : renderFinishedSemaphores) {
 			vkDestroySemaphore(device, renderFinishedSemaphore, nullptr);
 		}
-		if (inFlightFence != VK_NULL_HANDLE) {
+		renderFinishedSemaphores.clear();
+		for (auto inFlightFence : inFlightFences) {
 			vkDestroyFence(device, inFlightFence, nullptr);
 		}
+		inFlightFences.clear();
 
 		ERROR_VOLATILE(createCommmandPool());
-		ERROR_VOLATILE(createCommandBuffer());
+		ERROR_VOLATILE(createCommandBuffers());
 
 		ERROR_VOLATILE(createSyncObjects());
 	}
@@ -622,19 +625,25 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderDevice::createCommandBuffer() {
+	void RenderDevice::createCommandBuffers() {
+		commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = commandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = 1;
+		allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();;
 
-		if (vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer) != VK_SUCCESS) {
-			THROW_ERROR("Failed to allocate command buffer!");
+		if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
+			THROW_ERROR("Failed to allocate command buffers!");
 		}
 	}
 
 	void RenderDevice::createSyncObjects() {
+		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+		renderFinishedSemaphores.resize(swapChainData.swapChainImages.size());
+		inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -642,10 +651,17 @@ namespace StarryRender {
 		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-		if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
-			vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS ||
-			vkCreateFence(device, &fenceInfo, nullptr, &inFlightFence) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create syncronization objects!");
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+				vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
+
+				THROW_ERROR("Failed to create synchronization objects for all frames!");
+			}
+		}
+		for (size_t i = 0; i < swapChainData.swapChainImages.size(); i++) {
+			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS) {
+				THROW_ERROR("Failed to create synchronization objects for all frames!");
+			}
 		}
 	}
 
@@ -708,37 +724,37 @@ namespace StarryRender {
 		ERROR_VOLATILE();
 		if (pipeline == nullptr ||
 			commandPool == VK_NULL_HANDLE ||
-			imageAvailableSemaphore == VK_NULL_HANDLE ||
-			renderFinishedSemaphore == VK_NULL_HANDLE ||
-			inFlightFence == VK_NULL_HANDLE) {
+			imageAvailableSemaphores.size() == 0 ||
+			renderFinishedSemaphores.size() == 0 ||
+			inFlightFences.size() == 0) {
 			THROW_ERROR("Draw called before Device was fully initilized.");
 		}
 
-		vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(device, 1, &inFlightFence);
+		vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+		vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
 		// Aquire image from swapchain
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-		vkResetCommandBuffer(commandBuffer, 0);
-		recordCommandBuffer(commandBuffer, imageIndex);
+		vkResetCommandBuffer(commandBuffers[currentFrame], 0);
+		recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+		VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
-		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+		submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
+		VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[imageIndex]};
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) != VK_SUCCESS) {
+		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
 			THROW_ERROR("Failed to submit draw command buffer!");
 		}
 
@@ -753,6 +769,8 @@ namespace StarryRender {
 		presentInfo.pResults = nullptr; // Optional
 
 		vkQueuePresentKHR(presentQueue, &presentInfo);
+
+		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void RenderDevice::WaitIdle() {
