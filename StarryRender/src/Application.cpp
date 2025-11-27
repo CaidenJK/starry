@@ -60,7 +60,7 @@ namespace StarryRender {
 		renderer.reset();
 		window.reset();
 
-		STARRY_EXIT_SUCCESS;
+		if (error == false) { STARRY_EXIT_SUCCESS; }
 	}
 
 	void Application::run() {

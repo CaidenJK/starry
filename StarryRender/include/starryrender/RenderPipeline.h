@@ -28,6 +28,8 @@ namespace StarryRender {
 
 		void constructPipeline(VkDevice& deviceRef, SwapChainMetaData& swapChainData);
 
+		void recreateFramebuffers(SwapChainMetaData& swapChainData);
+
 		std::vector<VkFramebuffer>& getFramebuffers() { return swapChainFramebuffers; }
 		VkRenderPass& getRenderPass() { return renderPass; }
 
@@ -37,7 +39,7 @@ namespace StarryRender {
 		void initPipeline();
 		void bindShaderStages();
 		void createRenderPass(SwapChainMetaData& swapChainData);
-		void constructPipelineLayout(SwapChainMetaData& swapChainData);
+		void constructPipelineLayout();
 		void createFramebuffers(SwapChainMetaData& swapChainData);
 
 		static VkShaderModule createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error);

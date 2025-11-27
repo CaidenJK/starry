@@ -88,10 +88,7 @@ namespace StarryRender {
 		ERROR_VOLATILE();
 
 		pipeline.reset();
-		vkDestroySwapchainKHR(device, swapChain, nullptr);
-		for (auto imageView : swapChainData.swapChainImageViews) {
-			vkDestroyImageView(device, imageView, nullptr);
-		}
+		cleanupSwapChain();
 
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
@@ -401,7 +398,7 @@ namespace StarryRender {
 		if (!isSet) {
 			currentSwapSurfaceFormat = availableFormats[0];
 		}
-		ALERT_MSG("Chosen Swap Surface Format: " << string_VkFormat(currentSwapSurfaceFormat.format) << ", Color Space: " << string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace) << std::endl);
+		ALERT_MSG("Chosen Swap Surface Format: " << string_VkFormat(currentSwapSurfaceFormat.format) << ", Color Space: " << string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace) << "\n" << std::endl);
 		return currentSwapSurfaceFormat;
 	}
 	VkPresentModeKHR RenderDevice::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>&availablePresentModes) {
@@ -418,7 +415,7 @@ namespace StarryRender {
 		if (!isSet) {
 			currentPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 		}
-		ALERT_MSG("Chosen Present Mode: " << string_VkPresentModeKHR(currentPresentMode) << std::endl);
+		ALERT_MSG("Chosen Present Mode: " << string_VkPresentModeKHR(currentPresentMode) << "\n" << std::endl);
 		return currentPresentMode;
 	}
 	VkExtent2D RenderDevice::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
@@ -731,11 +728,20 @@ namespace StarryRender {
 		}
 
 		vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-		vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
 		// Aquire image from swapchain
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			recreateSwapChain();
+			return;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+			THROW_ERROR("Failed to acquire swap chain image!");
+		}
+
+		vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
 		vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 		recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
@@ -768,13 +774,51 @@ namespace StarryRender {
 		presentInfo.pImageIndices = &imageIndex;
 		presentInfo.pResults = nullptr; // Optional
 
-		vkQueuePresentKHR(presentQueue, &presentInfo);
+		result = vkQueuePresentKHR(presentQueue, &presentInfo);
+
+		bool framebufferResized = false;
+		START_WEAK_PTR
+			framebufferResized = window->wasFramebufferResized();
+		END_WEAK_PTR()
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
+			// try again next time
+			START_WEAK_PTR
+				window->resetFramebufferResizedFlag();
+			END_WEAK_PTR()
+				recreateSwapChain();
+			return;
+		}
+		else if (result != VK_SUCCESS) {
+			THROW_ERROR("Failed to acquire swap chain image!");
+		}
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
 	void RenderDevice::WaitIdle() {
 		vkDeviceWaitIdle(device);
+	}
+
+	void RenderDevice::recreateSwapChain() {
+		START_WEAK_PTR
+			window->windowMinimizedBlock();
+		END_WEAK_PTR()
+		vkDeviceWaitIdle(device);
+
+		cleanupSwapChain();
+
+		createSwapChain();
+		createImageViews();
+		pipeline->recreateFramebuffers(swapChainData);
+	}
+
+	void RenderDevice::cleanupSwapChain() {
+		for (auto imageView : swapChainData.swapChainImageViews) {
+			vkDestroyImageView(device, imageView, nullptr);
+		}
+
+		vkDestroySwapchainKHR(device, swapChain, nullptr);
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL RenderDevice::debugCallback(

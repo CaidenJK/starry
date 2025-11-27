@@ -54,7 +54,6 @@ namespace StarryRender {
 		}
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 		window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
@@ -63,6 +62,9 @@ namespace StarryRender {
 			glfwTerminate();
 			THROW_ERROR("GLFW failed to create window!");
 		}
+
+		glfwSetWindowUserPointer(window, this);
+		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 
 	}
 	bool Window::shouldClose() const
@@ -86,5 +88,18 @@ namespace StarryRender {
 
 	void Window::getFramebufferSize(int& width, int& height) {
 		glfwGetFramebufferSize(window, &width, &height);
+	}
+
+	void Window::windowMinimizedBlock() {
+		int width = 0, height = 0;
+		while (width == 0 || height == 0) {
+			glfwGetFramebufferSize(window, &width, &height);
+			glfwWaitEvents();
+		}
+	}
+
+	void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+		auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+		app->framebufferResized = true;
 	}
 }

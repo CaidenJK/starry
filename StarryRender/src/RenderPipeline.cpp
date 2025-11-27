@@ -86,7 +86,7 @@ namespace StarryRender {
 		ERROR_VOLATILE(bindShaderStages());
 
 		ERROR_VOLATILE(createRenderPass(swapChainData));
-		ERROR_VOLATILE(constructPipelineLayout(swapChainData));
+		ERROR_VOLATILE(constructPipelineLayout());
 
 		ERROR_VOLATILE(createFramebuffers(swapChainData));
 		ALERT_MSG("Successful Pipeline Creation!\n" << std::endl;);
@@ -165,7 +165,7 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout(SwapChainMetaData& swapChainData) {
+	void RenderPipeline::constructPipelineLayout() {
 		// No vertex data
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -179,17 +179,6 @@ namespace StarryRender {
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
 		inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-		// Viewport and scissor
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = (float)swapChainData.swapChainExtent.width;
-		viewport.height = (float)swapChainData.swapChainExtent.height;
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-
-		scissor.offset = { 0, 0 };
-		scissor.extent = swapChainData.swapChainExtent;
 
 		std::vector<VkDynamicState> dynamicStates = {
 			VK_DYNAMIC_STATE_VIEWPORT,
@@ -312,6 +301,13 @@ namespace StarryRender {
 				THROW_ERROR("Failed to create a required framebuffers!");
 			}
 		}
+	}
+
+	void RenderPipeline::recreateFramebuffers(SwapChainMetaData& swapChainData) {
+		for (auto framebuffer : swapChainFramebuffers) {
+			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		}
+		ERROR_VOLATILE(createFramebuffers(swapChainData));
 	}
 
 	void RenderPipeline::loadVertexShaderFromFile() {

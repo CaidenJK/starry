@@ -23,6 +23,13 @@ namespace StarryRender
 
 		bool getError() { return error; }
 
+		bool wasFramebufferResized() { return framebufferResized; }
+		void resetFramebufferResizedFlag() { framebufferResized = false; }
+
+		void windowMinimizedBlock();
+
+		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
+
 	private:
 		void initWindow();
 
@@ -30,6 +37,8 @@ namespace StarryRender
 		int height;
 		const char* title;
 		GLFWwindow* window;
+
+		bool framebufferResized = false;
 
 		bool error = false;
 	};

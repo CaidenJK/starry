@@ -72,6 +72,9 @@ namespace StarryRender {
 		void createCommandBuffers();
 		void createSyncObjects();
 
+		void cleanupSwapChain();
+		void recreateSwapChain();
+
 		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 		std::vector<const char*> getRequiredGLFWExtensions();
