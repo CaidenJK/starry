@@ -19,7 +19,7 @@ namespace StarryRender {
 		struct DeviceInfo {
 			bool isSuitible = false;
 			int score = 0;
-			char name[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE];
+			char name[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE] = "\0";
 		};
 
 		struct QueueFamilyIndices {
@@ -39,6 +39,9 @@ namespace StarryRender {
 	public:
 		RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name = DEFAULT_NAME);
 		~RenderDevice();
+
+		RenderDevice operator=(const RenderDevice&) = delete;
+		RenderDevice(const RenderDevice&) = delete;
 
 		bool getError() { return error; }
 		VkInstance getInstance() { return instance; }

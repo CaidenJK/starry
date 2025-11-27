@@ -42,7 +42,7 @@ namespace StarryRender {
 		renderer->setPipeline("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(renderer);
 		renderer->Init(); CHECK_ERROR(renderer);
 
-		// Instead of Check error, just have if(error) {return} at the header of each member function. 
+		// Instead of Check error, just have if(error) {return} at the header of each member function.
 		// That way it'll just run through every function and declare an error at the end cleanly.
 		
 		STARRY_INITIALIZE_SUCCESS;

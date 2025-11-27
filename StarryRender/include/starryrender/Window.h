@@ -14,6 +14,9 @@ namespace StarryRender
 		Window(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT, const char* title = DEFAULT_TITLE);
 		~Window();
 
+		Window operator=(const Window&) = delete;
+		Window(const Window&) = delete;
+
 		bool shouldClose() const;
 		void pollEvents() const;
 		GLFWwindow* getGLFWwindow() const;

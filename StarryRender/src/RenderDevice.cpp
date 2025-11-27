@@ -45,7 +45,12 @@
 
 #define START_WEAK_PTR \
 	if (std::shared_ptr<Window> window = windowReference.lock()) {
-#define END_WEAK_PTR(x) \
+
+#define END_WEAK_PTR \
+	} else { \
+		THROW_ERROR("Window reference is expired!"); \
+	}
+#define END_WEAK_PTR_RETURN(x) \
 	} else { \
 		THROW_ERROR_RETURN("Window reference is expired!", x); \
 	}
@@ -85,7 +90,7 @@ namespace StarryRender {
 
 	RenderDevice::~RenderDevice() {
 		// Future know where it errored as to clean up nessecary objects
-		ERROR_VOLATILE();
+		ERROR_VOLATILE(;);
 
 		pipeline.reset();
 		cleanupSwapChain();
@@ -243,7 +248,7 @@ namespace StarryRender {
 		START_WEAK_PTR
 			window->createVulkanSurface(instance, surface);
 			error = window->getError();
-		END_WEAK_PTR()
+		END_WEAK_PTR
 	}
 
 	void RenderDevice::pickPhysicalDevice() {
@@ -426,7 +431,7 @@ namespace StarryRender {
 			int width, height;
 			START_WEAK_PTR
 				window->getFramebufferSize(width, height);
-			END_WEAK_PTR({})
+			END_WEAK_PTR_RETURN({})
 
 			VkExtent2D actualExtent = {
 				static_cast<uint32_t>(width),
@@ -586,7 +591,7 @@ namespace StarryRender {
 	}
 
 	void RenderDevice::Init() {
-		ERROR_VOLATILE()
+		ERROR_VOLATILE(;)
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
 		}
@@ -718,7 +723,7 @@ namespace StarryRender {
 	}
 
 	void RenderDevice::Draw() {
-		ERROR_VOLATILE();
+		ERROR_VOLATILE(;);
 		if (pipeline == nullptr ||
 			commandPool == VK_NULL_HANDLE ||
 			imageAvailableSemaphores.size() == 0 ||
@@ -779,13 +784,13 @@ namespace StarryRender {
 		bool framebufferResized = false;
 		START_WEAK_PTR
 			framebufferResized = window->wasFramebufferResized();
-		END_WEAK_PTR()
+		END_WEAK_PTR
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			// try again next time
 			START_WEAK_PTR
 				window->resetFramebufferResizedFlag();
-			END_WEAK_PTR()
+			END_WEAK_PTR
 				recreateSwapChain();
 			return;
 		}
@@ -803,7 +808,7 @@ namespace StarryRender {
 	void RenderDevice::recreateSwapChain() {
 		START_WEAK_PTR
 			window->windowMinimizedBlock();
-		END_WEAK_PTR()
+		END_WEAK_PTR
 		vkDeviceWaitIdle(device);
 
 		cleanupSwapChain();
