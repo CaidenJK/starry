@@ -11,8 +11,11 @@
 namespace StarryRender {
 	class RenderPipeline {
 	public:
-		RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& device);
+		RenderPipeline(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 		~RenderPipeline();
+
+		RenderPipeline operator=(const RenderPipeline&) = delete;
+		RenderPipeline(const RenderPipeline&) = delete;
 
 		bool getError() { return error; }
 		void loadShadersFromFiles(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);

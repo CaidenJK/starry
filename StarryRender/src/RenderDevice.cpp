@@ -427,7 +427,7 @@ namespace StarryRender {
 		if (!device) {
 			THROW_ERROR("Vulkan device not initialized! Can't create pipeline.");
 		}
-		pipeline = std::make_shared<RenderPipeline>(vertShader, fragShader, device);
+		pipeline = std::make_shared<RenderPipeline>(device, vertShader, fragShader);
 
 		pipeline->constructPipeline(swapChain->getImageFormat());
 		error = pipeline->getError();

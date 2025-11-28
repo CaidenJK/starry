@@ -14,6 +14,9 @@ namespace StarryRender {
         Application() {};
         ~Application() {};
 
+		Application operator=(const Application&) = delete;
+		Application(const Application&) = delete;
+
 		bool getError() { return error; }
 
         void run();

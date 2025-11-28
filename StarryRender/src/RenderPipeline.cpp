@@ -39,7 +39,7 @@
 #define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
-	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& device): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath), device(device) {
+	RenderPipeline::RenderPipeline(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath), device(device) {
 		ERROR_VOLATILE(initPipeline());
 	}
 

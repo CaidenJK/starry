@@ -30,6 +30,9 @@ namespace StarryRender {
 			SwapChain(VkDevice& device);
 			~SwapChain();
 
+			SwapChain operator=(const SwapChain&) = delete;
+			SwapChain(const SwapChain&) = delete;
+
 			void constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface);
 			void generateFramebuffers(VkRenderPass& renderPass);
 
