@@ -37,12 +37,11 @@
 
 namespace StarryRender {
 	Window::Window(int width, int height, const char* title)
-		: width(width), height(height), title(title), window(nullptr)
-	{
+		: width(width), height(height), title(title), window(nullptr) {
 		initWindow();
 	}
-	Window::~Window()
-	{
+
+	Window::~Window() {
 		glfwDestroyWindow(window);
 
 		glfwTerminate();
@@ -90,11 +89,14 @@ namespace StarryRender {
 		glfwGetFramebufferSize(window, &width, &height);
 	}
 
-	void Window::windowMinimizedBlock() {
+	bool Window::isWindowMinimized() {
 		int width = 0, height = 0;
-		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(window, &width, &height);
-			glfwWaitEvents();
+		glfwGetFramebufferSize(window, &width, &height);
+		if (width == 0 || height == 0) {
+			return true;
+		}
+		else {
+			return false;
 		}
 	}
 

@@ -1,8 +1,6 @@
 #include <vulkan/vulkan.h>
 
 #include <iostream>
-#include <stdexcept>
-#include <cstdlib>
 
 #ifndef NDEBUG
 	#define SUCCESS_VALIDATION
@@ -41,18 +39,34 @@ namespace StarryRender {
 
 		renderer->setPipeline("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(renderer);
 		renderer->Init(); CHECK_ERROR(renderer);
-
+		       
 		// Instead of Check error, just have if(error) {return} at the header of each member function.
 		// That way it'll just run through every function and declare an error at the end cleanly.
+
+		renderRunning.store(true);
 		
 		STARRY_INITIALIZE_SUCCESS;
 	}
-	void Application::renderLoop() {
-		while (!window->shouldClose()) {
+	void Application::mainLoop() {
+		renderThread = std::thread(&Application::renderLoop, this);
+
+		while (!window->shouldClose() && !error) {
 			window->pollEvents();
-			renderer->Draw(); CHECK_ERROR(renderer);
 		}
+
+		renderRunning.store(false);
+		if (renderThread.joinable()) renderThread.join();
+
 		renderer->WaitIdle();
+	}
+
+	void Application::renderLoop() {
+		while (renderRunning.load()) {
+			renderer->Draw();
+			CHECK_ERROR(renderer);
+
+			std::this_thread::sleep_for(std::chrono::milliseconds(4));
+		}
 	}
 
 	// Destroy renderer then window last
@@ -66,7 +80,7 @@ namespace StarryRender {
 	void Application::run() {
 		printVersion();
 		init();
-		renderLoop();
+		mainLoop();
 		cleanup();
 	}
 }

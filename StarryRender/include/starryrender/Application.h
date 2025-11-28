@@ -5,6 +5,8 @@
 
 #include <iostream>
 #include <memory>
+#include <thread>
+#include <atomic>
 
 #define STARRY_APP_VERSION "0.0.1"
  
@@ -26,8 +28,13 @@ namespace StarryRender {
             std::cout << "Hello! Starry Application Version: " << STARRY_APP_VERSION << "\n" << std::endl;
         }
         void init();
-        void renderLoop();
+        void mainLoop();
         void cleanup();
+
+        std::thread renderThread;
+        std::atomic<bool> renderRunning{ false };
+
+        void renderLoop();
 
         std::shared_ptr<Window> window = nullptr;
         std::shared_ptr<RenderDevice> renderer = nullptr;

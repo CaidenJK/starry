@@ -6,7 +6,6 @@
 #include <string>
 #include <vector>
 #include <array>
-#include <optional>
 
 namespace StarryRender {
 	class RenderPipeline {

@@ -29,10 +29,9 @@ namespace StarryRender
 		bool wasFramebufferResized() { return framebufferResized; }
 		void resetFramebufferResizedFlag() { framebufferResized = false; }
 
-		void windowMinimizedBlock();
+		bool isWindowMinimized();
 
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
-
 	private:
 		void initWindow();
 

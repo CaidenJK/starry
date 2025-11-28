@@ -5,8 +5,6 @@
 #include <map>
 #include <set>
 #include <cstdint>
-#include <limits>
-#include <algorithm>
 
 #ifndef NDEBUG
 	#define SUCCESS_VALIDATION
@@ -645,7 +643,7 @@ namespace StarryRender {
 			START_WEAK_PTR
 				window->resetFramebufferResizedFlag();
 			END_WEAK_PTR
-				recreateSwapChain();
+			recreateSwapChain();
 			return;
 		}
 		else if (result != VK_SUCCESS) {
@@ -661,7 +659,8 @@ namespace StarryRender {
 
 	void RenderDevice::recreateSwapChain() {
 		START_WEAK_PTR
-			window->windowMinimizedBlock();
+			// Try again later
+			if (window->isWindowMinimized()) { return; }
 		END_WEAK_PTR
 		vkDeviceWaitIdle(device);
 
