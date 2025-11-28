@@ -37,7 +37,7 @@ namespace StarryRender {
 		window = std::make_shared<Window>(); CHECK_ERROR(window);
 		renderer = std::make_shared<RenderDevice>(window); CHECK_ERROR(renderer);
 
-		renderer->setPipeline("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(renderer);
+		renderer->loadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(renderer);
 		renderer->Init(); CHECK_ERROR(renderer);
 		       
 		// Instead of Check error, just have if(error) {return} at the header of each member function.
@@ -65,7 +65,7 @@ namespace StarryRender {
 			renderer->Draw();
 			CHECK_ERROR(renderer);
 
-			std::this_thread::sleep_for(std::chrono::milliseconds(4));
+			std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
 		}
 	}
 

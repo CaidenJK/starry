@@ -88,7 +88,7 @@ namespace StarryRender {
 
 	RenderDevice::~RenderDevice() {
 		// Future know where it errored as to clean up nessecary objects
-		ERROR_VOLATILE(;);
+		ERROR_VOLATILE();
 
 		pipeline.reset();
 		swapChain.reset();
@@ -421,22 +421,32 @@ namespace StarryRender {
 		error = swapChain->getError();
 	}
 
-	void RenderDevice::setPipeline(const std::string& vertShader, const std::string& fragShader) {
+	void RenderDevice::loadShader(const std::string& vertShader, const std::string& fragShader) {
 		if (!device) {
-			THROW_ERROR("Vulkan device not initialized! Can't create pipeline.");
+			THROW_ERROR("Vulkan device not initialized! Can't create pipeline with shader.");
 		}
-		pipeline = std::make_shared<RenderPipeline>(device, vertShader, fragShader);
+		std::shared_ptr<Shader> shader = std::make_shared<Shader>(device, vertShader, fragShader);
+		error = shader->getError();
+		ERROR_VOLATILE();
+
+		pipeline = std::make_shared<RenderPipeline>(device);
+		error = pipeline->getError();
+		ERROR_VOLATILE();
+
+		pipeline->loadShader(shader);
+		error = pipeline->getError();
+		ERROR_VOLATILE();
 
 		pipeline->constructPipeline(swapChain->getImageFormat());
 		error = pipeline->getError();
-		ERROR_VOLATILE(;);
+		ERROR_VOLATILE();
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
 		error = swapChain->getError();
 	}
 
 	void RenderDevice::Init() {
-		ERROR_VOLATILE(;)
+		ERROR_VOLATILE();
 		if (pipeline == nullptr) {
 			THROW_ERROR("Pipeline not created before Init!");
 		}
@@ -574,7 +584,7 @@ namespace StarryRender {
 	}
 
 	void RenderDevice::Draw() {
-		ERROR_VOLATILE(;);
+		ERROR_VOLATILE();
 		if (pipeline == nullptr ||
 			swapChain == nullptr ||
 			commandPool == VK_NULL_HANDLE ||
@@ -669,7 +679,7 @@ namespace StarryRender {
 
 		swapChain->constructSwapChain(swapChainSupport, indices, windowReference, surface);
 		error = swapChain->getError();
-		ERROR_VOLATILE(;);
+		ERROR_VOLATILE();
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
 		error = swapChain->getError();
 	}

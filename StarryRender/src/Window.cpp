@@ -10,12 +10,12 @@
 
 #define THROW_ERROR(msg) \
 	error = true; \
-	std::cerr << "Device ERROR: " << msg << std::endl; \
+	std::cerr << "Window ERROR: " << msg << std::endl; \
 	return
 
 #define THROW_ERROR_RETURN(msg, x) \
 	error = true; \
-	std::cerr << "Device ERROR: " << msg << std::endl; \
+	std::cerr << "Window ERROR: " << msg << std::endl; \
 	return x
 
 

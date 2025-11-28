@@ -5,19 +5,23 @@
 
 #include <string>
 #include <vector>
-#include <array>
+#include <memory>
+
+#include <memory>
+
+#include "Shader.h"
 
 namespace StarryRender {
 	class RenderPipeline {
 	public:
-		RenderPipeline(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+		RenderPipeline(VkDevice& device);
 		~RenderPipeline();
 
 		RenderPipeline operator=(const RenderPipeline&) = delete;
 		RenderPipeline(const RenderPipeline&) = delete;
 
 		bool getError() { return error; }
-		void loadShadersFromFiles(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+		void loadShader(std::shared_ptr<Shader>& shaderValue);
 
 		void constructPipeline(VkFormat swapChainImageFormat);
 
@@ -26,36 +30,19 @@ namespace StarryRender {
 		VkPipeline& getGraphicsPipeline() { return graphicsPipeline; }
 
 	private:
-		void initPipeline();
-		void bindShaderStages();
 		void createRenderPass(VkFormat swapChainImageFormat);
 		void constructPipelineLayout();
 
-		static VkShaderModule createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error);
+		std::shared_ptr<Shader> shader = nullptr;
 
-		static std::vector<char> readFile(const std::string& filename, bool& error);
-		void loadVertexShaderFromFile();
-		void loadFragmentShaderFromFile();
+		//VkViewport viewport{};
+		//VkRect2D scissor{};
 
-		const std::string& vertexShaderPath;
-		const std::string& fragmentShaderPath;
-
-		std::vector<char> vertexShaderCode = {};
-		std::vector<char> fragmentShaderCode = {};
-
-		VkShaderModule vertShaderModule = VK_NULL_HANDLE;
-		VkShaderModule fragShaderModule = VK_NULL_HANDLE;
-
-		std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {};
-
-		VkViewport viewport{};
-		VkRect2D scissor{};
-
-		VkRenderPass renderPass;
-		VkPipelineLayout pipelineLayout;
+		VkRenderPass renderPass = VK_NULL_HANDLE;
+		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
-		VkDevice device = VK_NULL_HANDLE;
+		VkDevice& device;
 
 		bool error = false;
 	};

@@ -54,6 +54,9 @@
 
 namespace StarryRender {
 	SwapChain::SwapChain(VkDevice& device) : device(device) {
+		if (device == VK_NULL_HANDLE) {
+			THROW_ERROR("Device is null!");
+		}
 	}
 
 	SwapChain::~SwapChain() {

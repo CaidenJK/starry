@@ -66,7 +66,7 @@ namespace StarryRender {
 
 			std::vector<VkFramebuffer> swapChainFramebuffers;
 
-			VkDevice device = VK_NULL_HANDLE;
+			VkDevice& device;
 
 			bool error = false;
 	};

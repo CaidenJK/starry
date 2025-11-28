@@ -14,6 +14,7 @@ set(SOURCES
     "${SOURCE_DIR}/RenderDevice.cpp"
     "${SOURCE_DIR}/RenderPipeline.cpp"
     "${SOURCE_DIR}/SwapChain.cpp"
+    "${SOURCE_DIR}/Shader.cpp"
 )
 
 # Set Headers

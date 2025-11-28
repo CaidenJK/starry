@@ -32,7 +32,7 @@ namespace StarryRender {
 		bool getError() { return error; }
 		VkInstance getInstance() { return instance; }
 
-		void setPipeline(const std::string& vertShader, const std::string& fragShader);
+		void loadShader(const std::string& vertShader, const std::string& fragShader);
 
 		void Init();
 
@@ -102,7 +102,7 @@ namespace StarryRender {
 		VkQueue presentQueue;
 
 		VkCommandPool commandPool = VK_NULL_HANDLE;
-		std::vector<VkCommandBuffer> commandBuffers = {}; // iterate and destroy
+		std::vector<VkCommandBuffer> commandBuffers = {};
 		
 		// Presentation
 		std::vector<VkSemaphore> imageAvailableSemaphores = {};

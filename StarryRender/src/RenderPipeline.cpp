@@ -39,20 +39,16 @@
 #define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
-	RenderPipeline::RenderPipeline(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath), device(device) {
-		ERROR_VOLATILE(initPipeline());
+	RenderPipeline::RenderPipeline(VkDevice& device) : device(device) {
+		if (device == VK_NULL_HANDLE) {
+			THROW_ERROR("Device is null!");
+		}
 	}
 
 	RenderPipeline::~RenderPipeline() {
 		ERROR_VOLATILE();
-		if (device == VK_NULL_HANDLE) {
-			THROW_ERROR("Device never set!");
-		}
-		if (vertShaderModule != VK_NULL_HANDLE) {
-			vkDestroyShaderModule(device, vertShaderModule, nullptr);
-		}
-		if (fragShaderModule != VK_NULL_HANDLE) {
-			vkDestroyShaderModule(device, fragShaderModule, nullptr);
+		if (shader != nullptr) {
+			shader.reset();
 		}
 
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
@@ -61,54 +57,30 @@ namespace StarryRender {
 		vkDestroyPipeline(device, graphicsPipeline, nullptr);
 	}
 
-	void RenderPipeline::initPipeline() {
-		ERROR_VOLATILE(loadVertexShaderFromFile());
-		ERROR_VOLATILE(loadFragmentShaderFromFile());
+	void RenderPipeline::loadShader(std::shared_ptr<Shader>& shaderValue) {
+		if (shader != nullptr) {
+			THROW_ERROR("Shader already loaded! All calls other than the first are skipped.");
+		}
+		shader = shaderValue;
+		if (shader->getError()) {
+			THROW_ERROR("Shader has error after loading into pipeline!");
+		}
 	}
 
 	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) {
-		if (vertShaderModule != VK_NULL_HANDLE || fragShaderModule != VK_NULL_HANDLE || error == true) {
+		if (graphicsPipeline != VK_NULL_HANDLE || error == true) {
 			ALERT_MSG("Warning: constructPipeline called more than once. All calls other than the first are skipped." << std::endl);
 			return;
 		}
 
-		ERROR_VOLATILE(vertShaderModule = createShaderModule(device, vertexShaderCode, error));
-		ERROR_VOLATILE(fragShaderModule = createShaderModule(device, fragmentShaderCode, error));
-		ERROR_VOLATILE(bindShaderStages());
+		if (shader == nullptr) {
+			THROW_ERROR("Shader not loaded before pipeline construction!");
+		}
 
 		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
 		ERROR_VOLATILE(constructPipelineLayout());
 
 		ALERT_MSG("Successful Pipeline Creation!\n" << std::endl;);
-	}
-
-	VkShaderModule RenderPipeline::createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error) {
-		VkShaderModuleCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-		createInfo.codeSize = code.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
-
-		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-			THROW_ERROR_RETURN("Failed to create shader module.", {});
-		}
-		return shaderModule;
-	}
-
-	void RenderPipeline::bindShaderStages() {
-		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
-		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		vertShaderStageInfo.module = vertShaderModule;
-		vertShaderStageInfo.pName = "main";
-
-		VkPipelineShaderStageCreateInfo fragShaderStageInfo{};
-		fragShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		fragShaderStageInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-		fragShaderStageInfo.module = fragShaderModule;
-		fragShaderStageInfo.pName = "main";
-
-		shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
 	}
 
 	void RenderPipeline::createRenderPass(VkFormat swapChainImageFormat) {
@@ -247,7 +219,7 @@ namespace StarryRender {
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.stageCount = 2;
-		pipelineInfo.pStages = shaderStages.data();
+		pipelineInfo.pStages = shader->getShaderStages().data();
 
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -269,28 +241,4 @@ namespace StarryRender {
 			THROW_ERROR("Failed to create graphics pipeline!");
 		}
 	}
-
-	void RenderPipeline::loadVertexShaderFromFile() {
-		vertexShaderCode = readFile(vertexShaderPath, error);
-	}
-
-	void RenderPipeline::loadFragmentShaderFromFile() {
-		fragmentShaderCode = readFile(fragmentShaderPath, error);
-	}
-
-    std::vector<char> RenderPipeline::readFile(const std::string& filename, bool& error) {
-        std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-        if (!file.is_open()) {
-			THROW_ERROR_RETURN("Failed to open file: " << filename, {});
-        }
-
-		size_t fileSize = (size_t)file.tellg();
-		std::vector<char> buffer(fileSize);
-		file.seekg(0);
-		file.read(buffer.data(), fileSize);
-		file.close();
-
-		return buffer;
-    }
 }
