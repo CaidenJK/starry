@@ -10,6 +10,7 @@
 
 #include "Window.h"
 #include "RenderPipeline.h"
+#include "SwapChain.h"
 
 #define DEFAULT_NAME "My Starry App"
 
@@ -22,20 +23,6 @@ namespace StarryRender {
 			char name[VK_MAX_PHYSICAL_DEVICE_NAME_SIZE] = "\0";
 		};
 
-		struct QueueFamilyIndices {
-			std::optional<uint32_t> graphicsFamily;
-			std::optional<uint32_t> presentFamily;
-
-			bool isComplete() {
-				return graphicsFamily.has_value() && presentFamily.has_value();
-			}
-		};
-		struct SwapChainSupportDetails {
-			VkSurfaceCapabilitiesKHR capabilities;
-			std::vector<VkSurfaceFormatKHR> formats;
-			std::vector<VkPresentModeKHR> presentModes;
-		};
-
 	public:
 		RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name = DEFAULT_NAME);
 		~RenderDevice();
@@ -46,7 +33,6 @@ namespace StarryRender {
 		bool getError() { return error; }
 		VkInstance getInstance() { return instance; }
 
-		void setPipeline(std::shared_ptr<RenderPipeline>& pipelineTarget);
 		void setPipeline(const std::string& vertShader, const std::string& fragShader);
 
 		void Init();
@@ -69,13 +55,13 @@ namespace StarryRender {
 		void createInstance();
 		void checkVKExtensions();
 		void createLogicalDevice();
+
 		void createSwapChain();
-		void createImageViews();
+
 		void createCommmandPool();
 		void createCommandBuffers();
 		void createSyncObjects();
 
-		void cleanupSwapChain();
 		void recreateSwapChain();
 
 		void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
@@ -93,11 +79,6 @@ namespace StarryRender {
 
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-
-		SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-		VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-		VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-		VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 		const char* name;
 		
@@ -118,9 +99,6 @@ namespace StarryRender {
 		
 		VkSurfaceKHR surface = VK_NULL_HANDLE;
 
-		VkSwapchainKHR swapChain;
-		SwapChainMetaData swapChainData;
-
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 
@@ -134,12 +112,18 @@ namespace StarryRender {
 
 		uint32_t currentFrame = 0;
 
+		// Dyno resolution
+		VkExtent2D drawExtent;
+		float renderScale = 1.0f;
+
+
 		VkDebugUtilsMessengerEXT debugMessenger;
 
 		// Window outlives RenderDevice for now
 		std::weak_ptr<Window> windowReference;
 
 		std::shared_ptr<RenderPipeline> pipeline = nullptr;
+		std::shared_ptr<SwapChain> swapChain = nullptr;
 
 		bool error = false;
 	};

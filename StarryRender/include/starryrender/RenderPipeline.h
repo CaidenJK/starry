@@ -9,28 +9,16 @@
 #include <optional>
 
 namespace StarryRender {
-	struct SwapChainMetaData {
-		std::vector<VkImage> swapChainImages;
-		VkFormat swapChainImageFormat;
-		VkExtent2D swapChainExtent;
-
-		std::vector<VkImageView> swapChainImageViews;
-	};
-
 	class RenderPipeline {
 	public:
-		RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
-		RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef, SwapChainMetaData& swapChainData);
+		RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& device);
 		~RenderPipeline();
 
 		bool getError() { return error; }
 		void loadShadersFromFiles(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 
-		void constructPipeline(VkDevice& deviceRef, SwapChainMetaData& swapChainData);
+		void constructPipeline(VkFormat swapChainImageFormat);
 
-		void recreateFramebuffers(SwapChainMetaData& swapChainData);
-
-		std::vector<VkFramebuffer>& getFramebuffers() { return swapChainFramebuffers; }
 		VkRenderPass& getRenderPass() { return renderPass; }
 
 		VkPipeline& getGraphicsPipeline() { return graphicsPipeline; }
@@ -38,9 +26,8 @@ namespace StarryRender {
 	private:
 		void initPipeline();
 		void bindShaderStages();
-		void createRenderPass(SwapChainMetaData& swapChainData);
+		void createRenderPass(VkFormat swapChainImageFormat);
 		void constructPipelineLayout();
-		void createFramebuffers(SwapChainMetaData& swapChainData);
 
 		static VkShaderModule createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error);
 
@@ -65,8 +52,6 @@ namespace StarryRender {
 		VkRenderPass renderPass;
 		VkPipelineLayout pipelineLayout;
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
-
-		std::vector<VkFramebuffer> swapChainFramebuffers;
 
 		VkDevice device = VK_NULL_HANDLE;
 

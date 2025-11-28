@@ -13,6 +13,7 @@ set(SOURCES
     "${SOURCE_DIR}/Application.cpp"
     "${SOURCE_DIR}/RenderDevice.cpp"
     "${SOURCE_DIR}/RenderPipeline.cpp"
+    "${SOURCE_DIR}/SwapChain.cpp"
 )
 
 # Set Headers

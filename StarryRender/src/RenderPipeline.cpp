@@ -39,13 +39,8 @@
 #define ERROR_VOLATILE(x) x; if (error) { return; }
 
 namespace StarryRender {
-	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& deviceRef, SwapChainMetaData& swapChainData): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
+	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath, VkDevice& device): vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath), device(device) {
 		ERROR_VOLATILE(initPipeline());
-		constructPipeline(deviceRef, swapChainData);
-	}
-
-	RenderPipeline::RenderPipeline(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
-		initPipeline();
 	}
 
 	RenderPipeline::~RenderPipeline() {
@@ -60,10 +55,6 @@ namespace StarryRender {
 			vkDestroyShaderModule(device, fragShaderModule, nullptr);
 		}
 
-		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}
-
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 		vkDestroyRenderPass(device, renderPass, nullptr);
 
@@ -75,20 +66,19 @@ namespace StarryRender {
 		ERROR_VOLATILE(loadFragmentShaderFromFile());
 	}
 
-	void RenderPipeline::constructPipeline(VkDevice& deviceRef, SwapChainMetaData& swapChainData) {
+	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) {
 		if (vertShaderModule != VK_NULL_HANDLE || fragShaderModule != VK_NULL_HANDLE || error == true) {
 			ALERT_MSG("Warning: constructPipeline called more than once. All calls other than the first are skipped." << std::endl);
 			return;
 		}
-		device = deviceRef;
+
 		ERROR_VOLATILE(vertShaderModule = createShaderModule(device, vertexShaderCode, error));
 		ERROR_VOLATILE(fragShaderModule = createShaderModule(device, fragmentShaderCode, error));
 		ERROR_VOLATILE(bindShaderStages());
 
-		ERROR_VOLATILE(createRenderPass(swapChainData));
+		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
 		ERROR_VOLATILE(constructPipelineLayout());
 
-		ERROR_VOLATILE(createFramebuffers(swapChainData));
 		ALERT_MSG("Successful Pipeline Creation!\n" << std::endl;);
 	}
 
@@ -121,9 +111,9 @@ namespace StarryRender {
 		shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
 	}
 
-	void RenderPipeline::createRenderPass(SwapChainMetaData& swapChainData) {
+	void RenderPipeline::createRenderPass(VkFormat swapChainImageFormat) {
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = swapChainData.swapChainImageFormat;
+		colorAttachment.format = swapChainImageFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -278,36 +268,6 @@ namespace StarryRender {
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 			THROW_ERROR("Failed to create graphics pipeline!");
 		}
-	}
-
-	void RenderPipeline::createFramebuffers(SwapChainMetaData& swapChainData) {
-		swapChainFramebuffers.resize(swapChainData.swapChainImageViews.size());
-
-		for (size_t i = 0; i < swapChainData.swapChainImageViews.size(); i++) {
-			VkImageView attachments[] = {
-				swapChainData.swapChainImageViews[i]
-			};
-
-			VkFramebufferCreateInfo framebufferInfo{};
-			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = renderPass;
-			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = attachments;
-			framebufferInfo.width = swapChainData.swapChainExtent.width;
-			framebufferInfo.height = swapChainData.swapChainExtent.height;
-			framebufferInfo.layers = 1;
-
-			if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
-				THROW_ERROR("Failed to create a required framebuffers!");
-			}
-		}
-	}
-
-	void RenderPipeline::recreateFramebuffers(SwapChainMetaData& swapChainData) {
-		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
-		}
-		ERROR_VOLATILE(createFramebuffers(swapChainData));
 	}
 
 	void RenderPipeline::loadVertexShaderFromFile() {
