@@ -30,7 +30,7 @@ namespace StarryRender {
         void mainLoop();
         void cleanup();
 
-        static const int RENDER_LOOP_DELAY_MS = 6;
+        static const int RENDER_LOOP_DELAY_MS = 4;
 
         std::thread renderThread;
         std::atomic<bool> renderRunning{ false };

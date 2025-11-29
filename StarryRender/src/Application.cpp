@@ -31,6 +31,8 @@
 #define ERROR_HANDLER ErrorHandler::get().lock()
 #define ERROR_HANDLER_CHECK CHECK_ERROR(ERROR_HANDLER)
 
+#include "Timer.h"
+
 namespace StarryRender {
 	void Application::init() {
 		window = std::make_shared<Window>(); ERROR_HANDLER_CHECK;
@@ -58,14 +60,17 @@ namespace StarryRender {
 	}
 
 	void Application::renderLoop() {
-
+		Timer frameTimer;
+		frameTimer.setLogging();
 		while (renderRunning.load()) {
+			frameTimer.time();
 			renderer->Draw();
 			if (ERROR_HANDLER->isFatal()) {
 				renderRunning.store(false);
-				break;
+				continue;
 			}
 
+			// Simple frame cap
 			std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
 		}
 	}
