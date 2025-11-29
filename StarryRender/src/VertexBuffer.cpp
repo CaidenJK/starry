@@ -35,11 +35,11 @@ namespace StarryRender {
 	template<typename T>
 	void VertexBuffer<T>::createVertexBuffer() {
 		if (verticies.empty()) {
-			registerError("No vertex data loaded into VertexBuffer!");
+			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 		if (vertexBuffer != VK_NULL_HANDLE) {
-			registerError("Vertex buffer already created! All calls other than the first are skipped.");
+			registerAlert("Vertex buffer already created! All calls other than the first are skipped.", WARNING);
 			return;
 		}
 	}

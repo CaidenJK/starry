@@ -11,7 +11,7 @@
 #include "VertexBuffer.h"
 #include "Shader.h"
 
-#define ERROR_VOLATILE(x) x; if (getError()) { return; }
+#define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
 namespace StarryRender {
 	class RenderPipeline : public RenderAsset {
@@ -28,20 +28,20 @@ namespace StarryRender {
 		void constructPipeline(VkFormat swapChainImageFormat) {
 			static_assert(std::is_base_of<Vertex, T>::value, VERTEX_TYPE_MESSAGE);
 
-			if (graphicsPipeline != VK_NULL_HANDLE || getError()) {
-				registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped\n.");
+			if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
+				registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
 				return;
 			}
 
 			if (shader == nullptr) {
-				registerError("Shader not loaded before pipeline construction!");
+				registerAlert("Shader not loaded before pipeline construction!", FATAL);
 				return;
 			}
 
 			ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
 			ERROR_VOLATILE(constructPipelineLayout(createVertexInputInfo<T>()));
 
-			registerAlert("Successful Pipeline Creation!\n");
+			registerAlert("Successful Pipeline Creation!", INFO);
 		}
 
 		VkRenderPass& getRenderPass() { return renderPass; }

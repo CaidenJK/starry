@@ -31,7 +31,7 @@ namespace StarryRender {
 	void Window::initWindow()
 	{
 		if (!glfwInit()) {
-			registerError("GLFW initialization failed!");
+			registerAlert("GLFW initialization failed!", FATAL);
 			return;
 		}
 
@@ -41,7 +41,7 @@ namespace StarryRender {
 
 		if (!window) {
 			glfwTerminate();
-			registerError("GLFW failed to create window!");
+			registerAlert("GLFW failed to create window!", FATAL);
 			return;
 		}
 
@@ -63,7 +63,7 @@ namespace StarryRender {
 
 	void Window::createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface) {
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
-			registerError("Failed to create window surface!");
+			registerAlert("Failed to create window surface!", FATAL);
 			return;
 		}
 	}

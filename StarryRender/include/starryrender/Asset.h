@@ -5,74 +5,80 @@
 #include <string>
 #include <memory>
 #include <random>
+#include <cstdint>
 
 namespace StarryRender {
-	class RenderAsset;
+	class RenderAsset {
+	public:
+		RenderAsset();
+		~RenderAsset();
+
+		enum CallSeverity {
+			NONE,
+			INFO,
+			WARNING,
+			CRITICAL,
+			FATAL
+		};
+
+		bool getAlert() { return hasAlert; }
+		std::string& getAlertMessage() { return alertMessage; }
+		CallSeverity getAlertSeverity() { return assetState; }
+
+		virtual const std::string getAssetName() = 0;
+
+		uint64_t getUUID() { return uuid; }
+
+	protected:
+		void registerAlert(const std::string& message, CallSeverity severity);
+
+	private:
+		static uint64_t generateUUID();
+		static std::mt19937_64 randomGen;
+
+		bool hasAlert = false;
+		CallSeverity assetState = NONE;
+		std::string alertMessage = "";
+
+		uint64_t uuid = 0;
+	};
 
 	class ErrorHandler {
 		struct AssetCall {
 			uint64_t callerUUID;
 			std::string callerName;
 			std::string message;
+			RenderAsset::CallSeverity severity;
 		};
 
-		public:
-			ErrorHandler(const ErrorHandler&) = delete;
-			ErrorHandler& operator=(const ErrorHandler&) = delete;
+	public:
+		ErrorHandler(const ErrorHandler&) = delete;
+		ErrorHandler& operator=(const ErrorHandler&) = delete;
 
-			// Note references are always valid since they are unregistered on asset destruction
-			void registerAsset(RenderAsset* asset);
-			void unregisterAsset(uint64_t uuid);
+		// Note references are always valid since they are unregistered on asset destruction
+		void registerAsset(RenderAsset* asset);
+		void unregisterAsset(uint64_t uuid);
 
-			static std::weak_ptr<ErrorHandler> get();
+		static std::weak_ptr<ErrorHandler> get();
 
-			// Bool for now
-			void enumerateErrors();
+		// Can call publicly
+		void enumerateAssets();
 
-			bool hasError() { return isError; }
+		bool isFatal() { return hasFatal; }
 
-		private:
-			ErrorHandler() {}
+	private:
+		ErrorHandler() {}
 
-			void flushErrors();
-			void flushWarnings();
+		void flushCalls();
 
-			static std::shared_ptr<ErrorHandler> globalErrorHandler;
-			std::map<uint64_t, RenderAsset*> registeredAssets;
+		static std::string severityToString(RenderAsset::CallSeverity severity);
 
-			bool isError = false;
-			std::vector<AssetCall> errorMessageBuffer = {};
-			std::vector<AssetCall> alertMessageBuffer = {};
-	};
+		const int BUFFER_FLUSH_LIMIT = 5;
 
-	class RenderAsset {
-		public:
-			RenderAsset();
-			~RenderAsset();
-			
-			bool getError() { return error; }
-			std::string& getErrorMessage() { return errorMessage; }
+		static std::shared_ptr<ErrorHandler> globalErrorHandler;
+		std::map<uint64_t, RenderAsset*> registeredAssets;
 
-			bool getWarning() { return hasAlert; }
-			std::string& getWarningMessage() { return alertMessage; }
-
-			virtual const std::string getAssetName() = 0;
-
-			uint64_t getUUID() { return uuid; }
-		protected:
-			void registerError(const std::string& message);
-			void registerAlert(const std::string& message);
-
-		private:
-			static uint64_t generateUUID();
-			static std::mt19937_64 randomGen;
-
-			bool error = false;
-			std::string errorMessage = "";
-
-			bool hasAlert = false;
-			std::string alertMessage = "";
-
-			uint64_t uuid = 0;
+		bool hasFatal = false;
+		std::vector<AssetCall> alertMessageBuffer = {};
 	};
 }

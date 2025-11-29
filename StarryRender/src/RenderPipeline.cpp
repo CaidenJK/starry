@@ -3,7 +3,7 @@
 namespace StarryRender {
 	RenderPipeline::RenderPipeline(VkDevice& device) : device(device) {
 		if (device == VK_NULL_HANDLE) {
-			registerError("Device is null!");
+			registerAlert("Device is null!", FATAL);
 			return;
 		}
 	}
@@ -22,12 +22,12 @@ namespace StarryRender {
 
 	void RenderPipeline::loadShader(std::shared_ptr<Shader>& shaderValue) {
 		if (shader != nullptr) {
-			registerError("Shader already loaded! All calls other than the first are skipped.");
+			registerAlert("Shader already loaded! All calls other than the first are skipped.", WARNING);
 			return;
 		}
 		shader = shaderValue;
-		if (shader->getError()) {
-			registerError("Shader has error after loading into pipeline!");
+		if (shader->getAlertSeverity() == FATAL) {
+			registerAlert("Shader has error after loading into pipeline!", FATAL);
 			return;
 		}
 	}
@@ -72,7 +72,7 @@ namespace StarryRender {
 		renderPassInfo.pDependencies = &dependency;
 
 		if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-			registerError("Failed to create render pass!");
+			registerAlert("Failed to create render pass!", FATAL);
 			return;
 		}
 	}
@@ -154,7 +154,7 @@ namespace StarryRender {
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-			registerError("Failed to create pipeline layout!");
+			registerAlert("Failed to create pipeline layout!", FATAL);
 			return;
 		}
 
@@ -181,7 +181,7 @@ namespace StarryRender {
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-			registerError("Failed to create graphics pipeline!");
+			registerAlert("Failed to create graphics pipeline!", FATAL);
 			return;
 		}
 	}

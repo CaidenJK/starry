@@ -3,12 +3,12 @@
 #include <iostream>
 #include <fstream>
 
-#define ERROR_VOLATILE(x) x; if (getError()) { return; }
+#define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
 namespace StarryRender {
 	Shader::Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : device(device), vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
 		if (device == VK_NULL_HANDLE) {
-			registerError("Device is null!");
+			registerAlert("Device is null!", FATAL);
 			return;
 		}
 		initShader();
@@ -31,13 +31,13 @@ namespace StarryRender {
 		bool error = false;
 		vertShaderModule = createShaderModule(device, vertexShaderCode, error);
 		if (error) {
-			registerError("Failed to create vertex shader module!");
+			registerAlert("Failed to create vertex shader module!", FATAL);
 			return;
 		}
 
 		fragShaderModule = createShaderModule(device, fragmentShaderCode, error);
 		if (error) {
-			registerError("Failed to create vertex shader module!");
+			registerAlert("Failed to create vertex shader module!", FATAL);
 			return;
 		}
 
@@ -79,7 +79,7 @@ namespace StarryRender {
 		bool error = false;
 		vertexShaderCode = readFile(vertexShaderPath, error);
 		if (error) {
-			registerError("Failed to read vertex shader file: " + vertexShaderPath);
+			registerAlert("Failed to read vertex shader file: " + vertexShaderPath, FATAL);
 		}
 	}
 
@@ -87,7 +87,7 @@ namespace StarryRender {
 		bool error = false;
 		fragmentShaderCode = readFile(fragmentShaderPath, error);
 		if (error) {
-			registerError("Failed to read fragment shader file: " + fragmentShaderPath);
+			registerAlert("Failed to read fragment shader file: " + fragmentShaderPath, FATAL);
 		}
 	}
 

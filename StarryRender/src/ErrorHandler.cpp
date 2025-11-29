@@ -20,7 +20,7 @@ namespace StarryRender {
 		if (asset == nullptr) {
 			return;
 		}
-		registeredAssets.insert({ asset->getUUID(), asset});
+		registeredAssets.insert({ asset->getUUID(), asset });
 	}
 
 	void ErrorHandler::unregisterAsset(uint64_t uuid) {
@@ -32,52 +32,50 @@ namespace StarryRender {
 		}
 	}
 
-	void ErrorHandler::enumerateErrors() {
+	void ErrorHandler::enumerateAssets() {
 		for (const auto& asset : registeredAssets) {
-			if (asset.second->getError()) {
-				isError = true;
+			if (asset.second->getAlert() && (asset.second->getAlertSeverity() != RenderAsset::CallSeverity::NONE)) {
 				AssetCall call;
 				call.callerUUID = asset.first;
 				call.callerName = asset.second->getAssetName();
-				call.message = asset.second->getErrorMessage();
-				errorMessageBuffer.push_back(call);
-			}
-			if (asset.second->getWarning()) {
-				AssetCall call;
-				call.callerUUID = asset.first;
-				call.callerName = asset.second->getAssetName();
-				call.message = asset.second->getWarningMessage();
+				call.message = asset.second->getAlertMessage();
+				call.severity = asset.second->getAlertSeverity();
 				alertMessageBuffer.push_back(call);
+				if (call.severity == RenderAsset::CallSeverity::FATAL) { hasFatal = true; }
 			}
 		}
-		flushWarnings();
-		flushErrors();
-	}
-	void ErrorHandler::flushErrors() {
-		if (errorMessageBuffer.size() == 0) {
-			return;
+		if (hasFatal || (alertMessageBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
+			flushCalls();
 		}
-#ifdef SUCCESS_VALIDATION
-		std::cerr << "\n----------> Error Handler caught the following errors:\n" << std::endl;
-		for (const auto& message : errorMessageBuffer) {
-			std::cerr << "[FATAL] - " << "Clr: " << message.callerName << ", \"" << message.callerUUID << "\": \n\t" << message.message;
-		}
-		std::cerr << std::endl;
-#endif
-		errorMessageBuffer.clear();
 	}
-
-	void ErrorHandler::flushWarnings() {
+	void ErrorHandler::flushCalls() {
 		if (alertMessageBuffer.size() == 0) {
 			return;
 		}
 #ifdef SUCCESS_VALIDATION
-		std::cout << "\n----------> Caught alerts:\n" << std::endl;
-		for (const auto& message : alertMessageBuffer) {
-			std::cout << "- " << "Clr: " << message.callerName << ", \"" << message.callerUUID << "\": \n\t" << message.message;
+		std::cerr << "\n----------> Error Handler caught the following alerts:\n" << std::endl;
+		for (const auto& call : alertMessageBuffer) {
+			std::cerr << "[" << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << call.callerUUID << "\": \n\t" << call.message << "\n";
 		}
-		std::cout << std::endl;
+		std::cerr << std::endl;
 #endif
 		alertMessageBuffer.clear();
+	}
+
+	std::string ErrorHandler::severityToString(RenderAsset::CallSeverity severity) {
+		switch (severity) {
+		case RenderAsset::CallSeverity::NONE:
+			return "NONE";
+		case RenderAsset::CallSeverity::INFO:
+			return "INFO";
+		case RenderAsset::CallSeverity::WARNING:
+			return "WARNING";
+		case RenderAsset::CallSeverity::CRITICAL:
+			return "CRITICAL";
+		case RenderAsset::CallSeverity::FATAL:
+			return "!!!FATAL!!!";
+		default:
+			return "NONE";
+		}
 	}
 }

@@ -1,4 +1,4 @@
-#include <vulkan/vulkan.h>
+#include "Application.h"
 
 #include <iostream>
 
@@ -23,11 +23,8 @@
 
 #endif
 
-#include "Application.h"
-
 #define CHECK_ERROR(x) \
-	if (x->hasError()) { \
-		std::cerr << "\n----------> Program ended prematurly due to an error.\n" << std::endl; \
+	if (x->isFatal()) { \
 		return; \
 	}
 
@@ -44,6 +41,7 @@ namespace StarryRender {
 
 		renderRunning.store(true);
 		
+		ERROR_HANDLER_CHECK;
 		STARRY_INITIALIZE_SUCCESS;
 	}
 	void Application::mainLoop() {
@@ -63,7 +61,7 @@ namespace StarryRender {
 
 		while (renderRunning.load()) {
 			renderer->Draw();
-			if (ERROR_HANDLER->hasError()) {
+			if (ERROR_HANDLER->isFatal()) {
 				renderRunning.store(false);
 				break;
 			}
@@ -77,7 +75,10 @@ namespace StarryRender {
 		renderer.reset();
 		window.reset();
 
-		ERROR_HANDLER_CHECK;
+		if (ERROR_HANDLER->isFatal()) {
+			std::cerr << "\n----------> Program ended prematurly due to an error.\n" << std::endl;
+			return;
+		}
 		STARRY_EXIT_SUCCESS;
 	}
 

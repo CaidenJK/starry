@@ -20,8 +20,6 @@ namespace StarryRender {
 		Application operator=(const Application&) = delete;
 		Application(const Application&) = delete;
 
-        bool getError() { return ErrorHandler::get().lock()->hasError(); }
-
         void run();
 
     private:

@@ -5,21 +5,21 @@
 #include <iostream>
 #include <algorithm>
 
-#define ERROR_VOLATILE(x) x; if (getError()) { return; }
+#define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
 #define START_WEAK_PTR \
 	if (std::shared_ptr<Window> window = windowReference.lock()) {
 
 #define END_WEAK_PTR(x) \
 	} else { \
-		registerError("Window reference is expired!"); \
+		registerAlert("Window reference is expired!", FATAL); \
 		return x; \
 	}
 
 namespace StarryRender {
 	SwapChain::SwapChain(VkDevice& device) : device(device) {
 		if (device == VK_NULL_HANDLE) {
-			registerError("Device is null!");
+			registerAlert("Device is null!", FATAL);
 			return;
 		}
 	}
@@ -30,7 +30,7 @@ namespace StarryRender {
 	
 	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) {
 		if (device == VK_NULL_HANDLE) {
-			registerError("Device never set!");
+			registerAlert("Device never set!", FATAL);
 			return;
 		}
 		cleanupSwapChain();
@@ -83,7 +83,7 @@ namespace StarryRender {
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
 		if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-			registerError("Failed to create swap chain!");
+			registerAlert("Failed to create swap chain!", FATAL);
 			return;
 		}
 
@@ -118,7 +118,7 @@ namespace StarryRender {
 			createInfo.subresourceRange.layerCount = 1;
 
 			if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
-				registerError("Failed to create image views!");
+				registerAlert("Failed to create image views!", FATAL);
 				return;
 			}
 		}
@@ -146,7 +146,7 @@ namespace StarryRender {
 			framebufferInfo.layers = 1;
 
 			if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
-				registerError("Failed to create a required framebuffers!");
+				registerAlert("Failed to create a required framebuffers!", FATAL);
 				return;
 			}
 		}
@@ -204,7 +204,7 @@ namespace StarryRender {
 		if (!isSet) {
 			currentSwapSurfaceFormat = availableFormats[0];
 		}
-		registerAlert("Chosen Swap Surface Format: " + std::string(string_VkFormat(currentSwapSurfaceFormat.format)) + ", Color Space: " + std::string(string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace)) + "\n");
+		registerAlert("Chosen Swap Surface Format: " + std::string(string_VkFormat(currentSwapSurfaceFormat.format)) + ", Color Space: " + std::string(string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace)) + "\n", INFO);
 		return currentSwapSurfaceFormat;
 	}
 
@@ -222,7 +222,7 @@ namespace StarryRender {
 		if (!isSet) {
 			currentPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 		}
-		registerAlert("Chosen Present Mode: " + std::string(string_VkPresentModeKHR(currentPresentMode)) + "\n");
+		registerAlert("Chosen Present Mode: " + std::string(string_VkPresentModeKHR(currentPresentMode)) + "\n", INFO);
 		return currentPresentMode;
 	}
 
