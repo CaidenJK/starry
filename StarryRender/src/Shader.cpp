@@ -9,39 +9,22 @@
 
 #ifdef SUCCESS_VALIDATION
 
-#define THROW_ERROR(msg) \
-	error = true; \
-	std::cerr << "Shader ERROR: " << msg << std::endl; \
-	return
-
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	std::cerr << "Shader ERROR: " << msg << std::endl; \
-	return x
-
-
 #define ALERT_MSG(msg) \
 	std::cout << msg
 
 #else
-#define THROW_ERROR(msg) \
-	error = true; \
-	return
 
 #define ALERT_MSG(msg)
 
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	return x
-
 #endif
 
-#define ERROR_VOLATILE(x) x; if (error) { return; }
+#define ERROR_VOLATILE(x) x; if (getError()) { return; }
 
 namespace StarryRender {
 	Shader::Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : device(device), vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
 		if (device == VK_NULL_HANDLE) {
-			THROW_ERROR("Device is null!");
+			registerError("Device is null!");
+			return;
 		}
 		initShader();
 	}
@@ -59,8 +42,20 @@ namespace StarryRender {
 	void Shader::initShader() {
 		ERROR_VOLATILE(loadVertexShaderFromFile());
 		ERROR_VOLATILE(loadFragmentShaderFromFile());
-		ERROR_VOLATILE(vertShaderModule = createShaderModule(device, vertexShaderCode, error));
-		ERROR_VOLATILE(fragShaderModule = createShaderModule(device, fragmentShaderCode, error));
+
+		bool error = false;
+		vertShaderModule = createShaderModule(device, vertexShaderCode, error);
+		if (error) {
+			registerError("Failed to create vertex shader module!");
+			return;
+		}
+
+		fragShaderModule = createShaderModule(device, fragmentShaderCode, error);
+		if (error) {
+			registerError("Failed to create vertex shader module!");
+			return;
+		}
+
 		ERROR_VOLATILE(bindShaderStages());
 	}
 
@@ -72,8 +67,10 @@ namespace StarryRender {
 
 		VkShaderModule shaderModule;
 		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-			THROW_ERROR_RETURN("Failed to create shader module.", {});
+			error = true;
+			return {};
 		}
+		error = false;
 		return shaderModule;
 	}
 
@@ -94,18 +91,27 @@ namespace StarryRender {
 	}
 
 	void Shader::loadVertexShaderFromFile() {
+		bool error = false;
 		vertexShaderCode = readFile(vertexShaderPath, error);
+		if (error) {
+			registerError("Failed to read vertex shader file: " + vertexShaderPath);
+		}
 	}
 
 	void Shader::loadFragmentShaderFromFile() {
+		bool error = false;
 		fragmentShaderCode = readFile(fragmentShaderPath, error);
+		if (error) {
+			registerError("Failed to read fragment shader file: " + fragmentShaderPath);
+		}
 	}
 
 	std::vector<char> Shader::readFile(const std::string& filename, bool& error) {
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 		if (!file.is_open()) {
-			THROW_ERROR_RETURN("Failed to open file: " << filename, {});
+			error = true;
+			return {};
 		}
 
 		size_t fileSize = (size_t)file.tellg();
@@ -114,6 +120,7 @@ namespace StarryRender {
 		file.read(buffer.data(), fileSize);
 		file.close();
 
+		error = false;
 		return buffer;
 	}
 }

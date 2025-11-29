@@ -7,13 +7,13 @@
 #include <vector>
 #include <array>
 
+#include "Asset.h"
+
 namespace StarryRender {
-	class Shader {
+	class Shader : public RenderAsset {
 		public:
 			Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 			~Shader();
-
-			bool getError() { return error; }
 
 			std::array<VkPipelineShaderStageCreateInfo, 2>& getShaderStages() { return shaderStages; }
 
@@ -41,7 +41,5 @@ namespace StarryRender {
 			std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {};
 
 			VkDevice& device;
-
-			bool error = false;
 	};
 }

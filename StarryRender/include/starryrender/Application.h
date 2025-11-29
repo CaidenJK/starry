@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Asset.h"
 #include "Window.h"
 #include "RenderDevice.h"
 
@@ -19,7 +20,7 @@ namespace StarryRender {
 		Application operator=(const Application&) = delete;
 		Application(const Application&) = delete;
 
-		bool getError() { return error; }
+        bool getError() { return ErrorHandler::get().lock()->hasError(); }
 
         void run();
 
@@ -41,7 +42,5 @@ namespace StarryRender {
         std::shared_ptr<Window> window = nullptr;
         std::shared_ptr<RenderDevice> renderer = nullptr;
 		std::shared_ptr<RenderPipeline> pipeline = nullptr;
-
-        bool error = false;
     };
 }

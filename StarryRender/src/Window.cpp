@@ -8,30 +8,12 @@
 
 #ifdef SUCCESS_VALIDATION
 
-#define THROW_ERROR(msg) \
-	error = true; \
-	std::cerr << "Window ERROR: " << msg << std::endl; \
-	return
-
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	std::cerr << "Window ERROR: " << msg << std::endl; \
-	return x
-
-
 #define ALERT_MSG(msg) \
 	std::cout << msg
 
 #else
-#define THROW_ERROR(msg) \
-	error = true; \
-	return
 
 #define ALERT_MSG(msg)
-
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	return x
 
 #endif
 
@@ -49,39 +31,40 @@ namespace StarryRender {
 	void Window::initWindow()
 	{
 		if (!glfwInit()) {
-			THROW_ERROR("GLFW initialization failed!");
+			registerError("GLFW initialization failed!");
+			return;
 		}
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 		window = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
-		if (!window)
-		{
+		if (!window) {
 			glfwTerminate();
-			THROW_ERROR("GLFW failed to create window!");
+			registerError("GLFW failed to create window!");
+			return;
 		}
 
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 
 	}
-	bool Window::shouldClose() const
-	{
+	bool Window::shouldClose() const {
 		return glfwWindowShouldClose(window);
 	}
-	void Window::pollEvents() const
-	{
+
+	void Window::pollEvents() const {
 		glfwPollEvents();
 	}
-	GLFWwindow* Window::getGLFWwindow() const
-	{
+
+	GLFWwindow* Window::getGLFWwindow() const {
 		return window;
 	}
 
 	void Window::createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface) {
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create window surface!");
+			registerError("Failed to create window surface!");
+			return;
 		}
 	}
 

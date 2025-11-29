@@ -7,9 +7,11 @@
 #define DEFAULT_WIDTH 800
 #define DEFAULT_TITLE "Starry"
 
+#include "Asset.h"
+
 namespace StarryRender
 {
-	class Window {
+	class Window : public RenderAsset {
 	public:
 		Window(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT, const char* title = DEFAULT_TITLE);
 		~Window();

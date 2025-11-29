@@ -8,14 +8,7 @@ project(StarryRender VERSION 0.0.1 LANGUAGES C CXX)
 
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-set(SOURCES 
-    "${SOURCE_DIR}/Window.cpp"
-    "${SOURCE_DIR}/Application.cpp"
-    "${SOURCE_DIR}/RenderDevice.cpp"
-    "${SOURCE_DIR}/RenderPipeline.cpp"
-    "${SOURCE_DIR}/SwapChain.cpp"
-    "${SOURCE_DIR}/Shader.cpp"
-)
+FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
 # Set Headers
 
@@ -30,7 +23,7 @@ execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/simple
 execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/simple_shader.frag -o ${SHADER_DIR}/frag.spv" )
 
 # Create Library
-add_library(StarryRender ${SOURCES})
+add_library(StarryRender ${SOURCES} "src/RenderAsset.cpp")
 
 # Gather Dependency Include Directories
 target_include_directories(StarryRender

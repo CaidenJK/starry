@@ -9,10 +9,11 @@
 
 #include <memory>
 
+#include "Asset.h"
 #include "Shader.h"
 
 namespace StarryRender {
-	class RenderPipeline {
+	class RenderPipeline : public RenderAsset {
 	public:
 		RenderPipeline(VkDevice& device);
 		~RenderPipeline();
@@ -20,7 +21,6 @@ namespace StarryRender {
 		RenderPipeline operator=(const RenderPipeline&) = delete;
 		RenderPipeline(const RenderPipeline&) = delete;
 
-		bool getError() { return error; }
 		void loadShader(std::shared_ptr<Shader>& shaderValue);
 
 		void constructPipeline(VkFormat swapChainImageFormat);
@@ -43,7 +43,5 @@ namespace StarryRender {
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
 		VkDevice& device;
-
-		bool error = false;
 	};
 }

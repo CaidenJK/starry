@@ -7,6 +7,7 @@
 #include <string>
 #include <memory>
 
+#include "Asset.h"
 #include "Window.h"
 #include "RenderPipeline.h"
 #include "SwapChain.h"
@@ -14,7 +15,7 @@
 #define DEFAULT_NAME "My Starry App"
 
 namespace StarryRender {
-	class RenderDevice {
+	class RenderDevice : public RenderAsset {
 		// Helper structs
 		struct DeviceInfo {
 			bool isSuitible = false;
@@ -29,7 +30,6 @@ namespace StarryRender {
 		RenderDevice operator=(const RenderDevice&) = delete;
 		RenderDevice(const RenderDevice&) = delete;
 
-		bool getError() { return error; }
 		VkInstance getInstance() { return instance; }
 
 		void loadShader(const std::string& vertShader, const std::string& fragShader);
@@ -123,8 +123,6 @@ namespace StarryRender {
 
 		std::shared_ptr<RenderPipeline> pipeline = nullptr;
 		std::shared_ptr<SwapChain> swapChain = nullptr;
-
-		bool error = false;
 	};
 }
 

@@ -25,23 +25,23 @@
 
 #include "Application.h"
 
-#define CHECK_ERROR(obj) \
-	error = obj->getError(); \
-	if (error) { \
+#define CHECK_ERROR(x) \
+	if (x->hasError()) { \
+		std::cerr << "\nError Handler caught an error: " << x->getLastErrorMessage() << "\n\n"; \
 		std::cerr << "\n----------> Program ended prematurly due to an error.\n" << std::endl; \
 		return; \
 	}
 
+#define ERROR_HANDLER ErrorHandler::get().lock()
+#define ERROR_HANDLER_CHECK CHECK_ERROR(ERROR_HANDLER)
+
 namespace StarryRender {
 	void Application::init() {
-		window = std::make_shared<Window>(); CHECK_ERROR(window);
-		renderer = std::make_shared<RenderDevice>(window); CHECK_ERROR(renderer);
+		window = std::make_shared<Window>(); ERROR_HANDLER_CHECK;
+		renderer = std::make_shared<RenderDevice>(window); ERROR_HANDLER_CHECK;
 
-		renderer->loadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); CHECK_ERROR(renderer);
-		renderer->Init(); CHECK_ERROR(renderer);
-		       
-		// Instead of Check error, just have if(error) {return} at the header of each member function.
-		// That way it'll just run through every function and declare an error at the end cleanly.
+		renderer->loadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); ERROR_HANDLER_CHECK;
+		renderer->Init(); ERROR_HANDLER_CHECK;
 
 		renderRunning.store(true);
 		
@@ -50,7 +50,7 @@ namespace StarryRender {
 	void Application::mainLoop() {
 		renderThread = std::thread(&Application::renderLoop, this);
 
-		while (!window->shouldClose() && !error) {
+		while (!window->shouldClose() && renderRunning.load()) {
 			window->pollEvents();
 		}
 
@@ -63,7 +63,10 @@ namespace StarryRender {
 	void Application::renderLoop() {
 		while (renderRunning.load()) {
 			renderer->Draw();
-			CHECK_ERROR(renderer);
+			if (ERROR_HANDLER->hasError()) {
+				renderRunning.store(false);
+				break;
+			}
 
 			std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
 		}
@@ -74,7 +77,8 @@ namespace StarryRender {
 		renderer.reset();
 		window.reset();
 
-		if (error == false) { STARRY_EXIT_SUCCESS; }
+		ERROR_HANDLER_CHECK;
+		STARRY_EXIT_SUCCESS;
 	}
 
 	void Application::run() {

@@ -12,45 +12,26 @@
 
 #ifdef SUCCESS_VALIDATION
 
-#define THROW_ERROR(msg) \
-	error = true; \
-	std::cerr << "Device ERROR: " << msg << std::endl; \
-	return
-
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	std::cerr << "Device ERROR: " << msg << std::endl; \
-	return x
-
-
 #define ALERT_MSG(msg) \
 	std::cout << msg
 
 #else
-#define THROW_ERROR(msg) \
-	error = true; \
-	return
 
 #define ALERT_MSG(msg)
 
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	return x
-
 #endif
 
-#define ERROR_VOLATILE(x) x; if (error) { return; }
+#define ERROR_VOLATILE(x) x; if (getError()) { return; }
+
+#define EXTERN_ERROR(x) if(x->getError()) { return; } 
 
 #define START_WEAK_PTR \
 	if (std::shared_ptr<Window> window = windowReference.lock()) {
 
-#define END_WEAK_PTR \
+#define END_WEAK_PTR(x) \
 	} else { \
-		THROW_ERROR("Window reference is expired!"); \
-	}
-#define END_WEAK_PTR_RETURN(x) \
-	} else { \
-		THROW_ERROR_RETURN("Window reference is expired!", x); \
+		registerError("Window reference is expired!"); \
+		return x; \
 	}
 
 namespace StarryRender {
@@ -140,7 +121,8 @@ namespace StarryRender {
 		debugMessengerCreateInfoFactory(createInfo);
 
 		if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS) {
-			THROW_ERROR("Could not setup debug messenger!");
+			registerError("Could not setup debug messenger!");
+			return;
 		}
 	}
 
@@ -166,7 +148,8 @@ namespace StarryRender {
 			}
 
 			if (!layerFound) {
-				THROW_ERROR("Validation layer requested not available!");
+				registerError("Validation layer requested not available!");
+				return;
 			}
 		}
 	}
@@ -237,15 +220,16 @@ namespace StarryRender {
 		
 
 		if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-			THROW_ERROR("Vulkan instance creation failed!");
+			registerError("Vulkan instance creation failed!");
+			return;
 		}
 	}
 
 	void RenderDevice::createSurface() {
 		START_WEAK_PTR
 			window->createVulkanSurface(instance, surface);
-			error = window->getError();
-		END_WEAK_PTR
+			EXTERN_ERROR(window);
+		END_WEAK_PTR()
 	}
 
 	void RenderDevice::pickPhysicalDevice() {
@@ -253,7 +237,8 @@ namespace StarryRender {
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
 		if (deviceCount == 0) {
-			THROW_ERROR("Failed to find GPUs with Vulkan support!");
+			registerError("Failed to find GPUs with Vulkan support!");
+			return;
 		}
 
 		std::vector<VkPhysicalDevice> devices(deviceCount);
@@ -273,7 +258,8 @@ namespace StarryRender {
 		}
 
 		if (candidates.rbegin()->first < 1) {
-			THROW_ERROR("Failed to find a suitable GPU!");
+			registerError("Failed to find a suitable GPU!");
+			return;
 		}
 		physicalDevice = candidates.rbegin()->second;
 	}
@@ -401,7 +387,8 @@ namespace StarryRender {
 		// No device specific extensions needed yet
 
 		if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create logical device!");
+			registerError("Failed to create logical device!");
+			return;
 		}
 
 		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
@@ -410,7 +397,8 @@ namespace StarryRender {
 
 	void RenderDevice::createSwapChain() {
 		if (!device) {
-			THROW_ERROR("Vulkan device not initialized! Can't create swapchain.");
+			registerError("Vulkan device not initialized! Can't create swapchain.");
+			return;
 		}
 
 		swapChain = std::make_shared<SwapChain>(device);
@@ -418,40 +406,39 @@ namespace StarryRender {
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 		swapChain->constructSwapChain(swapChainSupport, indices, windowReference, surface);
-		error = swapChain->getError();
+		if (swapChain->getError()) { return; }
 	}
 
 	void RenderDevice::loadShader(const std::string& vertShader, const std::string& fragShader) {
 		if (!device) {
-			THROW_ERROR("Vulkan device not initialized! Can't create pipeline with shader.");
+			registerError("Vulkan device not initialized! Can't create pipeline with shader.");
+			return;
 		}
 		std::shared_ptr<Shader> shader = std::make_shared<Shader>(device, vertShader, fragShader);
-		error = shader->getError();
-		ERROR_VOLATILE();
+		EXTERN_ERROR(shader);
 
 		pipeline = std::make_shared<RenderPipeline>(device);
-		error = pipeline->getError();
-		ERROR_VOLATILE();
+		EXTERN_ERROR(pipeline);
 
 		pipeline->loadShader(shader);
-		error = pipeline->getError();
-		ERROR_VOLATILE();
+		EXTERN_ERROR(pipeline);
 
 		pipeline->constructPipeline(swapChain->getImageFormat());
-		error = pipeline->getError();
-		ERROR_VOLATILE();
+		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
-		error = swapChain->getError();
+		EXTERN_ERROR(swapChain);
 	}
 
 	void RenderDevice::Init() {
 		ERROR_VOLATILE();
 		if (pipeline == nullptr) {
-			THROW_ERROR("Pipeline not created before Init!");
+			registerError("Pipeline not created before Init!");
+			return;
 		}
 		if (swapChain == nullptr) {
-			THROW_ERROR("SwapChain not created before Init!");
+			registerError("SwapChain not created before Init!");
+			return;
 		}
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
@@ -484,7 +471,8 @@ namespace StarryRender {
 		poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
 		if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create command pool!");
+			registerError("Failed to create command pool!");
+			return;
 		}
 	}
 
@@ -498,7 +486,8 @@ namespace StarryRender {
 		allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();;
 
 		if (vkAllocateCommandBuffers(device, &allocInfo, commandBuffers.data()) != VK_SUCCESS) {
-			THROW_ERROR("Failed to allocate command buffers!");
+			registerError("Failed to allocate command buffers!");
+			return;
 		}
 	}
 
@@ -518,12 +507,14 @@ namespace StarryRender {
 			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS ||
 				vkCreateFence(device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
 
-				THROW_ERROR("Failed to create synchronization objects for all frames!");
+				registerError("Failed to create synchronization objects for all frames!");
+				return;
 			}
 		}
 		for (size_t i = 0; i < swapChain->getImageCount(); i++) {
 			if (vkCreateSemaphore(device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS) {
-				THROW_ERROR("Failed to create synchronization objects for all frames!");
+				registerError("Failed to create synchronization objects for all frames!");
+				return;
 			}
 		}
 	}
@@ -536,11 +527,13 @@ namespace StarryRender {
 		beginInfo.pInheritanceInfo = nullptr; // Optional
 
 		if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
-			THROW_ERROR("Failed to begin recording command buffer");
+			registerError("Failed to begin recording command buffer");
+			return;
 		}
 
 		if (pipeline == nullptr) {
-			THROW_ERROR("Pipeline not created or stored before recording command buffer!");
+			registerError("Pipeline not created or stored before recording command buffer!");
+			return;
 		}
 
 		VkRenderPassBeginInfo renderPassInfo{};
@@ -579,7 +572,8 @@ namespace StarryRender {
 		vkCmdEndRenderPass(commandBuffer);
 
 		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-			THROW_ERROR("Failed to record command buffer!");
+			registerError("Failed to record command buffer!");
+			return;
 		}
 	}
 
@@ -591,7 +585,8 @@ namespace StarryRender {
 			imageAvailableSemaphores.size() == 0 ||
 			renderFinishedSemaphores.size() == 0 ||
 			inFlightFences.size() == 0) {
-			THROW_ERROR("Draw called before Device was fully initilized.");
+			registerError("Draw called before Device was fully initilized.");
+			return;
 		}
 
 		vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
@@ -605,7 +600,8 @@ namespace StarryRender {
 			return;
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-			THROW_ERROR("Failed to acquire swap chain image!");
+			registerError("Failed to acquire swap chain image!");
+			return;
 		}
 
 		vkResetFences(device, 1, &inFlightFences[currentFrame]);
@@ -628,7 +624,8 @@ namespace StarryRender {
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
 		if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
-			THROW_ERROR("Failed to submit draw command buffer!");
+			registerError("Failed to submit draw command buffer!");
+			return;
 		}
 
 		VkPresentInfoKHR presentInfo{};
@@ -646,18 +643,19 @@ namespace StarryRender {
 		bool framebufferResized = false;
 		START_WEAK_PTR
 			framebufferResized = window->wasFramebufferResized();
-		END_WEAK_PTR
+		END_WEAK_PTR()
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			// try again next time
 			START_WEAK_PTR
 				window->resetFramebufferResizedFlag();
-			END_WEAK_PTR
+			END_WEAK_PTR()
 			recreateSwapChain();
 			return;
 		}
 		else if (result != VK_SUCCESS) {
-			THROW_ERROR("Failed to acquire swap chain image!");
+			registerError("Failed to acquire swap chain image!");
+			return;
 		}
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -671,17 +669,16 @@ namespace StarryRender {
 		START_WEAK_PTR
 			// Try again later
 			if (window->isWindowMinimized()) { return; }
-		END_WEAK_PTR
+		END_WEAK_PTR()
 		vkDeviceWaitIdle(device);
 
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 		swapChain->constructSwapChain(swapChainSupport, indices, windowReference, surface);
-		error = swapChain->getError();
-		ERROR_VOLATILE();
+		EXTERN_ERROR(swapChain);
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
-		error = swapChain->getError();
+		EXTERN_ERROR(swapChain);
 	}
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL RenderDevice::debugCallback(

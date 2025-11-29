@@ -11,51 +11,31 @@
 
 #ifdef SUCCESS_VALIDATION
 
-#define THROW_ERROR(msg) \
-	error = true; \
-	std::cerr << "SwapChain ERROR: " << msg << std::endl; \
-	return
-
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	std::cerr << "SwapChain ERROR: " << msg << std::endl; \
-	return x
-
-
 #define ALERT_MSG(msg) \
 	std::cout << msg
 
 #else
-#define THROW_ERROR(msg) \
-	error = true; \
-	return
 
 #define ALERT_MSG(msg)
 
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	return x
-
 #endif
 
-#define ERROR_VOLATILE(x) x; if (error) { return; }
+#define ERROR_VOLATILE(x) x; if (getError()) { return; }
 
 #define START_WEAK_PTR \
 	if (std::shared_ptr<Window> window = windowReference.lock()) {
 
-#define END_WEAK_PTR \
+#define END_WEAK_PTR(x) \
 	} else { \
-		THROW_ERROR("Window reference is expired!"); \
-	}
-#define END_WEAK_PTR_RETURN(x) \
-	} else { \
-		THROW_ERROR_RETURN("Window reference is expired!", x); \
+		registerError("Window reference is expired!"); \
+		return x; \
 	}
 
 namespace StarryRender {
 	SwapChain::SwapChain(VkDevice& device) : device(device) {
 		if (device == VK_NULL_HANDLE) {
-			THROW_ERROR("Device is null!");
+			registerError("Device is null!");
+			return;
 		}
 	}
 
@@ -65,7 +45,8 @@ namespace StarryRender {
 	
 	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) {
 		if (device == VK_NULL_HANDLE) {
-			THROW_ERROR("Device never set!");
+			registerError("Device never set!");
+			return;
 		}
 		cleanupSwapChain();
 		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, windowReference, surface));
@@ -117,7 +98,8 @@ namespace StarryRender {
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
 		if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create swap chain!");
+			registerError("Failed to create swap chain!");
+			return;
 		}
 
 		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
@@ -151,7 +133,8 @@ namespace StarryRender {
 			createInfo.subresourceRange.layerCount = 1;
 
 			if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
-				THROW_ERROR("Failed to create image views!");
+				registerError("Failed to create image views!");
+				return;
 			}
 		}
 	}
@@ -178,7 +161,8 @@ namespace StarryRender {
 			framebufferInfo.layers = 1;
 
 			if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
-				THROW_ERROR("Failed to create a required framebuffers!");
+				registerError("Failed to create a required framebuffers!");
+				return;
 			}
 		}
 	}
@@ -265,7 +249,7 @@ namespace StarryRender {
 			int width, height;
 			START_WEAK_PTR
 				window->getFramebufferSize(width, height);
-			END_WEAK_PTR_RETURN({})
+			END_WEAK_PTR({})
 
 			VkExtent2D actualExtent = {
 				static_cast<uint32_t>(width),

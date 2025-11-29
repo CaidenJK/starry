@@ -9,39 +9,22 @@
 
 #ifdef SUCCESS_VALIDATION
 
-#define THROW_ERROR(msg) \
-	error = true; \
-	std::cerr << "Pipeline ERROR: " << msg << std::endl; \
-	return
-
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	std::cerr << "Pipline ERROR: " << msg << std::endl; \
-	return x
-
-
 #define ALERT_MSG(msg) \
 	std::cout << msg
 
 #else
-#define THROW_ERROR(msg) \
-	error = true; \
-	return
 
 #define ALERT_MSG(msg)
 
-#define THROW_ERROR_RETURN(msg, x) \
-	error = true; \
-	return x
-
 #endif
 
-#define ERROR_VOLATILE(x) x; if (error) { return; }
+#define ERROR_VOLATILE(x) x; if (getError()) { return; }
 
 namespace StarryRender {
 	RenderPipeline::RenderPipeline(VkDevice& device) : device(device) {
 		if (device == VK_NULL_HANDLE) {
-			THROW_ERROR("Device is null!");
+			registerError("Device is null!");
+			return;
 		}
 	}
 
@@ -59,22 +42,25 @@ namespace StarryRender {
 
 	void RenderPipeline::loadShader(std::shared_ptr<Shader>& shaderValue) {
 		if (shader != nullptr) {
-			THROW_ERROR("Shader already loaded! All calls other than the first are skipped.");
+			registerError("Shader already loaded! All calls other than the first are skipped.");
+			return;
 		}
 		shader = shaderValue;
 		if (shader->getError()) {
-			THROW_ERROR("Shader has error after loading into pipeline!");
+			registerError("Shader has error after loading into pipeline!");
+			return;
 		}
 	}
 
 	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) {
-		if (graphicsPipeline != VK_NULL_HANDLE || error == true) {
+		if (graphicsPipeline != VK_NULL_HANDLE || getError()) {
 			ALERT_MSG("Warning: constructPipeline called more than once. All calls other than the first are skipped." << std::endl);
 			return;
 		}
 
 		if (shader == nullptr) {
-			THROW_ERROR("Shader not loaded before pipeline construction!");
+			registerError("Shader not loaded before pipeline construction!");
+			return;
 		}
 
 		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
@@ -123,7 +109,8 @@ namespace StarryRender {
 		renderPassInfo.pDependencies = &dependency;
 
 		if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create render pass!");
+			registerError("Failed to create render pass!");
+			return;
 		}
 	}
 
@@ -212,7 +199,8 @@ namespace StarryRender {
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
 		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create pipeline layout!");
+			registerError("Failed to create pipeline layout!");
+			return;
 		}
 
 		// Creation
@@ -238,7 +226,8 @@ namespace StarryRender {
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
 		if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-			THROW_ERROR("Failed to create graphics pipeline!");
+			registerError("Failed to create graphics pipeline!");
+			return;
 		}
 	}
 }

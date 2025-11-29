@@ -7,6 +7,7 @@
 #include <memory>
 #include <optional>
 
+#include "Asset.h"
 #include "Window.h"
 
 namespace StarryRender {
@@ -19,7 +20,7 @@ namespace StarryRender {
 		}
 	};
 
-	class SwapChain {
+	class SwapChain : public RenderAsset {
 		public:
 			struct SwapChainSupportDetails {
 				VkSurfaceCapabilitiesKHR capabilities;
@@ -44,8 +45,6 @@ namespace StarryRender {
 			VkExtent2D getExtent() { return swapChainExtent; }
 			size_t getImageCount() { return swapChainImages.size(); }
 
-			bool getError() { return error; }
-
 			static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface);
 		private:
 			void createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface);
@@ -67,7 +66,5 @@ namespace StarryRender {
 			std::vector<VkFramebuffer> swapChainFramebuffers;
 
 			VkDevice& device;
-
-			bool error = false;
 	};
 }
