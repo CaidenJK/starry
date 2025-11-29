@@ -3,21 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-#ifndef NDEBUG
-#define SUCCESS_VALIDATION
-#endif
-
-#ifdef SUCCESS_VALIDATION
-
-#define ALERT_MSG(msg) \
-	std::cout << msg
-
-#else
-
-#define ALERT_MSG(msg)
-
-#endif
-
 #define ERROR_VOLATILE(x) x; if (getError()) { return; }
 
 namespace StarryRender {

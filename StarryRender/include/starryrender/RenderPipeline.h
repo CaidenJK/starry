@@ -7,10 +7,11 @@
 #include <vector>
 #include <memory>
 
-#include <memory>
-
 #include "Asset.h"
+#include "VertexBuffer.h"
 #include "Shader.h"
+
+#define ERROR_VOLATILE(x) x; if (getError()) { return; }
 
 namespace StarryRender {
 	class RenderPipeline : public RenderAsset {
@@ -23,20 +24,52 @@ namespace StarryRender {
 
 		void loadShader(std::shared_ptr<Shader>& shaderValue);
 
-		void constructPipeline(VkFormat swapChainImageFormat);
+		template<typename T>
+		void constructPipeline(VkFormat swapChainImageFormat) {
+			static_assert(std::is_base_of<Vertex, T>::value, VERTEX_TYPE_MESSAGE);
+
+			if (graphicsPipeline != VK_NULL_HANDLE || getError()) {
+				registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped\n.");
+				return;
+			}
+
+			if (shader == nullptr) {
+				registerError("Shader not loaded before pipeline construction!");
+				return;
+			}
+
+			ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
+			ERROR_VOLATILE(constructPipelineLayout(createVertexInputInfo<T>()));
+
+			registerAlert("Successful Pipeline Creation!\n");
+		}
 
 		VkRenderPass& getRenderPass() { return renderPass; }
 
 		VkPipeline& getGraphicsPipeline() { return graphicsPipeline; }
 
+		const std::string getAssetName() override { return "Pipeline"; }
+
 	private:
 		void createRenderPass(VkFormat swapChainImageFormat);
-		void constructPipelineLayout();
+		void constructPipelineLayout(VkPipelineVertexInputStateCreateInfo vertexInputInfo);
+
+		template<typename T>
+		VkPipelineVertexInputStateCreateInfo createVertexInputInfo() {
+			auto bindingDescription = T::getBindingDescriptions();
+			auto attributeDescriptions = T::getAttributeDescriptions();
+
+			VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+			vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+			vertexInputInfo.vertexBindingDescriptionCount = 1;
+			vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+			vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+			vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+
+			return vertexInputInfo;
+		}
 
 		std::shared_ptr<Shader> shader = nullptr;
-
-		//VkViewport viewport{};
-		//VkRect2D scissor{};
 
 		VkRenderPass renderPass = VK_NULL_HANDLE;
 		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;

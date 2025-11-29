@@ -1,25 +1,5 @@
 #include "RenderPipeline.h"
 
-#include <fstream>
-#include <iostream>
-
-#ifndef NDEBUG
-#define SUCCESS_VALIDATION
-#endif
-
-#ifdef SUCCESS_VALIDATION
-
-#define ALERT_MSG(msg) \
-	std::cout << msg
-
-#else
-
-#define ALERT_MSG(msg)
-
-#endif
-
-#define ERROR_VOLATILE(x) x; if (getError()) { return; }
-
 namespace StarryRender {
 	RenderPipeline::RenderPipeline(VkDevice& device) : device(device) {
 		if (device == VK_NULL_HANDLE) {
@@ -50,23 +30,6 @@ namespace StarryRender {
 			registerError("Shader has error after loading into pipeline!");
 			return;
 		}
-	}
-
-	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) {
-		if (graphicsPipeline != VK_NULL_HANDLE || getError()) {
-			ALERT_MSG("Warning: constructPipeline called more than once. All calls other than the first are skipped." << std::endl);
-			return;
-		}
-
-		if (shader == nullptr) {
-			registerError("Shader not loaded before pipeline construction!");
-			return;
-		}
-
-		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
-		ERROR_VOLATILE(constructPipelineLayout());
-
-		ALERT_MSG("Successful Pipeline Creation!\n" << std::endl;);
 	}
 
 	void RenderPipeline::createRenderPass(VkFormat swapChainImageFormat) {
@@ -114,15 +77,7 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout() {
-		// No vertex data
-		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		vertexInputInfo.vertexBindingDescriptionCount = 0;
-		vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-		vertexInputInfo.vertexAttributeDescriptionCount = 0;
-		vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
-
+	void RenderPipeline::constructPipelineLayout(VkPipelineVertexInputStateCreateInfo vertexInputInfo) {
 		// Input assembly
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

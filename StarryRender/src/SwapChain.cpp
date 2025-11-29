@@ -5,21 +5,6 @@
 #include <iostream>
 #include <algorithm>
 
-#ifndef NDEBUG
-#define SUCCESS_VALIDATION
-#endif
-
-#ifdef SUCCESS_VALIDATION
-
-#define ALERT_MSG(msg) \
-	std::cout << msg
-
-#else
-
-#define ALERT_MSG(msg)
-
-#endif
-
 #define ERROR_VOLATILE(x) x; if (getError()) { return; }
 
 #define START_WEAK_PTR \
@@ -219,7 +204,7 @@ namespace StarryRender {
 		if (!isSet) {
 			currentSwapSurfaceFormat = availableFormats[0];
 		}
-		ALERT_MSG("Chosen Swap Surface Format: " << string_VkFormat(currentSwapSurfaceFormat.format) << ", Color Space: " << string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace) << "\n" << std::endl);
+		registerAlert("Chosen Swap Surface Format: " + std::string(string_VkFormat(currentSwapSurfaceFormat.format)) + ", Color Space: " + std::string(string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace)) + "\n");
 		return currentSwapSurfaceFormat;
 	}
 
@@ -237,7 +222,7 @@ namespace StarryRender {
 		if (!isSet) {
 			currentPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 		}
-		ALERT_MSG("Chosen Present Mode: " << string_VkPresentModeKHR(currentPresentMode) << "\n" << std::endl);
+		registerAlert("Chosen Present Mode: " + std::string(string_VkPresentModeKHR(currentPresentMode)) + "\n");
 		return currentPresentMode;
 	}
 

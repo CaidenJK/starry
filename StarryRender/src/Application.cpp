@@ -27,7 +27,6 @@
 
 #define CHECK_ERROR(x) \
 	if (x->hasError()) { \
-		std::cerr << "\nError Handler caught an error: " << x->getLastErrorMessage() << "\n\n"; \
 		std::cerr << "\n----------> Program ended prematurly due to an error.\n" << std::endl; \
 		return; \
 	}
@@ -40,8 +39,8 @@ namespace StarryRender {
 		window = std::make_shared<Window>(); ERROR_HANDLER_CHECK;
 		renderer = std::make_shared<RenderDevice>(window); ERROR_HANDLER_CHECK;
 
-		renderer->loadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); ERROR_HANDLER_CHECK;
-		renderer->Init(); ERROR_HANDLER_CHECK;
+		renderer->LoadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); ERROR_HANDLER_CHECK;
+		renderer->InitDraw(); ERROR_HANDLER_CHECK;
 
 		renderRunning.store(true);
 		
@@ -61,6 +60,7 @@ namespace StarryRender {
 	}
 
 	void Application::renderLoop() {
+
 		while (renderRunning.load()) {
 			renderer->Draw();
 			if (ERROR_HANDLER->hasError()) {

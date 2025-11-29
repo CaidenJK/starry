@@ -13,17 +13,19 @@ namespace StarryRender {
 		ErrorHandler::get().lock()->unregisterAsset(uuid);
 	}
 
-	bool RenderAsset::getError(std::string& outMessage) {
-		if (error) {
-			outMessage = errorMessage;
-		}
-		return error;
-	}
-
 	void RenderAsset::registerError(const std::string& message) {
 		error = true;
 		errorMessage = message;
 		ErrorHandler::get().lock()->enumerateErrors();
+	}
+
+	void RenderAsset::registerAlert(const std::string& message) {
+		hasAlert = true;
+		alertMessage = message;
+		ErrorHandler::get().lock()->enumerateErrors();
+		
+		hasAlert = false;
+		alertMessage = "";
 	}
 
 	uint64_t RenderAsset::generateUUID() {

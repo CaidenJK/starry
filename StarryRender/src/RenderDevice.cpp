@@ -6,21 +6,6 @@
 #include <set>
 #include <cstdint>
 
-#ifndef NDEBUG
-	#define SUCCESS_VALIDATION
-#endif
-
-#ifdef SUCCESS_VALIDATION
-
-#define ALERT_MSG(msg) \
-	std::cout << msg
-
-#else
-
-#define ALERT_MSG(msg)
-
-#endif
-
 #define ERROR_VOLATILE(x) x; if (getError()) { return; }
 
 #define EXTERN_ERROR(x) if(x->getError()) { return; } 
@@ -63,6 +48,10 @@ namespace StarryRender {
 	}
 
 	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name) {
+		if (windowPointer == nullptr) {
+			registerError("Window pointer is null!");
+			return;
+		}
 		windowReference = windowPointer;
 		initVulkan();
 	}
@@ -160,17 +149,16 @@ namespace StarryRender {
 		vkExtensions.resize(extensionCount);
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, vkExtensions.data());
 
-		ALERT_MSG("Avalible Vulkan Extensions: ");
+		std::string message = "Avalible Vulkan Extensions: ";
 		if (extensionCount == 0) {
-			ALERT_MSG("\tNo extensions found.");
+			message += "\tNo extensions found.";
 		}
 		else {
-			ALERT_MSG("\n");
 			for (const auto& extension : vkExtensions) {
-				ALERT_MSG('\t' << extension.extensionName << '\n');
+				message += '\t' + extension.extensionName + '\n';
 			}
 		}
-		ALERT_MSG(std::endl);
+		registerAlert(message);
 	}
 
 	std::vector<const char*> RenderDevice::getRequiredGLFWExtensions() {
@@ -244,7 +232,7 @@ namespace StarryRender {
 		std::vector<VkPhysicalDevice> devices(deviceCount);
 		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
-		ALERT_MSG("Available Vulkan Devices: \n");
+		std::string messsage = "Available Vulkan Devices: \n";
 		std::multimap<int, VkPhysicalDevice> candidates;
 		for (const auto& device : devices) {
 			VkPhysicalDeviceProperties deviceProperties;
@@ -252,7 +240,7 @@ namespace StarryRender {
 			DeviceInfo deviceInfo = isDeviceSuitable(device);
 
 			if (deviceInfo.isSuitible) {
-				ALERT_MSG("\t" << deviceInfo.name << ", score: " << deviceInfo.score << "\n");
+				messsage += "\t" + std::string(deviceInfo.name) + ", score: " + std::to_string(deviceInfo.score) + "\n";
 				candidates.insert(std::make_pair(deviceInfo.score, device));
 			}
 		}
@@ -261,6 +249,7 @@ namespace StarryRender {
 			registerError("Failed to find a suitable GPU!");
 			return;
 		}
+		registerAlert(messsage);
 		physicalDevice = candidates.rbegin()->second;
 	}
 
@@ -306,11 +295,11 @@ namespace StarryRender {
 		}
 
 		if (!requiredExtensions.empty()) {
-			ALERT_MSG("Missing Device Extensions: \n");
+			std::string message = "Device missing extensions: \n";
 			for (const auto& ext : requiredExtensions) {
-				ALERT_MSG('\t' << ext << '\n');
+				message += '\t' + ext + '\n';
 			}
-			ALERT_MSG(std::endl);
+			registerAlert(message);
 			return false;
 		}
 		return true;
@@ -409,7 +398,7 @@ namespace StarryRender {
 		if (swapChain->getError()) { return; }
 	}
 
-	void RenderDevice::loadShader(const std::string& vertShader, const std::string& fragShader) {
+	void RenderDevice::LoadShader(const std::string& vertShader, const std::string& fragShader) {
 		if (!device) {
 			registerError("Vulkan device not initialized! Can't create pipeline with shader.");
 			return;
@@ -423,14 +412,14 @@ namespace StarryRender {
 		pipeline->loadShader(shader);
 		EXTERN_ERROR(pipeline);
 
-		pipeline->constructPipeline(swapChain->getImageFormat());
+		pipeline->constructPipeline<Vertex2D>(swapChain->getImageFormat());
 		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::Init() {
+	void RenderDevice::InitDraw() {
 		ERROR_VOLATILE();
 		if (pipeline == nullptr) {
 			registerError("Pipeline not created before Init!");

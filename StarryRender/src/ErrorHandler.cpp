@@ -1,5 +1,11 @@
 #include "Asset.h"
 
+#include <iostream>
+
+#ifndef NDEBUG
+	#define SUCCESS_VALIDATION
+#endif
+
 namespace StarryRender {
 	std::shared_ptr<ErrorHandler> ErrorHandler::globalErrorHandler = nullptr;
 
@@ -14,17 +20,13 @@ namespace StarryRender {
 		if (asset == nullptr) {
 			return;
 		}
-		registeredAssets.push_back(asset);
+		registeredAssets.insert({ asset->getUUID(), asset});
 	}
 
 	void ErrorHandler::unregisterAsset(uint64_t uuid) {
-		for (auto it = registeredAssets.begin(); it != registeredAssets.end(); it++) {
-			if ((*it)->getUUID() == uuid) {
-				registeredAssets.erase(it);
-				break;
-			}
-			else {
-				registeredAssets.erase(it);
+		for (const auto& asset : registeredAssets) {
+			if (asset.first == uuid) {
+				registeredAssets.erase(asset.first);
 				break;
 			}
 		}
@@ -32,7 +34,50 @@ namespace StarryRender {
 
 	void ErrorHandler::enumerateErrors() {
 		for (const auto& asset : registeredAssets) {
-			isError = isError || asset->getError(lastErrorMessage);
+			if (asset.second->getError()) {
+				isError = true;
+				AssetCall call;
+				call.callerUUID = asset.first;
+				call.callerName = asset.second->getAssetName();
+				call.message = asset.second->getErrorMessage();
+				errorMessageBuffer.push_back(call);
+			}
+			if (asset.second->getWarning()) {
+				AssetCall call;
+				call.callerUUID = asset.first;
+				call.callerName = asset.second->getAssetName();
+				call.message = asset.second->getWarningMessage();
+				alertMessageBuffer.push_back(call);
+			}
 		}
+		flushWarnings();
+		flushErrors();
+	}
+	void ErrorHandler::flushErrors() {
+		if (errorMessageBuffer.size() == 0) {
+			return;
+		}
+#ifdef SUCCESS_VALIDATION
+		std::cerr << "\n----------> Error Handler caught the following errors:\n" << std::endl;
+		for (const auto& message : errorMessageBuffer) {
+			std::cerr << "[FATAL] - " << "Clr: " << message.callerName << ", \"" << message.callerUUID << "\": \n\t" << message.message;
+		}
+		std::cerr << std::endl;
+#endif
+		errorMessageBuffer.clear();
+	}
+
+	void ErrorHandler::flushWarnings() {
+		if (alertMessageBuffer.size() == 0) {
+			return;
+		}
+#ifdef SUCCESS_VALIDATION
+		std::cout << "\n----------> Caught alerts:\n" << std::endl;
+		for (const auto& message : alertMessageBuffer) {
+			std::cout << "- " << "Clr: " << message.callerName << ", \"" << message.callerUUID << "\": \n\t" << message.message;
+		}
+		std::cout << std::endl;
+#endif
+		alertMessageBuffer.clear();
 	}
 }

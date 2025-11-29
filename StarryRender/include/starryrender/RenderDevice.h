@@ -32,13 +32,13 @@ namespace StarryRender {
 
 		VkInstance getInstance() { return instance; }
 
-		void loadShader(const std::string& vertShader, const std::string& fragShader);
-
-		void Init();
-
+		void LoadShader(const std::string& vertShader, const std::string& fragShader);
+		void InitDraw();
 		void Draw();
 
 		void WaitIdle();
+
+		const std::string getAssetName() override { return "RenderDevice"; }
 
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
