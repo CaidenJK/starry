@@ -32,7 +32,7 @@ namespace StarryRender {
 	void Timer::logFPS() {
 		if (!toLog || !hasMetric()) { return; }
 
-		registerAlert("Current FPS: " + std::to_string(getFPS()), INFO);
+		registerAlert("Current FPS: " + std::to_string(getFPS()), INFO_URGANT);
 	}
 	int Timer::getFPS() {
 		if (frameMetric.isHot == false) {

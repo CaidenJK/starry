@@ -62,6 +62,7 @@ namespace StarryRender {
 
 		pipeline.reset();
 		swapChain.reset();
+		vertexBuffer.reset();
 
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
@@ -101,6 +102,8 @@ namespace StarryRender {
 		ERROR_VOLATILE(createLogicalDevice());
 		
 		ERROR_VOLATILE(createSwapChain());
+
+		constructDefaultTriangle();
 	}
 
 	void RenderDevice::setupDebugMessenger() {
@@ -412,7 +415,38 @@ namespace StarryRender {
 		pipeline->loadShader(shader);
 		EXTERN_ERROR(pipeline);
 
-		pipeline->constructPipeline<Vertex2D>(swapChain->getImageFormat());
+		pipeline->constructPipeline(swapChain->getImageFormat());
+		EXTERN_ERROR(pipeline);
+
+		swapChain->generateFramebuffers(pipeline->getRenderPass());
+		EXTERN_ERROR(swapChain);
+	}
+
+	void RenderDevice::LoadShader(std::shared_ptr<Shader>& shader) {
+		if (!device) {
+			registerAlert("Vulkan device not initialized! Can't create pipeline with shader.", FATAL);
+			return;
+		}
+		EXTERN_ERROR(shader);
+
+		pipeline = std::make_shared<RenderPipeline>(device);
+		EXTERN_ERROR(pipeline);
+
+		pipeline->loadShader(shader);
+		EXTERN_ERROR(pipeline);
+
+		pipeline->constructPipeline(swapChain->getImageFormat());
+		EXTERN_ERROR(pipeline);
+
+		swapChain->generateFramebuffers(pipeline->getRenderPass());
+		EXTERN_ERROR(swapChain);
+	}
+
+	void RenderDevice::LoadPipeline(std::shared_ptr<RenderPipeline>& pipelineRef) {
+		EXTERN_ERROR(pipelineRef);
+		pipeline = pipelineRef;
+
+		pipeline->constructPipeline(swapChain->getImageFormat());
 		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
@@ -542,6 +576,10 @@ namespace StarryRender {
 		// Start of recording
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
+		VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer()};
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
@@ -556,7 +594,7 @@ namespace StarryRender {
 		scissor.extent = swapChain->getExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertexBuffer->getNumVerticies()), 1, 0, 0);
 		// End
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -648,6 +686,27 @@ namespace StarryRender {
 		}
 
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+	}
+
+	void RenderDevice::constructDefaultTriangle() {
+		vertexBuffer = std::make_shared<VertexBuffer>(device);
+
+		std::vector<Vertex> vertices = {
+			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+			{{ 0.5f, 0.5f }, {0.0f, 1.0f, 0.0f}}
+		};
+
+		vertexBuffer->loadData(physicalDevice, vertices);
+	}
+
+	void RenderDevice::LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef) {
+		if (bufferRef == nullptr) {
+			registerAlert("Vertex buffer reference was null and was not set!", CRITICAL);
+			return;
+		}
+		vertexBuffer.reset();
+		vertexBuffer = bufferRef;
 	}
 
 	void RenderDevice::WaitIdle() {

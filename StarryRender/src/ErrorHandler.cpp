@@ -42,9 +42,14 @@ namespace StarryRender {
 				call.severity = asset.second->getAlertSeverity();
 				alertMessageBuffer.push_back(call);
 				if (call.severity == RenderAsset::CallSeverity::FATAL) { hasFatal = true; }
+				if (call.severity == RenderAsset::CallSeverity::INFO_URGANT || 
+					call.severity == RenderAsset::CallSeverity::CRITICAL ||
+					call.severity == RenderAsset::CallSeverity::FATAL) {
+					shouldFlush = true;
+				}
 			}
 		}
-		if (hasFatal || (alertMessageBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
+		if (shouldFlush || (alertMessageBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
 			flushCalls();
 		}
 	}
@@ -60,6 +65,7 @@ namespace StarryRender {
 		std::cerr << std::endl;
 #endif
 		alertMessageBuffer.clear();
+		shouldFlush = false;
 	}
 
 	std::string ErrorHandler::severityToString(RenderAsset::CallSeverity severity) {
@@ -67,6 +73,8 @@ namespace StarryRender {
 		case RenderAsset::CallSeverity::NONE:
 			return "NONE";
 		case RenderAsset::CallSeverity::INFO:
+			return "INFO";
+		case RenderAsset::CallSeverity::INFO_URGANT:
 			return "INFO";
 		case RenderAsset::CallSeverity::WARNING:
 			return "WARNING";

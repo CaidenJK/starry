@@ -11,6 +11,7 @@
 #include "Window.h"
 #include "RenderPipeline.h"
 #include "SwapChain.h"
+#include "VertexBuffer.h"
 
 #define DEFAULT_NAME "My Starry App"
 
@@ -32,11 +33,17 @@ namespace StarryRender {
 
 		VkInstance getInstance() { return instance; }
 
+		void LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
+
 		void LoadShader(const std::string& vertShader, const std::string& fragShader);
+		void LoadShader(std::shared_ptr<Shader>& shaderRef);
+		void LoadPipeline(std::shared_ptr<RenderPipeline>& pipelineRef);
 		void InitDraw();
 		void Draw();
 
 		void WaitIdle();
+
+		VkDevice& getDevice() { return device; }
 
 		const std::string getAssetName() override { return "RenderDevice"; }
 
@@ -79,6 +86,8 @@ namespace StarryRender {
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
+		void constructDefaultTriangle();
+
 		const char* name;
 		
 		std::vector<VkExtensionProperties> vkExtensions;
@@ -115,6 +124,9 @@ namespace StarryRender {
 		VkExtent2D drawExtent;
 		float renderScale = 1.0f;
 
+		std::shared_ptr<VertexBuffer> vertexBuffer = nullptr;
+
+		VkPhysicalDeviceMemoryProperties memProperties;
 
 		VkDebugUtilsMessengerEXT debugMessenger;
 

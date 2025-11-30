@@ -32,6 +32,23 @@ namespace StarryRender {
 		}
 	}
 
+	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) {
+		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
+			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
+			return;
+		}
+
+		if (shader == nullptr) {
+			registerAlert("Shader not loaded before pipeline construction!", FATAL);
+			return;
+		}
+
+		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
+		ERROR_VOLATILE(constructPipelineLayout());
+
+		registerAlert("Successful Pipeline Creation!", INFO);
+	}
+
 	void RenderPipeline::createRenderPass(VkFormat swapChainImageFormat) {
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = swapChainImageFormat;
@@ -77,7 +94,18 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout(VkPipelineVertexInputStateCreateInfo vertexInputInfo) {
+	void RenderPipeline::constructPipelineLayout() {
+		// Verts
+		auto bindingDescription = Vertex::getBindingDescriptions();
+		auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+		vertexInputInfo.vertexBindingDescriptionCount = 1;
+		vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+		vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+		vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();  
+
 		// Input assembly
 		VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

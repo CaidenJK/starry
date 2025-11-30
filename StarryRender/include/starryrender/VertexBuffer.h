@@ -14,31 +14,40 @@
 #define VERTEX_TYPE_MESSAGE "VertexBuffer must be created with types: Vertex2D"
 
 namespace StarryRender {
-	class Vertex {};
-	class Vertex2D : public Vertex {
-		public:
-			glm::vec2 position;
-			glm::vec3 color;
+	struct Vertex {
+		glm::vec2 position;
+		glm::vec3 color;
 
-			static VkVertexInputBindingDescription getBindingDescriptions();
-			static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
+		static VkVertexInputBindingDescription getBindingDescriptions();
+		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
 	};
-	template<typename T>
-	class VertexBuffer : RenderAsset {
-		static_assert(std::is_base_of<Vertex, T>::value, VERTEX_TYPE_MESSAGE);
-		public:
-			VertexBuffer() = default;
-			~VertexBuffer() = default;
 
-			void loadData(const std::vector<T>& verticiesInput);
+	class VertexBuffer : RenderAsset {
+		public:
+			VertexBuffer(VkDevice& device);
+			~VertexBuffer();
+
+			void loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput);
+
+			size_t getNumVerticies() { return verticies.size(); }
+			VkBuffer& getBuffer() { return vertexBuffer; }
 
 			const std::string getAssetName() override { return "Vertex Buffer"; }
 
 		private:
-			void createVertexBuffer();
+			void createVertexBuffer(VkPhysicalDevice& physicalDevice);
 
-			std::vector<T>& verticies{};
+			void fillBufferData();
+
+			uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+			std::vector<Vertex> verticies;
 			VkBuffer vertexBuffer = VK_NULL_HANDLE;
+			VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
+
+			uint32_t bufferSize = 0;
+
+			VkDevice& device;
 	};
 }
 /*

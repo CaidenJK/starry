@@ -16,6 +16,7 @@ namespace StarryRender {
 		enum CallSeverity {
 			NONE,
 			INFO,
+			INFO_URGANT,
 			WARNING,
 			CRITICAL,
 			FATAL
@@ -78,7 +79,9 @@ namespace StarryRender {
 		static std::shared_ptr<ErrorHandler> globalErrorHandler;
 		std::map<uint64_t, RenderAsset*> registeredAssets;
 
+		bool shouldFlush = false;
 		bool hasFatal = false;
 		std::vector<AssetCall> alertMessageBuffer = {};
 	};
+	// TODO: Call print immediately (timer) 
 }
