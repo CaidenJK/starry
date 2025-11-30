@@ -87,7 +87,7 @@ namespace StarryRender {
 			}
 
 			// Simple frame cap
-			//std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
+			std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
 		}
 	}
 
