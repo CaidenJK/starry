@@ -11,7 +11,14 @@
 
 #include "Asset.h"
 
-#define VERTEX_TYPE_MESSAGE "VertexBuffer must be created with types: Vertex2D"
+// Helpful debug colors
+#define RED_COLOR glm::vec3(1.0f, 0.0f, 0.0f)
+#define GREEN_COLOR glm::vec3(0.0f, 1.0f, 0.0f)
+#define BLUE_COLOR glm::vec3(0.0f, 0.0f, 1.0f)
+#define CYAN_COLOR glm::vec3(0.0f, 1.0f, 1.0f)
+#define MAGENTA_COLOR glm::vec3(1.0f, 0.0f, 1.0f)
+#define YELLOW_COLOR glm::vec3(1.0f, 1.0f, 0.0f)
+#define WHITE_COLOR glm::vec3(1.0f, 1.0f, 1.0f)
 
 namespace StarryRender {
 	struct Vertex {
@@ -27,32 +34,43 @@ namespace StarryRender {
 			VertexBuffer(VkDevice& device);
 			~VertexBuffer();
 
-			void loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput);
+			void loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
 			void loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue);
 
 			size_t getNumVerticies() { return verticies.size(); }
-			VkBuffer& getBuffer() { return vertexBuffer; }
+			size_t getNumIndicies() { return indicies.size(); }
+			VkBuffer& getVertexBuffer() { return vertexBuffer; }
+			VkBuffer& getIndexBuffer() { return indexBuffer; }
 
 			const std::string getAssetName() override { return "Vertex Buffer"; }
 
 		private:
 			void createVertexBuffer(VkPhysicalDevice& physicalDevice);
+			void createIndexBuffer(VkPhysicalDevice& physicalDevice);
 
 			void createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-			void fillBufferData(VkDeviceMemory& bufferMemory);
+			void fillVertexBufferData(VkDeviceMemory& bufferMemory);
+			void fillIndexBufferData(VkDeviceMemory& bufferMemory);
 			void copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
 
 			uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 			std::vector<Vertex> verticies;
+			std::vector<uint32_t> indicies;
 
-			VkBuffer stagingBuffer = VK_NULL_HANDLE;
-			VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+			VkBuffer stagingBufferVertex = VK_NULL_HANDLE;
+			VkDeviceMemory stagingBufferMemoryVertex = VK_NULL_HANDLE;
+			VkBuffer stagingBufferIndex = VK_NULL_HANDLE;
+			VkDeviceMemory stagingBufferMemoryIndex = VK_NULL_HANDLE;
 
 			VkBuffer vertexBuffer = VK_NULL_HANDLE;
 			VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
 
-			uint32_t bufferSize = 0;
+			VkBuffer indexBuffer = VK_NULL_HANDLE;
+			VkDeviceMemory indexBufferMemory = VK_NULL_HANDLE;
+
+			VkDeviceSize bufferSizeVertex = 0;
+			VkDeviceSize bufferSizeIndex = 0;
 
 			VkDevice& device;
 	};

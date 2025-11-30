@@ -39,21 +39,23 @@ namespace StarryRender {
 		renderer = std::make_shared<RenderDevice>(window); ERROR_HANDLER_CHECK;
 
 		renderer->LoadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); ERROR_HANDLER_CHECK;
+
 		std::vector<Vertex> vertices = {
-			{{0.5f, -0.5f}, {0.1f, 0.5f, 0.6f}},
-			{{-0.5f, -0.5f}, {0.6f, 0.1f, 0.5f}},
-			{{-0.5f, 0.5f}, {0.5f, 0.6f, 0.1f}},
-			 
-			{{0.5f, -0.5f}, {0.1f, 0.5f, 0.6f}},
-			{{-0.5f, 0.5f}, {0.5f, 0.6f, 0.1f}},
-			{{0.5f, 0.5f}, {0.1f, 0.6f, 0.5f}}
+			{{-0.5f, -0.5f}, RED_COLOR},
+			{{-0.5f, 0.5f}, BLUE_COLOR},
+			{{0.5f, 0.5f}, GREEN_COLOR},
+			{{0.5f, -0.5f}, YELLOW_COLOR}
+		};
+		const std::vector<uint32_t> indices = {
+			0, 1, 2, 0, 2, 3
 		};
 
 		auto vertexBuffer = std::make_shared<VertexBuffer>(renderer->getDevice()); ERROR_HANDLER_CHECK;
-		vertexBuffer->loadData(renderer->getPhysicalDevice(), vertices); ERROR_HANDLER_CHECK;
-		//renderer->LoadBuffer(vertexBuffer); ERROR_HANDLER_CHECK;
+		vertexBuffer->loadData(renderer->getPhysicalDevice(), vertices, indices); ERROR_HANDLER_CHECK;
 
 		renderer->InitDraw(); ERROR_HANDLER_CHECK;
+		renderer->LoadBuffer(vertexBuffer); ERROR_HANDLER_CHECK;
+
 
 		renderRunning.store(true);
 		

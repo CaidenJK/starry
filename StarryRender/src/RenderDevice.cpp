@@ -575,9 +575,11 @@ namespace StarryRender {
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
 		if (vertexBuffer == nullptr) { constructDefaultTriangle(); }
-		VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer()};
+		VkBuffer vertexBuffers[] = { vertexBuffer->getVertexBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+		vkCmdBindIndexBuffer(commandBuffer, vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
@@ -593,7 +595,7 @@ namespace StarryRender {
 		scissor.extent = swapChain->getExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdDraw(commandBuffer, static_cast<uint32_t>(vertexBuffer->getNumVerticies()), 1, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vertexBuffer->getNumIndicies()), 1, 0, 0, 0);
 		// End
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -696,12 +698,15 @@ namespace StarryRender {
 		vertexBuffer = std::make_shared<VertexBuffer>(device);
 
 		std::vector<Vertex> vertices = {
-			{{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-			{{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-			{{ 0.5f, 0.5f }, {0.0f, 1.0f, 0.0f}}
+			{{0.0f, -0.5f}, RED_COLOR},
+			{{-0.5f, 0.5f}, BLUE_COLOR},
+			{{ 0.5f, 0.5f }, GREEN_COLOR}
+		};
+		std::vector<uint32_t> indicies = {
+			0, 1, 2
 		};
 
-		vertexBuffer->loadData(physicalDevice, vertices);
+		vertexBuffer->loadData(physicalDevice, vertices, indicies);
 		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
 	}
 
