@@ -19,6 +19,7 @@ namespace StarryRender {
 		else {
 			frameMetric.totalTime += (now - deltaTime);
 			frameMetric.frameSamples++;
+			frameMetric.timeSinceFlush += (now - deltaTime);
 		}
 		deltaTime = now;
 		logFPS();
@@ -32,6 +33,7 @@ namespace StarryRender {
 	void Timer::logFPS() {
 		if (!toLog || !hasMetric()) { return; }
 
+		frameMetric.timeSinceFlush = 0;
 		registerAlert("Current FPS: " + std::to_string(getFPS()), INFO_URGANT);
 	}
 	int Timer::getFPS() {

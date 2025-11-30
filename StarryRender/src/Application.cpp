@@ -42,9 +42,9 @@ namespace StarryRender {
 
 		std::vector<Vertex> vertices = {
 			{{-0.5f, -0.5f}, RED_COLOR},
-			{{-0.5f, 0.5f}, BLUE_COLOR},
+			{{-0.5f, 0.8f}, BLUE_COLOR},
 			{{0.5f, 0.5f}, GREEN_COLOR},
-			{{0.5f, -0.5f}, YELLOW_COLOR}
+			{{0.5f, -0.4f}, YELLOW_COLOR}
 		};
 		const std::vector<uint32_t> indices = {
 			0, 1, 2, 0, 2, 3
@@ -87,7 +87,7 @@ namespace StarryRender {
 			}
 
 			// Simple frame cap
-			std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
+			//std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
 		}
 	}
 

@@ -9,8 +9,9 @@ namespace StarryRender {
 		struct FrameMetric {
 			uint64_t frameSamples = 0;
 			uint64_t totalTime = 0;
+			uint64_t timeSinceFlush = 0;
 			bool isHot = false;
-			const int NANOS_IN_SECOND = 1'000'000'000;
+			const static int NANOS_IN_SECOND = 1'000'000'000;
 
 			uint64_t framesPerSecond() {
 				if (totalTime == 0) return 0;
@@ -32,10 +33,11 @@ namespace StarryRender {
 			void logFPS();
 			int getFPS();
 			bool hasMetric() const {
-				return frameMetric.frameSamples % MAX_SAMPLES == 0;
+				return frameMetric.timeSinceFlush >= LOG_UPDATE_TIME;
 			}
 
-			const int MAX_SAMPLES = 200;
+			const static uint64_t LOG_UPDATE_TIME = FrameMetric::NANOS_IN_SECOND; // 1 second
+
 			bool toLog = false;
 			uint64_t deltaTime = 0;
 			FrameMetric frameMetric{};
