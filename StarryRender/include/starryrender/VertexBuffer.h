@@ -28,6 +28,7 @@ namespace StarryRender {
 			~VertexBuffer();
 
 			void loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput);
+			void loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue);
 
 			size_t getNumVerticies() { return verticies.size(); }
 			VkBuffer& getBuffer() { return vertexBuffer; }
@@ -37,11 +38,17 @@ namespace StarryRender {
 		private:
 			void createVertexBuffer(VkPhysicalDevice& physicalDevice);
 
-			void fillBufferData();
+			void createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+			void fillBufferData(VkDeviceMemory& bufferMemory);
+			void copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
 
 			uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 			std::vector<Vertex> verticies;
+
+			VkBuffer stagingBuffer = VK_NULL_HANDLE;
+			VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+
 			VkBuffer vertexBuffer = VK_NULL_HANDLE;
 			VkDeviceMemory vertexBufferMemory = VK_NULL_HANDLE;
 

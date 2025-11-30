@@ -102,8 +102,6 @@ namespace StarryRender {
 		ERROR_VOLATILE(createLogicalDevice());
 		
 		ERROR_VOLATILE(createSwapChain());
-
-		constructDefaultTriangle();
 	}
 
 	void RenderDevice::setupDebugMessenger() {
@@ -576,6 +574,7 @@ namespace StarryRender {
 		// Start of recording
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
 
+		if (vertexBuffer == nullptr) { constructDefaultTriangle(); }
 		VkBuffer vertexBuffers[] = { vertexBuffer->getBuffer()};
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
@@ -689,6 +688,11 @@ namespace StarryRender {
 	}
 
 	void RenderDevice::constructDefaultTriangle() {
+		if (physicalDevice == VK_NULL_HANDLE || commandPool == VK_NULL_HANDLE || graphicsQueue == VK_NULL_HANDLE) {
+			registerAlert("Render device not fully initialized! Can't create default triangle.", FATAL);
+			return;
+		}
+		vertexBuffer.reset();
 		vertexBuffer = std::make_shared<VertexBuffer>(device);
 
 		std::vector<Vertex> vertices = {
@@ -698,6 +702,7 @@ namespace StarryRender {
 		};
 
 		vertexBuffer->loadData(physicalDevice, vertices);
+		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
 	}
 
 	void RenderDevice::LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef) {
@@ -705,8 +710,14 @@ namespace StarryRender {
 			registerAlert("Vertex buffer reference was null and was not set!", CRITICAL);
 			return;
 		}
+		if (commandPool == VK_NULL_HANDLE || graphicsQueue == VK_NULL_HANDLE) {
+			registerAlert("Render device not fully initialized! Can't load buffer to memory.", FATAL);
+			return;
+		}
 		vertexBuffer.reset();
 		vertexBuffer = bufferRef;
+
+		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
 	}
 
 	void RenderDevice::WaitIdle() {

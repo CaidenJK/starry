@@ -39,6 +39,20 @@ namespace StarryRender {
 		renderer = std::make_shared<RenderDevice>(window); ERROR_HANDLER_CHECK;
 
 		renderer->LoadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); ERROR_HANDLER_CHECK;
+		std::vector<Vertex> vertices = {
+			{{0.5f, -0.5f}, {0.1f, 0.5f, 0.6f}},
+			{{-0.5f, -0.5f}, {0.6f, 0.1f, 0.5f}},
+			{{-0.5f, 0.5f}, {0.5f, 0.6f, 0.1f}},
+			 
+			{{0.5f, -0.5f}, {0.1f, 0.5f, 0.6f}},
+			{{-0.5f, 0.5f}, {0.5f, 0.6f, 0.1f}},
+			{{0.5f, 0.5f}, {0.1f, 0.6f, 0.5f}}
+		};
+
+		auto vertexBuffer = std::make_shared<VertexBuffer>(renderer->getDevice()); ERROR_HANDLER_CHECK;
+		vertexBuffer->loadData(renderer->getPhysicalDevice(), vertices); ERROR_HANDLER_CHECK;
+		//renderer->LoadBuffer(vertexBuffer); ERROR_HANDLER_CHECK;
+
 		renderer->InitDraw(); ERROR_HANDLER_CHECK;
 
 		renderRunning.store(true);

@@ -44,6 +44,7 @@ namespace StarryRender {
 		void WaitIdle();
 
 		VkDevice& getDevice() { return device; }
+		VkPhysicalDevice& getPhysicalDevice() { return physicalDevice; }
 
 		const std::string getAssetName() override { return "RenderDevice"; }
 
