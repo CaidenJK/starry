@@ -7,6 +7,8 @@
 #include <random>
 #include <cstdint>
 
+#define MAX_FRAMES_IN_FLIGHT 2
+
 namespace StarryRender 
 {
 	class RenderAsset {

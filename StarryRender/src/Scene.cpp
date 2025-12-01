@@ -3,6 +3,7 @@
 #include "Timer.h"
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
+#define EXTERN_ERROR_STACK(x) if(x.getAlertSeverity() == FATAL) { return; }
 
 #define ERROR_HANDLER ErrorHandler::get().lock()
 #define ERROR_HANDLER_CHECK CHECK_ERROR(ERROR_HANDLER)
@@ -19,7 +20,9 @@ namespace StarryRender
 		if (renderRunning.load()) {
 			joinRenderer();
 		}
-		prefabs.reset();
+		prefabs.~MeshObject();
+
+		uniformBuffer.reset();
 		renderer.reset();
 	}
 
@@ -31,6 +34,9 @@ namespace StarryRender
 			registerAlert("Shader paths not set before creating device!", CRITICAL);
 			return;
 		}
+		uniformBuffer = std::make_shared<UniformBuffer>(renderer->getDevice()); EXTERN_ERROR(uniformBuffer);
+		renderer->loadUniformBuffer(uniformBuffer);
+
 		renderer->LoadShader(shaderPaths[0], shaderPaths[1]); EXTERN_ERROR(renderer);
 		renderer->InitDraw(); EXTERN_ERROR(renderer);
 	}
@@ -44,13 +50,18 @@ namespace StarryRender
 		renderer = std::move(const_cast<std::unique_ptr<RenderDevice>&>(device));
 	}
 
-	void Scene::pushPrefab(const std::shared_ptr<MeshObject>& prefab) 
+	void Scene::pushPrefab(const MeshObject& prefab) 
 	{
-		if (prefab == nullptr) {
+		if (prefab.isEmptyMesh() == true) {
 			registerAlert("Prefab pointer is null!", CRITICAL);
 			return;
 		}
 		prefabs = prefab;
+		if (uniformBuffer == nullptr) {
+			registerAlert("Uniform buffer not initialized before pushing prefab!", CRITICAL);
+			return;
+		}
+		uniformBuffer->setModelMatrix(prefabs.getModelMatrix());
 	}
 
 	void Scene::setShaderPaths(const std::array<std::string, 2>& paths) 
@@ -58,12 +69,8 @@ namespace StarryRender
 		shaderPaths = paths;
 	}
 
-	void Scene::addCamera(const std::shared_ptr<CameraObject>& cameraRef) 
+	void Scene::addCamera(const CameraObject& cameraRef) 
 	{
-		if (cameraRef == nullptr) {
-			registerAlert("Camera pointer is null!", CRITICAL);
-			return;
-		}
 		camera = cameraRef;
 	}
 
@@ -73,13 +80,13 @@ namespace StarryRender
 			registerAlert("Render device not attatched to scene!", FATAL);
 			return;
 		}
-		if (prefabs == nullptr) {
+		if (prefabs.isEmptyMesh() == true) {
 			registerAlert("No prefabs in scene to render!", FATAL);
 			return;
 		}
 
-		prefabs->attatchBuffer(renderer->getDevice(), renderer->getPhysicalDevice()); EXTERN_ERROR(prefabs);
-		renderer->LoadBuffer(prefabs->getRawVertexBuffer()); EXTERN_ERROR(renderer);
+		prefabs.attatchBuffer(renderer->getDevice(), renderer->getPhysicalDevice()); EXTERN_ERROR_STACK(prefabs);
+		renderer->LoadBuffer(prefabs.getRawVertexBuffer()); EXTERN_ERROR(renderer);
 
 		renderRunning.store(true);
 		renderThread = std::thread(&Scene::renderLoop, this);
@@ -94,13 +101,23 @@ namespace StarryRender
 		renderer->WaitIdle();
 	}
 
-	void Scene::renderLoop() 
+	void Scene::renderLoop()
 	{
 		Timer frameTimer;
 		frameTimer.setLogging();
 		while (renderRunning.load()) {
 			frameTimer.time();
+			prefabs.rotateMesh(frameTimer.getDeltaTimeSeconds() * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+
+			uniformBuffer->setMVP(
+				prefabs.getModelMatrix(),
+				camera.getViewMatrix(),
+				camera.getProjectionMatrix()
+				);
+			EXTERN_ERROR(uniformBuffer);
+
 			renderer->Draw();
+			camera.setExtent(renderer->getExtent());
 			if (ERROR_HANDLER->isFatal()) {
 				renderRunning.store(false);
 				continue;

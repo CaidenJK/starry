@@ -13,7 +13,7 @@ namespace StarryRender
 
 		return bindingDescription;
 	}
-	std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescriptions() 
+	std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescriptions()
 	{
 		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
 		// Vert

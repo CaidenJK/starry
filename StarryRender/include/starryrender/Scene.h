@@ -7,6 +7,7 @@
 #include "RenderDevice.h"
 #include "MeshObject.h"
 #include "CameraObject.h"
+#include "UniformBuffer.h"
 
 #define DEFAULT_SCENE_NAME "New Scene"
 #define DEFAULT_SHADER_PATHS { "../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv" }
@@ -27,8 +28,10 @@ namespace StarryRender
 		void attatchDevice(const std::unique_ptr<RenderDevice>& device);
 
 		void readObjectsFromFile(const std::string& filePath) {}
-		void pushPrefab(const std::shared_ptr<MeshObject>& prefab);
-		void addCamera(const std::shared_ptr<CameraObject>& cameraRef);
+		void pushPrefab(const MeshObject& prefab);
+		void addCamera(const CameraObject& cameraRef);
+
+		MeshObject& getPrefab() { return prefabs; }
 
 		void disbatchRenderer();
 		void joinRenderer();
@@ -51,8 +54,10 @@ namespace StarryRender
 		std::atomic<bool> renderRunning{ false };
 
 		// One for now
-		std::shared_ptr<MeshObject> prefabs = nullptr;
-		std::shared_ptr<CameraObject> camera = {};
+		MeshObject prefabs;
+		CameraObject camera;
+
+		std::shared_ptr<UniformBuffer> uniformBuffer = nullptr;
 
 		glm::mat4 modelViewProjection;
 	};

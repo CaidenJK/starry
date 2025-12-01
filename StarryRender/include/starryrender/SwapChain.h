@@ -39,11 +39,11 @@ namespace StarryRender
 			void generateFramebuffers(VkRenderPass& renderPass);
 
 			std::vector<VkFramebuffer>& getFramebuffers() { return swapChainFramebuffers; }
-			VkSwapchainKHR getSwapChain() { return swapChain; }
+			VkSwapchainKHR& getSwapChain() { return swapChain; }
 
 
-			VkFormat getImageFormat() { return swapChainImageFormat; }
-			VkExtent2D getExtent() { return swapChainExtent; }
+			VkFormat& getImageFormat() { return swapChainImageFormat; }
+			VkExtent2D& getExtent() { return swapChainExtent; }
 			size_t getImageCount() { return swapChainImages.size(); }
 
 			const std::string getAssetName() override { return "Swapchain"; }

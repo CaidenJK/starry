@@ -12,6 +12,7 @@
 #include "RenderPipeline.h"
 #include "SwapChain.h"
 #include "VertexBuffer.h"
+#include "UniformBuffer.h"
 
 #define DEFAULT_NAME "My Starry App"
 
@@ -34,6 +35,8 @@ namespace StarryRender
 
 		VkInstance getInstance() { return instance; }
 
+		void loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef);
+
 		void LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
 
 		void LoadShader(const std::string& vertShader, const std::string& fragShader);
@@ -46,6 +49,7 @@ namespace StarryRender
 
 		VkDevice& getDevice() { return device; }
 		VkPhysicalDevice& getPhysicalDevice() { return physicalDevice; }
+		VkExtent2D getExtent() { return swapChain->getExtent(); }
 
 		const std::string getAssetName() override { return "RenderDevice"; }
 
@@ -57,8 +61,6 @@ namespace StarryRender
 			void* pUserData);
 
 	private:
-		static const int MAX_FRAMES_IN_FLIGHT = 2;
-
 		void initVulkan();
 		void createInstance();
 		void checkVKExtensions();
@@ -102,15 +104,15 @@ namespace StarryRender
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 		
-		VkInstance instance;
+		VkInstance instance = VK_NULL_HANDLE;
 
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 		VkDevice device = VK_NULL_HANDLE;
 		
 		VkSurfaceKHR surface = VK_NULL_HANDLE;
 
-		VkQueue graphicsQueue;
-		VkQueue presentQueue;
+		VkQueue graphicsQueue = VK_NULL_HANDLE;
+		VkQueue presentQueue = VK_NULL_HANDLE;
 
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 		std::vector<VkCommandBuffer> commandBuffers = {};
@@ -123,17 +125,19 @@ namespace StarryRender
 		uint32_t currentFrame = 0;
 
 		// Dyno resolution
-		VkExtent2D drawExtent;
+		VkExtent2D drawExtent = {};
 		float renderScale = 1.0f;
 
 		std::shared_ptr<VertexBuffer> vertexBuffer = nullptr;
 
-		VkPhysicalDeviceMemoryProperties memProperties;
+		std::weak_ptr<UniformBuffer> uniformBuffer = {};
 
-		VkDebugUtilsMessengerEXT debugMessenger;
+		VkPhysicalDeviceMemoryProperties memProperties = {};
+
+		VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
 		// Window outlives RenderDevice for now
-		std::weak_ptr<Window> windowReference;
+		std::weak_ptr<Window> windowReference = {};
 
 		std::shared_ptr<RenderPipeline> pipeline = nullptr;
 		std::shared_ptr<SwapChain> swapChain = nullptr;

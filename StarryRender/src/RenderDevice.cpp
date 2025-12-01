@@ -417,7 +417,19 @@ namespace StarryRender
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::LoadShader(const std::string& vertShader, const std::string& fragShader) 
+	void RenderDevice::loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef) {
+		EXTERN_ERROR(bufferRef);
+		uniformBuffer = bufferRef;
+		if (auto ub = uniformBuffer.lock()) {
+			ub->attatchBuffer(physicalDevice);
+			EXTERN_ERROR(ub);
+		} else {
+			registerAlert("Uniform buffer reference is expired!", FATAL);
+			return;
+		}
+	}
+
+	void RenderDevice::LoadShader(const std::string& vertShader, const std::string& fragShader)
 	{
 		if (!device) {
 			registerAlert("Vulkan device not initialized! Can't create pipeline with shader.", FATAL);
@@ -432,7 +444,7 @@ namespace StarryRender
 		pipeline->loadShader(shader);
 		EXTERN_ERROR(pipeline);
 
-		pipeline->constructPipeline(swapChain->getImageFormat());
+		pipeline->constructPipeline(swapChain->getImageFormat(), uniformBuffer);
 		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
@@ -453,19 +465,19 @@ namespace StarryRender
 		pipeline->loadShader(shader);
 		EXTERN_ERROR(pipeline);
 
-		pipeline->constructPipeline(swapChain->getImageFormat());
+		pipeline->constructPipeline(swapChain->getImageFormat(), uniformBuffer);
 		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::LoadPipeline(std::shared_ptr<RenderPipeline>& pipelineRef) 
+	void RenderDevice::LoadPipeline(std::shared_ptr<RenderPipeline>& pipelineRef)
 	{
 		EXTERN_ERROR(pipelineRef);
 		pipeline = pipelineRef;
 
-		pipeline->constructPipeline(swapChain->getImageFormat());
+		pipeline->constructPipeline(swapChain->getImageFormat(), uniformBuffer);
 		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
@@ -607,6 +619,11 @@ namespace StarryRender
 
 		vkCmdBindIndexBuffer(commandBuffer, vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
+		if (auto ub = uniformBuffer.lock()) {
+			ub->updateUniformBuffer(currentFrame);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getPipelineLayout(), 0, 1, &(ub->getDescriptorSet(currentFrame)), 0, nullptr);
+		}
+
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
@@ -726,9 +743,9 @@ namespace StarryRender
 		vertexBuffer = std::make_shared<VertexBuffer>(device);
 
 		std::vector<Vertex> vertices = {
-			{{0.0f, -0.5f}, RED_COLOR},
-			{{-0.5f, 0.5f}, BLUE_COLOR},
-			{{ 0.5f, 0.5f }, GREEN_COLOR}
+			{{0.0f, -0.5f, 0.0f}, RED_COLOR},
+			{{-0.5f, 0.5f, 0.0f}, BLUE_COLOR},
+			{{ 0.5f, 0.5f, 0.0f}, GREEN_COLOR}
 		};
 		std::vector<uint32_t> indices = {
 			0, 1, 2

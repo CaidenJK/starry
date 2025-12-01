@@ -36,7 +36,7 @@ namespace StarryRender
 		}
 	}
 
-	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) 
+	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer)
 	{
 		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
 			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
@@ -49,7 +49,7 @@ namespace StarryRender
 		}
 
 		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
-		ERROR_VOLATILE(constructPipelineLayout());
+		ERROR_VOLATILE(constructPipelineLayout(uniformBuffer));
 
 		registerAlert("Successful Pipeline Creation!", INFO);
 	}
@@ -100,7 +100,7 @@ namespace StarryRender
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout() 
+	void RenderPipeline::constructPipelineLayout(std::weak_ptr<UniformBuffer>& uniformBuffer)
 	{
 		// Verts
 		auto bindingDescription = Vertex::getBindingDescriptions();
@@ -142,7 +142,7 @@ namespace StarryRender
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE; // Opposite for uniform buffer z flip
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 		rasterizer.depthBiasClamp = 0.0f; // Optional
@@ -184,9 +184,21 @@ namespace StarryRender
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 0; // Optional
-		pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
+
+		if (auto ub = uniformBuffer.lock()) {
+			if (ub->getDescriptorSetLayout() == VK_NULL_HANDLE) {
+				registerAlert("Uniform buffer has error before pipeline construction!", FATAL);
+				return;
+			}
+			pipelineLayoutInfo.setLayoutCount = 1;
+			pipelineLayoutInfo.pSetLayouts = &ub->getDescriptorSetLayout();
+		}
+		else {
+			registerAlert("No or NULL Uniform Buffer Passed!", WARNING);
+			return;
+		}
 
 		if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			registerAlert("Failed to create pipeline layout!", FATAL);

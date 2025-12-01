@@ -29,6 +29,10 @@ namespace StarryRender
 				toLog = true;
 			}
 
+			float getDeltaTimeSeconds() const {
+				return static_cast<float>(deltaTime) / static_cast<float>(FrameMetric::NANOS_IN_SECOND);
+			}
+
 			const std::string getAssetName() override { return "Timer"; };
 		private:
 			void logFPS();
@@ -40,6 +44,7 @@ namespace StarryRender
 			const static uint64_t LOG_UPDATE_TIME = FrameMetric::NANOS_IN_SECOND; // 1 second
 
 			bool toLog = false;
+			uint64_t currentTime = 0;
 			uint64_t deltaTime = 0;
 			FrameMetric frameMetric{};
 			std::chrono::time_point<std::chrono::high_resolution_clock> startTime;

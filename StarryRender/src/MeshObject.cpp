@@ -1,5 +1,7 @@
 #include "MeshObject.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
 namespace StarryRender 
@@ -18,6 +20,7 @@ namespace StarryRender
 	{
 		vertices = verticesInput;
 		indices = indicesInput;
+		isEmpty = vertices.empty() || indices.empty();
 	}
 
 	void MeshObject::attatchBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice) 
@@ -32,5 +35,9 @@ namespace StarryRender
 		}
 		vertexBuffer = std::make_shared<VertexBuffer>(device); EXTERN_ERROR(vertexBuffer);
 		vertexBuffer->loadData(physicalDevice, vertices, indices);
+	}
+
+	void MeshObject::rotateMesh(float angleRadians, const glm::vec3& axis) {
+		localToGlobalSpace = glm::rotate(localToGlobalSpace, angleRadians, axis);
 	}
 }

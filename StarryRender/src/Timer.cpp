@@ -7,7 +7,7 @@ namespace StarryRender
 	Timer::Timer() 
 	{
 		startTime = std::chrono::high_resolution_clock::now();
-		deltaTime = startTime.time_since_epoch().count();
+		currentTime = startTime.time_since_epoch().count();
 	}
 	Timer::~Timer() 
 	{
@@ -17,20 +17,24 @@ namespace StarryRender
 	{
 		auto now_tp = std::chrono::high_resolution_clock::now();
 		uint64_t now = static_cast<uint64_t>(now_tp.time_since_epoch().count());
+
+		uint64_t delta = now - currentTime;
+
 		if (frameMetric.isHot == false) {
 			frameMetric.isHot = true;
 		}
 		else {
-			frameMetric.totalTime += (now - deltaTime);
+			frameMetric.totalTime += delta;
 			frameMetric.frameSamples++;
-			frameMetric.timeSinceFlush += (now - deltaTime);
+			frameMetric.timeSinceFlush += delta;
 		}
-		deltaTime = now;
+		currentTime = now;
+		deltaTime = delta;
 		logFPS();
 	}
 	void Timer::stop() 
 	{
-		deltaTime = 0;
+		currentTime = 0;
 		frameMetric.totalTime = 0;
 		frameMetric.frameSamples = 0;
 		frameMetric.isHot = false;
