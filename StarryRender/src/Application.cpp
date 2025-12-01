@@ -58,7 +58,11 @@ namespace StarryRender
 		MeshObject meshObject("Triangle Mesh"); ERROR_HANDLER_CHECK;
 		meshObject.addVertexData(vertices, indices); ERROR_HANDLER_CHECK;
 
+		CameraObject camera;
+		camera.setFOV(70.0f);
+
 		scene->pushPrefab(meshObject); ERROR_HANDLER_CHECK;
+		scene->addCamera(camera); ERROR_HANDLER_CHECK;
 
 		ERROR_HANDLER_CHECK;
 		STARRY_INITIALIZE_SUCCESS;
