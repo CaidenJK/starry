@@ -19,10 +19,12 @@
 		return x; \
 	}
 
-namespace StarryRender {
+namespace StarryRender 
+{
 
 	// Debug messenger proxy functions
-	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) 
+	{
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -32,14 +34,16 @@ namespace StarryRender {
 		}
 	}
 
-	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+	void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) 
+	{
 		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			func(instance, debugMessenger, pAllocator);
 		}
 	}
 
-	void RenderDevice::debugMessengerCreateInfoFactory(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+	void RenderDevice::debugMessengerCreateInfoFactory(VkDebugUtilsMessengerCreateInfoEXT& createInfo) 
+	{
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -47,7 +51,8 @@ namespace StarryRender {
 		createInfo.pfnUserCallback = debugCallback;
 	}
 
-	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name) {
+	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name) 
+	{
 		if (windowPointer == nullptr) {
 			registerAlert("Window pointer is null!", FATAL);
 			return;
@@ -56,7 +61,8 @@ namespace StarryRender {
 		initVulkan();
 	}
 
-	RenderDevice::~RenderDevice() {
+	RenderDevice::~RenderDevice() 
+	{
 		// Future know where it errored as to clean up nessecary objects
 		ERROR_VOLATILE();
 
@@ -88,7 +94,8 @@ namespace StarryRender {
 		vkDestroyInstance(instance, nullptr);
 	}
 
-	void RenderDevice::initVulkan() {
+	void RenderDevice::initVulkan() 
+	{
 		ERROR_VOLATILE(checkValidationLayerSupport());
 
 		ERROR_VOLATILE(createInstance());
@@ -104,7 +111,8 @@ namespace StarryRender {
 		ERROR_VOLATILE(createSwapChain());
 	}
 
-	void RenderDevice::setupDebugMessenger() {
+	void RenderDevice::setupDebugMessenger() 
+	{
 		if (!enableValidationLayers) return;
 
 		VkDebugUtilsMessengerCreateInfoEXT createInfo{};
@@ -116,7 +124,8 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderDevice::checkValidationLayerSupport() {
+	void RenderDevice::checkValidationLayerSupport() 
+	{
 #ifndef NDEBUG
 		enableValidationLayers = true;
 #endif
@@ -144,7 +153,8 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderDevice::checkVKExtensions() {
+	void RenderDevice::checkVKExtensions() 
+	{
 		uint32_t extensionCount = 0;
 		vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
 		vkExtensions.resize(extensionCount);
@@ -176,7 +186,8 @@ namespace StarryRender {
 		return extensions;
 	}
 
-	void RenderDevice::createInstance() {
+	void RenderDevice::createInstance() 
+	{
 		VkApplicationInfo appInfo{};
 		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 		appInfo.pApplicationName = name;
@@ -214,14 +225,16 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderDevice::createSurface() {
+	void RenderDevice::createSurface() 
+	{
 		START_WEAK_PTR
 			window->createVulkanSurface(instance, surface);
 			EXTERN_ERROR(window);
 		END_WEAK_PTR()
 	}
 
-	void RenderDevice::pickPhysicalDevice() {
+	void RenderDevice::pickPhysicalDevice() 
+	{
 		uint32_t deviceCount = 0;
 		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
@@ -254,7 +267,8 @@ namespace StarryRender {
 		physicalDevice = candidates.rbegin()->second;
 	}
 
-	QueueFamilyIndices RenderDevice::findQueueFamilies(VkPhysicalDevice device) {
+	QueueFamilyIndices RenderDevice::findQueueFamilies(VkPhysicalDevice device) 
+	{
 		QueueFamilyIndices indices;
 
 		uint32_t queueFamilyCount = 0;
@@ -283,7 +297,8 @@ namespace StarryRender {
 		return indices;
 	}
 
-	bool RenderDevice::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+	bool RenderDevice::checkDeviceExtensionSupport(VkPhysicalDevice device) 
+	{
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -306,7 +321,8 @@ namespace StarryRender {
 		return true;
 	}
 
-	RenderDevice::DeviceInfo RenderDevice::isDeviceSuitable(VkPhysicalDevice device) {
+	RenderDevice::DeviceInfo RenderDevice::isDeviceSuitable(VkPhysicalDevice device) 
+	{
 		VkPhysicalDeviceProperties deviceProperties;
 		vkGetPhysicalDeviceProperties(device, &deviceProperties);
 
@@ -338,7 +354,8 @@ namespace StarryRender {
 		return info;
 	}
 
-	void RenderDevice::createLogicalDevice() {
+	void RenderDevice::createLogicalDevice() 
+	{
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -385,7 +402,8 @@ namespace StarryRender {
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 	}
 
-	void RenderDevice::createSwapChain() {
+	void RenderDevice::createSwapChain() 
+	{
 		if (!device) {
 			registerAlert("Vulkan device not initialized! Can't create swapchain.", FATAL);
 			return;
@@ -399,7 +417,8 @@ namespace StarryRender {
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::LoadShader(const std::string& vertShader, const std::string& fragShader) {
+	void RenderDevice::LoadShader(const std::string& vertShader, const std::string& fragShader) 
+	{
 		if (!device) {
 			registerAlert("Vulkan device not initialized! Can't create pipeline with shader.", FATAL);
 			return;
@@ -420,7 +439,8 @@ namespace StarryRender {
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::LoadShader(std::shared_ptr<Shader>& shader) {
+	void RenderDevice::LoadShader(std::shared_ptr<Shader>& shader)
+	{
 		if (!device) {
 			registerAlert("Vulkan device not initialized! Can't create pipeline with shader.", FATAL);
 			return;
@@ -440,7 +460,8 @@ namespace StarryRender {
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::LoadPipeline(std::shared_ptr<RenderPipeline>& pipelineRef) {
+	void RenderDevice::LoadPipeline(std::shared_ptr<RenderPipeline>& pipelineRef) 
+	{
 		EXTERN_ERROR(pipelineRef);
 		pipeline = pipelineRef;
 
@@ -451,7 +472,8 @@ namespace StarryRender {
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::InitDraw() {
+	void RenderDevice::InitDraw() 
+	{
 		ERROR_VOLATILE();
 		if (pipeline == nullptr) {
 			registerAlert("Pipeline not created before Init!", FATAL);
@@ -483,7 +505,8 @@ namespace StarryRender {
 		ERROR_VOLATILE(createSyncObjects());
 	}
 
-	void RenderDevice::createCommmandPool() {
+	void RenderDevice::createCommmandPool() 
+	{
 		QueueFamilyIndices queueFamilyIndices = findQueueFamilies(physicalDevice);
 
 		VkCommandPoolCreateInfo poolInfo{};
@@ -497,7 +520,8 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderDevice::createCommandBuffers() {
+	void RenderDevice::createCommandBuffers() 
+	{
 		commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkCommandBufferAllocateInfo allocInfo{};
@@ -512,7 +536,8 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderDevice::createSyncObjects() {
+	void RenderDevice::createSyncObjects() 
+	{
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(swapChain->getImageCount());
 		inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
@@ -541,7 +566,8 @@ namespace StarryRender {
 	}
 
 	// For each command buffer
-	void RenderDevice::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+	void RenderDevice::recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) 
+	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0; // Optional
@@ -605,7 +631,8 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderDevice::Draw() {
+	void RenderDevice::Draw() 
+	{
 		ERROR_VOLATILE();
 		if (pipeline == nullptr ||
 			swapChain == nullptr ||
@@ -689,7 +716,8 @@ namespace StarryRender {
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
-	void RenderDevice::constructDefaultTriangle() {
+	void RenderDevice::constructDefaultTriangle() 
+	{
 		if (physicalDevice == VK_NULL_HANDLE || commandPool == VK_NULL_HANDLE || graphicsQueue == VK_NULL_HANDLE) {
 			registerAlert("Render device not fully initialized! Can't create default triangle.", FATAL);
 			return;
@@ -702,15 +730,16 @@ namespace StarryRender {
 			{{-0.5f, 0.5f}, BLUE_COLOR},
 			{{ 0.5f, 0.5f }, GREEN_COLOR}
 		};
-		std::vector<uint32_t> indicies = {
+		std::vector<uint32_t> indices = {
 			0, 1, 2
 		};
 
-		vertexBuffer->loadData(physicalDevice, vertices, indicies);
+		vertexBuffer->loadData(physicalDevice, vertices, indices);
 		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
 	}
 
-	void RenderDevice::LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef) {
+	void RenderDevice::LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef) 
+	{
 		if (bufferRef == nullptr) {
 			registerAlert("Vertex buffer reference was null and was not set!", CRITICAL);
 			return;
@@ -725,11 +754,13 @@ namespace StarryRender {
 		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
 	}
 
-	void RenderDevice::WaitIdle() {
+	void RenderDevice::WaitIdle() 
+	{
 		vkDeviceWaitIdle(device);
 	}
 
-	void RenderDevice::recreateSwapChain() {
+	void RenderDevice::recreateSwapChain() 
+	{
 		START_WEAK_PTR
 			// Try again later
 			if (window->isWindowMinimized()) { return; }
@@ -749,7 +780,8 @@ namespace StarryRender {
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData) {
+		void* pUserData) 
+	{
 
 		std::cerr << "Vulkan Debug Message..." << std::endl;
 		std::cerr << "Validation layer: " << pCallbackData->pMessage << "\n" << std::endl;

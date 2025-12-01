@@ -2,15 +2,19 @@
 
 #include <string>
 
-namespace StarryRender {
-	Timer::Timer() {
+namespace StarryRender 
+{
+	Timer::Timer() 
+	{
 		startTime = std::chrono::high_resolution_clock::now();
 		deltaTime = startTime.time_since_epoch().count();
 	}
-	Timer::~Timer() {
+	Timer::~Timer() 
+	{
 		stop();
 	}
-	void Timer::time() {
+	void Timer::time() 
+	{
 		auto now_tp = std::chrono::high_resolution_clock::now();
 		uint64_t now = static_cast<uint64_t>(now_tp.time_since_epoch().count());
 		if (frameMetric.isHot == false) {
@@ -24,19 +28,22 @@ namespace StarryRender {
 		deltaTime = now;
 		logFPS();
 	}
-	void Timer::stop() {
+	void Timer::stop() 
+	{
 		deltaTime = 0;
 		frameMetric.totalTime = 0;
 		frameMetric.frameSamples = 0;
 		frameMetric.isHot = false;
 	}
-	void Timer::logFPS() {
+	void Timer::logFPS() 
+	{
 		if (!toLog || !hasMetric()) { return; }
 
 		frameMetric.timeSinceFlush = 0;
 		registerAlert("Current FPS: " + std::to_string(getFPS()), INFO_URGANT);
 	}
-	int Timer::getFPS() {
+	int Timer::getFPS() 
+	{
 		if (frameMetric.isHot == false) {
 			return -1;
 		}

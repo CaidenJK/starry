@@ -13,7 +13,8 @@
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class RenderPipeline : public RenderAsset {
 	public:
 		RenderPipeline(VkDevice& device);

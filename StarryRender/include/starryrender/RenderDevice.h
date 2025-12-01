@@ -15,7 +15,8 @@
 
 #define DEFAULT_NAME "My Starry App"
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class RenderDevice : public RenderAsset {
 		// Helper structs
 		struct DeviceInfo {

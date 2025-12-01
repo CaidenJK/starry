@@ -2,22 +2,27 @@
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
-namespace StarryRender {
-	MeshObject::MeshObject(std::string nameInput) : name(nameInput) {
+namespace StarryRender 
+{
+	MeshObject::MeshObject(std::string nameInput) : name(nameInput) 
+	{
 
 	}
 
-	MeshObject::~MeshObject() {
+	MeshObject::~MeshObject() 
+	{
 		vertexBuffer.reset();
 	}
 
-	void MeshObject::addVertexData(std::vector<Vertex>& verticiesInput, std::vector<uint32_t> indiciesInput) {
-		verticies = verticiesInput;
-		indicies = indiciesInput;
+	void MeshObject::addVertexData(std::vector<Vertex>& verticesInput, std::vector<uint32_t> indicesInput) 
+	{
+		vertices = verticesInput;
+		indices = indicesInput;
 	}
 
-	void MeshObject::attatchBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice) {
-		if (verticies.empty() || indicies.empty()) {
+	void MeshObject::attatchBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice) 
+	{
+		if (vertices.empty() || indices.empty()) {
 			registerAlert("No vertex or index data to attatch to mesh object!", CRITICAL);
 			return;
 		}
@@ -26,6 +31,6 @@ namespace StarryRender {
 			return;
 		}
 		vertexBuffer = std::make_shared<VertexBuffer>(device); EXTERN_ERROR(vertexBuffer);
-		vertexBuffer->loadData(physicalDevice, verticies, indicies);
+		vertexBuffer->loadData(physicalDevice, vertices, indices);
 	}
 }

@@ -35,8 +35,10 @@
 
 #include "Timer.h"
 
-namespace StarryRender {
-	void Application::init() {
+namespace StarryRender 
+{
+	void Application::init() 
+	{
 		window = std::make_shared<Window>(); ERROR_HANDLER_CHECK;
 		scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
 
@@ -61,7 +63,8 @@ namespace StarryRender {
 		ERROR_HANDLER_CHECK;
 		STARRY_INITIALIZE_SUCCESS;
 	}
-	void Application::mainLoop() {
+	void Application::mainLoop() 
+	{
 		scene->disbatchRenderer(); ERROR_HANDLER_CHECK;
 
 		while (!window->shouldClose() && scene->isRenderRunning().load()) {
@@ -72,7 +75,8 @@ namespace StarryRender {
 	}
 
 	// Destroy renderer then window last
-	void Application::cleanup() {
+	void Application::cleanup() 
+	{
 		scene.reset();
 		window.reset();
 
@@ -83,7 +87,8 @@ namespace StarryRender {
 		STARRY_EXIT_SUCCESS;
 	}
 
-	void Application::run() {
+	void Application::run() 
+	{
 		printVersion();
 		init();
 		mainLoop();

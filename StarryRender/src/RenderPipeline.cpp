@@ -1,14 +1,17 @@
 #include "RenderPipeline.h"
 
-namespace StarryRender {
-	RenderPipeline::RenderPipeline(VkDevice& device) : device(device) {
+namespace StarryRender 
+{
+	RenderPipeline::RenderPipeline(VkDevice& device) : device(device) 
+	{
 		if (device == VK_NULL_HANDLE) {
 			registerAlert("Device is null!", FATAL);
 			return;
 		}
 	}
 
-	RenderPipeline::~RenderPipeline() {
+	RenderPipeline::~RenderPipeline() 
+	{
 		ERROR_VOLATILE();
 		if (shader != nullptr) {
 			shader.reset();
@@ -20,7 +23,8 @@ namespace StarryRender {
 		vkDestroyPipeline(device, graphicsPipeline, nullptr);
 	}
 
-	void RenderPipeline::loadShader(std::shared_ptr<Shader>& shaderValue) {
+	void RenderPipeline::loadShader(std::shared_ptr<Shader>& shaderValue) 
+	{
 		if (shader != nullptr) {
 			registerAlert("Shader already loaded! All calls other than the first are skipped.", WARNING);
 			return;
@@ -32,7 +36,8 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) {
+	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat) 
+	{
 		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
 			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
 			return;
@@ -49,7 +54,8 @@ namespace StarryRender {
 		registerAlert("Successful Pipeline Creation!", INFO);
 	}
 
-	void RenderPipeline::createRenderPass(VkFormat swapChainImageFormat) {
+	void RenderPipeline::createRenderPass(VkFormat swapChainImageFormat) 
+	{
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = swapChainImageFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -94,7 +100,8 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout() {
+	void RenderPipeline::constructPipelineLayout() 
+	{
 		// Verts
 		auto bindingDescription = Vertex::getBindingDescriptions();
 		auto attributeDescriptions = Vertex::getAttributeDescriptions();

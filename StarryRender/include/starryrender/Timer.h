@@ -4,7 +4,8 @@
 
 #include "Asset.h"
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class Timer : RenderAsset {
 		struct FrameMetric {
 			uint64_t frameSamples = 0;

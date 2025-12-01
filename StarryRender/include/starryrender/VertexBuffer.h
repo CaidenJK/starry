@@ -20,7 +20,8 @@
 #define YELLOW_COLOR glm::vec3(1.0f, 1.0f, 0.0f)
 #define WHITE_COLOR glm::vec3(1.0f, 1.0f, 1.0f)
 
-namespace StarryRender {
+namespace StarryRender
+{
 	struct Vertex {
 		glm::vec2 position;
 		glm::vec3 color;
@@ -37,8 +38,8 @@ namespace StarryRender {
 			void loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
 			void loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue);
 
-			size_t getNumVerticies() { return verticies.empty() ? 0 : verticies.size(); }
-			size_t getNumIndicies() { return indicies.empty() ? 0 : indicies.size(); }
+			size_t getNumVerticies() { return vertices.empty() ? 0 : vertices.size(); }
+			size_t getNumIndicies() { return indices.empty() ? 0 : indices.size(); }
 			VkBuffer& getVertexBuffer() { return vertexBuffer; }
 			VkBuffer& getIndexBuffer() { return indexBuffer; }
 
@@ -55,8 +56,8 @@ namespace StarryRender {
 
 			uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-			std::vector<Vertex> verticies = {};
-			std::vector<uint32_t> indicies = {};
+			std::vector<Vertex> vertices = {};
+			std::vector<uint32_t> indices = {};
 
 			VkBuffer stagingBufferVertex = VK_NULL_HANDLE;
 			VkDeviceMemory stagingBufferMemoryVertex = VK_NULL_HANDLE;

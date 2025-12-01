@@ -5,8 +5,10 @@
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
-namespace StarryRender {
-	Shader::Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : device(device), vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) {
+namespace StarryRender 
+{
+	Shader::Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : device(device), vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) 
+	{
 		if (device == VK_NULL_HANDLE) {
 			registerAlert("Device is null!", FATAL);
 			return;
@@ -14,7 +16,8 @@ namespace StarryRender {
 		initShader();
 	}
 
-	Shader::~Shader() {
+	Shader::~Shader() 
+	{
 		if (vertShaderModule != VK_NULL_HANDLE) {
 			vkDestroyShaderModule(device, vertShaderModule, nullptr);
 		}
@@ -24,7 +27,8 @@ namespace StarryRender {
 
 	}
 
-	void Shader::initShader() {
+	void Shader::initShader() 
+	{
 		ERROR_VOLATILE(loadVertexShaderFromFile());
 		ERROR_VOLATILE(loadFragmentShaderFromFile());
 
@@ -44,7 +48,8 @@ namespace StarryRender {
 		ERROR_VOLATILE(bindShaderStages());
 	}
 
-	VkShaderModule Shader::createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error) {
+	VkShaderModule Shader::createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error) 
+	{
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = code.size();
@@ -59,7 +64,8 @@ namespace StarryRender {
 		return shaderModule;
 	}
 
-	void Shader::bindShaderStages() {
+	void Shader::bindShaderStages() 
+	{
 		VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
 		vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		vertShaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
@@ -75,7 +81,8 @@ namespace StarryRender {
 		shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
 	}
 
-	void Shader::loadVertexShaderFromFile() {
+	void Shader::loadVertexShaderFromFile() 
+	{
 		bool error = false;
 		vertexShaderCode = readFile(vertexShaderPath, error);
 		if (error) {
@@ -83,7 +90,8 @@ namespace StarryRender {
 		}
 	}
 
-	void Shader::loadFragmentShaderFromFile() {
+	void Shader::loadFragmentShaderFromFile() 
+	{
 		bool error = false;
 		fragmentShaderCode = readFile(fragmentShaderPath, error);
 		if (error) {
@@ -91,7 +99,8 @@ namespace StarryRender {
 		}
 	}
 
-	std::vector<char> Shader::readFile(const std::string& filename, bool& error) {
+	std::vector<char> Shader::readFile(const std::string& filename, bool& error) 
+	{
 		std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
 		if (!file.is_open()) {

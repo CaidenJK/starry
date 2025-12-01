@@ -16,7 +16,8 @@
 		return x; \
 	}
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	SwapChain::SwapChain(VkDevice& device) : device(device) {
 		if (device == VK_NULL_HANDLE) {
 			registerAlert("Device is null!", FATAL);
@@ -24,11 +25,13 @@ namespace StarryRender {
 		}
 	}
 
-	SwapChain::~SwapChain() {
+	SwapChain::~SwapChain() 
+	{
 		cleanupSwapChain();
 	}
 	
-	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) {
+	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) 
+	{
 		if (device == VK_NULL_HANDLE) {
 			registerAlert("Device never set!", FATAL);
 			return;
@@ -38,7 +41,8 @@ namespace StarryRender {
 		createImageViews();
 	}
 
-	void SwapChain::createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) {
+	void SwapChain::createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) 
+	{
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
 		ERROR_VOLATILE(VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, windowReference));
@@ -96,7 +100,8 @@ namespace StarryRender {
 		swapChainExtent = extent;
 	}
 
-	void SwapChain::createImageViews() {
+	void SwapChain::createImageViews() 
+	{
 		swapChainImageViews.resize(swapChainImages.size());
 
 		for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -124,7 +129,8 @@ namespace StarryRender {
 		}
 	}
 
-	void SwapChain::generateFramebuffers(VkRenderPass& renderPass) {
+	void SwapChain::generateFramebuffers(VkRenderPass& renderPass) 
+	{
 		for (auto framebuffer : swapChainFramebuffers) {
 			vkDestroyFramebuffer(device, framebuffer, nullptr);
 		}
@@ -152,7 +158,8 @@ namespace StarryRender {
 		}
 	}
 
-	void SwapChain::cleanupSwapChain() {
+	void SwapChain::cleanupSwapChain() 
+	{
 		for (auto imageView : swapChainImageViews) {
 			vkDestroyImageView(device, imageView, nullptr);
 		}
@@ -166,7 +173,8 @@ namespace StarryRender {
 		vkDestroySwapchainKHR(device, swapChain, nullptr);
 	}
 
-	SwapChain::SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface) {
+	SwapChain::SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface) 
+	{
 		SwapChainSupportDetails details;
 
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -190,7 +198,8 @@ namespace StarryRender {
 		return details;
 	}
 
-	VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
+	VkSurfaceFormatKHR SwapChain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) 
+	{
 		VkSurfaceFormatKHR currentSwapSurfaceFormat;
 		bool isSet = false;
 		for (const auto& availableFormat : availableFormats) {
@@ -208,7 +217,8 @@ namespace StarryRender {
 		return currentSwapSurfaceFormat;
 	}
 
-	VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
+	VkPresentModeKHR SwapChain::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) 
+	{
 		VkPresentModeKHR currentPresentMode;
 		bool isSet = false;
 		for (const auto& availablePresentMode : availablePresentModes) {
@@ -226,7 +236,8 @@ namespace StarryRender {
 		return currentPresentMode;
 	}
 
-	VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const std::weak_ptr<Window>& windowReference) {
+	VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const std::weak_ptr<Window>& windowReference) 
+	{
 		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 			return capabilities.currentExtent;
 		}

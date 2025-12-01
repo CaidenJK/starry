@@ -11,7 +11,8 @@
 #define DEFAULT_SCENE_NAME "New Scene"
 #define DEFAULT_SHADER_PATHS { "../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv" }
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class Scene : public RenderAsset {
 	public:
 		Scene(const std::string name);
@@ -38,8 +39,6 @@ namespace StarryRender {
 	private:
 		//void mainLoop();
 		void renderLoop();
-
-		void calculateMVP();
 
 		static const int RENDER_LOOP_DELAY_MS = 4;
 

@@ -10,7 +10,8 @@
 
 #define STARRY_APP_VERSION "0.0.1"
  
-namespace StarryRender {
+namespace StarryRender 
+{
     class Application {
     public:
         Application() {};

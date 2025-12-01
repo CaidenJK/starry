@@ -1,19 +1,23 @@
 #include "Asset.h"
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	std::mt19937_64 RenderAsset::randomGen = std::mt19937_64(std::time(nullptr));
 
-	RenderAsset::RenderAsset() {
+	RenderAsset::RenderAsset() 
+	{
 		uuid = generateUUID();
 		
 		ErrorHandler::get().lock()->registerAsset(this);
 	}
 
-	RenderAsset::~RenderAsset() {
+	RenderAsset::~RenderAsset() 
+	{
 		ErrorHandler::get().lock()->unregisterAsset(uuid);
 	}
 
-	void RenderAsset::registerAlert(const std::string& message, CallSeverity severity) {
+	void RenderAsset::registerAlert(const std::string& message, CallSeverity severity) 
+	{
 		hasAlert = true;
 		alertMessage = message;
 		assetState = severity;
@@ -27,7 +31,8 @@ namespace StarryRender {
 		assetState = CallSeverity::NONE;
 	}
 
-	uint64_t RenderAsset::generateUUID() {
+	uint64_t RenderAsset::generateUUID() 
+	{
 		return randomGen();
 	}
 }

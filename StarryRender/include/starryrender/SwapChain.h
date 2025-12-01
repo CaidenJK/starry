@@ -10,7 +10,8 @@
 #include "Asset.h"
 #include "Window.h"
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	struct QueueFamilyIndices {
 		std::optional<uint32_t> graphicsFamily;
 		std::optional<uint32_t> presentFamily;

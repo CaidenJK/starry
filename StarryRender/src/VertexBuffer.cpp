@@ -2,8 +2,10 @@
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
-namespace StarryRender {
-	VkVertexInputBindingDescription Vertex::getBindingDescriptions() {
+namespace StarryRender 
+{
+	VkVertexInputBindingDescription Vertex::getBindingDescriptions() 
+	{
 		VkVertexInputBindingDescription bindingDescription{};
 		bindingDescription.binding = 0;
 		bindingDescription.stride = sizeof(Vertex);
@@ -11,7 +13,8 @@ namespace StarryRender {
 
 		return bindingDescription;
 	}
-	std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescriptions() {
+	std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescriptions() 
+	{
 		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
 		// Vert
 		attributeDescriptions[0].binding = 0;
@@ -28,12 +31,14 @@ namespace StarryRender {
 		return attributeDescriptions;
 	}
 
-	VertexBuffer::VertexBuffer(VkDevice& deviceRef) : device(deviceRef) {
+	VertexBuffer::VertexBuffer(VkDevice& deviceRef) : device(deviceRef) 
+	{
 		if (device == VK_NULL_HANDLE) {
 			registerAlert("Null Vulkan device provided to VertexBuffer!", FATAL);
 		}
 	}
-	VertexBuffer::~VertexBuffer() {
+	VertexBuffer::~VertexBuffer() 
+	{
 		vkDestroyBuffer(device, vertexBuffer, nullptr);
 		vkFreeMemory(device, vertexBufferMemory, nullptr);
 
@@ -54,15 +59,17 @@ namespace StarryRender {
 		}
 	}
 
-	void VertexBuffer::loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput) {
-		verticies = verticiesInput;
-		indicies = indiciesInput;
+	void VertexBuffer::loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput) 
+	{
+		vertices = verticiesInput;
+		indices = indiciesInput;
 		createVertexBuffer(physicalDevice);
 		createIndexBuffer(physicalDevice);
 	}
 
-	void VertexBuffer::createVertexBuffer(VkPhysicalDevice& physicalDevice) {
-		bufferSizeVertex = sizeof(verticies[0]) * verticies.size();
+	void VertexBuffer::createVertexBuffer(VkPhysicalDevice& physicalDevice) 
+	{
+		bufferSizeVertex = sizeof(vertices[0]) * vertices.size();
 		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex));
 		ERROR_VOLATILE(fillVertexBufferData(stagingBufferMemoryVertex));
 		if (vertexBuffer == VK_NULL_HANDLE) {
@@ -70,8 +77,9 @@ namespace StarryRender {
 		}
 	}
 
-	void VertexBuffer::createIndexBuffer(VkPhysicalDevice& physicalDevice) {
-		bufferSizeIndex = sizeof(indicies[0]) * indicies.size();
+	void VertexBuffer::createIndexBuffer(VkPhysicalDevice& physicalDevice) 
+	{
+		bufferSizeIndex = sizeof(indices[0]) * indices.size();
 		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferIndex, stagingBufferMemoryIndex));
 		ERROR_VOLATILE(fillIndexBufferData(stagingBufferMemoryIndex));
 		if (indexBuffer == VK_NULL_HANDLE) {
@@ -79,7 +87,8 @@ namespace StarryRender {
 		}
 	}
 
-	void VertexBuffer::loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue) {
+	void VertexBuffer::loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue) 
+	{
 		if (stagingBufferVertex == VK_NULL_HANDLE ||
 			stagingBufferIndex == VK_NULL_HANDLE ||
 			stagingBufferMemoryVertex == VK_NULL_HANDLE ||
@@ -104,8 +113,9 @@ namespace StarryRender {
 		stagingBufferMemoryIndex = VK_NULL_HANDLE;
 	}
 
-	void VertexBuffer::createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) {
-		if (verticies.empty()) {
+	void VertexBuffer::createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) 
+	{
+		if (vertices.empty()) {
 			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
@@ -141,39 +151,42 @@ namespace StarryRender {
 		vkBindBufferMemory(device, buffer, bufferMemory, 0);
 	}
 
-	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory) {
+	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory) 
+	{
 		if (bufferMemory == VK_NULL_HANDLE) {
 			registerAlert("Vertex buffer not created before filling data!", FATAL);
 			return;
 		}
-		if (verticies.empty()) {
+		if (vertices.empty()) {
 			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 
 		void* data;
 		vkMapMemory(device, bufferMemory, 0, bufferSizeVertex, 0, &data);
-		memcpy(data, verticies.data(), (size_t)bufferSizeVertex);
+		memcpy(data, vertices.data(), (size_t)bufferSizeVertex);
 		vkUnmapMemory(device, bufferMemory);
 	}
 
-	void VertexBuffer::fillIndexBufferData(VkDeviceMemory& bufferMemory) {
+	void VertexBuffer::fillIndexBufferData(VkDeviceMemory& bufferMemory) 
+	{
 		if (bufferMemory == VK_NULL_HANDLE) {
 			registerAlert("Vertex buffer not created before filling data!", FATAL);
 			return;
 		}
-		if (verticies.empty()) {
+		if (vertices.empty()) {
 			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 
 		void* data;
 		vkMapMemory(device, bufferMemory, 0, bufferSizeIndex, 0, &data);
-		memcpy(data, indicies.data(), (size_t)bufferSizeIndex);
+		memcpy(data, indices.data(), (size_t)bufferSizeIndex);
 		vkUnmapMemory(device, bufferMemory);
 	}
 
-	void VertexBuffer::copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size) {
+	void VertexBuffer::copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size) 
+	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -207,7 +220,8 @@ namespace StarryRender {
 		vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 	}
 
-	uint32_t VertexBuffer::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+	uint32_t VertexBuffer::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) 
+	{
 		if (physicalDevice == VK_NULL_HANDLE) {
 			registerAlert("Vulkan physical device null! Can't find memory type.", FATAL);
 			return 0;

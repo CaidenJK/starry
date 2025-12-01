@@ -7,7 +7,8 @@
 #include <random>
 #include <cstdint>
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class RenderAsset {
 	public:
 		RenderAsset();

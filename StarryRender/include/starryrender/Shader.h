@@ -9,7 +9,8 @@
 
 #include "Asset.h"
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class Shader : public RenderAsset {
 		public:
 			Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);

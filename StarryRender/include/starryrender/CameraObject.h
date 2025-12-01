@@ -2,7 +2,8 @@
 
 #include "Asset.h"
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class CameraObject : public RenderAsset {
 	public:
 		CameraObject();

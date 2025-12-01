@@ -7,13 +7,14 @@
 
 #define DEFAULT_NAME_MESH "MeshObject"
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	class MeshObject : public RenderAsset {
 	public:
 		MeshObject(std::string nameInput = DEFAULT_NAME_MESH);
 		~MeshObject();
 
-		void addVertexData(std::vector<Vertex>& verticiesInput, std::vector<uint32_t> indiciesInput);
+		void addVertexData(std::vector<Vertex>& verticesInput, std::vector<uint32_t> indicesInput);
 		void attatchBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice);
 
 		glm::mat4& getModelMatrix() { return localToGlobalSpace; }
@@ -25,8 +26,8 @@ namespace StarryRender {
 
 		glm::mat4 localToGlobalSpace;
 
-		std::vector<Vertex> verticies;
-		std::vector<uint32_t> indicies;
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
 		std::shared_ptr<VertexBuffer> vertexBuffer;
 	};
 }

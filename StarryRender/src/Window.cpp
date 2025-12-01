@@ -17,13 +17,16 @@
 
 #endif
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	Window::Window(int width, int height, const char* title)
-		: width(width), height(height), title(title), window(nullptr) {
+		: width(width), height(height), title(title), window(nullptr) 
+	{
 		initWindow();
 	}
 
-	Window::~Window() {
+	Window::~Window() 
+	{
 		glfwDestroyWindow(window);
 
 		glfwTerminate();
@@ -49,30 +52,36 @@ namespace StarryRender {
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 
 	}
-	bool Window::shouldClose() const {
+	bool Window::shouldClose() const 
+	{
 		return glfwWindowShouldClose(window);
 	}
 
-	void Window::pollEvents() const {
+	void Window::pollEvents() const 
+	{
 		glfwPollEvents();
 	}
 
-	GLFWwindow* Window::getGLFWwindow() const {
+	GLFWwindow* Window::getGLFWwindow() const 
+	{
 		return window;
 	}
 
-	void Window::createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface) {
+	void Window::createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface) 
+	{
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
 			registerAlert("Failed to create window surface!", FATAL);
 			return;
 		}
 	}
 
-	void Window::getFramebufferSize(int& width, int& height) {
+	void Window::getFramebufferSize(int& width, int& height) 
+	{
 		glfwGetFramebufferSize(window, &width, &height);
 	}
 
-	bool Window::isWindowMinimized() {
+	bool Window::isWindowMinimized() 
+	{
 		int width = 0, height = 0;
 		glfwGetFramebufferSize(window, &width, &height);
 		if (width == 0 || height == 0) {
@@ -83,7 +92,8 @@ namespace StarryRender {
 		}
 	}
 
-	void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height) {
+	void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height) 
+	{
 		auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		app->framebufferResized = true;
 	}

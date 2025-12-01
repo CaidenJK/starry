@@ -6,24 +6,28 @@
 	#define SUCCESS_VALIDATION
 #endif
 
-namespace StarryRender {
+namespace StarryRender 
+{
 	std::shared_ptr<ErrorHandler> ErrorHandler::globalErrorHandler = nullptr;
 
-	std::weak_ptr<ErrorHandler> ErrorHandler::get() {
+	std::weak_ptr<ErrorHandler> ErrorHandler::get() 
+	{
 		if (globalErrorHandler == nullptr) {
 			globalErrorHandler.reset(new ErrorHandler());
 		}
 		return std::weak_ptr<ErrorHandler>(globalErrorHandler);
 	}
 
-	void ErrorHandler::registerAsset(RenderAsset* asset) {
+	void ErrorHandler::registerAsset(RenderAsset* asset) 
+	{
 		if (asset == nullptr) {
 			return;
 		}
 		registeredAssets.insert({ asset->getUUID(), asset });
 	}
 
-	void ErrorHandler::unregisterAsset(uint64_t uuid) {
+	void ErrorHandler::unregisterAsset(uint64_t uuid) 
+	{
 		for (const auto& asset : registeredAssets) {
 			if (asset.first == uuid) {
 				registeredAssets.erase(asset.first);
@@ -32,7 +36,8 @@ namespace StarryRender {
 		}
 	}
 
-	void ErrorHandler::enumerateAssets() {
+	void ErrorHandler::enumerateAssets() 
+	{
 		for (const auto& asset : registeredAssets) {
 			if (asset.second->getAlert() && (asset.second->getAlertSeverity() != RenderAsset::CallSeverity::NONE)) {
 				AssetCall call;
@@ -53,7 +58,8 @@ namespace StarryRender {
 			flushCalls();
 		}
 	}
-	void ErrorHandler::flushCalls() {
+	void ErrorHandler::flushCalls() 
+	{
 		if (alertMessageBuffer.size() == 0) {
 			return;
 		}
@@ -68,7 +74,8 @@ namespace StarryRender {
 		shouldFlush = false;
 	}
 
-	std::string ErrorHandler::severityToString(RenderAsset::CallSeverity severity) {
+	std::string ErrorHandler::severityToString(RenderAsset::CallSeverity severity) 
+	{
 		switch (severity) {
 		case RenderAsset::CallSeverity::NONE:
 			return "NONE";
