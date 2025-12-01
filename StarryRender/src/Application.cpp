@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "MeshObject.h"
+
 #ifndef NDEBUG
 	#define SUCCESS_VALIDATION
 #endif
@@ -36,9 +38,10 @@
 namespace StarryRender {
 	void Application::init() {
 		window = std::make_shared<Window>(); ERROR_HANDLER_CHECK;
-		renderer = std::make_shared<RenderDevice>(window); ERROR_HANDLER_CHECK;
+		scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
 
-		renderer->LoadShader("../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv"); ERROR_HANDLER_CHECK;
+		scene->setShaderPaths({ "../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv" }); ERROR_HANDLER_CHECK;
+		scene->createDevice(window); ERROR_HANDLER_CHECK;
 
 		std::vector<Vertex> vertices = {
 			{{-0.5f, -0.5f}, RED_COLOR},
@@ -50,50 +53,27 @@ namespace StarryRender {
 			0, 1, 2, 0, 2, 3
 		};
 
-		auto vertexBuffer = std::make_shared<VertexBuffer>(renderer->getDevice()); ERROR_HANDLER_CHECK;
-		vertexBuffer->loadData(renderer->getPhysicalDevice(), vertices, indices); ERROR_HANDLER_CHECK;
+		std::shared_ptr<MeshObject> meshObject = std::make_shared<MeshObject>("Triangle Mesh"); ERROR_HANDLER_CHECK;
+		meshObject->addVertexData(vertices, indices); ERROR_HANDLER_CHECK;
 
-		renderer->InitDraw(); ERROR_HANDLER_CHECK;
-		renderer->LoadBuffer(vertexBuffer); ERROR_HANDLER_CHECK;
+		scene->pushPrefab(meshObject); ERROR_HANDLER_CHECK;
 
-
-		renderRunning.store(true);
-		
 		ERROR_HANDLER_CHECK;
 		STARRY_INITIALIZE_SUCCESS;
 	}
 	void Application::mainLoop() {
-		renderThread = std::thread(&Application::renderLoop, this);
+		scene->disbatchRenderer(); ERROR_HANDLER_CHECK;
 
-		while (!window->shouldClose() && renderRunning.load()) {
+		while (!window->shouldClose() && scene->isRenderRunning().load()) {
 			window->pollEvents();
 		}
 
-		renderRunning.store(false);
-		if (renderThread.joinable()) renderThread.join();
-
-		renderer->WaitIdle();
-	}
-
-	void Application::renderLoop() {
-		Timer frameTimer;
-		frameTimer.setLogging();
-		while (renderRunning.load()) {
-			frameTimer.time();
-			renderer->Draw();
-			if (ERROR_HANDLER->isFatal()) {
-				renderRunning.store(false);
-				continue;
-			}
-
-			// Simple frame cap
-			std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
-		}
+		scene->joinRenderer();
 	}
 
 	// Destroy renderer then window last
 	void Application::cleanup() {
-		renderer.reset();
+		scene.reset();
 		window.reset();
 
 		if (ERROR_HANDLER->isFatal()) {

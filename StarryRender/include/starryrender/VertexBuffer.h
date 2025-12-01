@@ -29,7 +29,7 @@ namespace StarryRender {
 		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
 	};
 
-	class VertexBuffer : RenderAsset {
+	class VertexBuffer : public RenderAsset {
 		public:
 			VertexBuffer(VkDevice& device);
 			~VertexBuffer();
@@ -37,8 +37,8 @@ namespace StarryRender {
 			void loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
 			void loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue);
 
-			size_t getNumVerticies() { return verticies.size(); }
-			size_t getNumIndicies() { return indicies.size(); }
+			size_t getNumVerticies() { return verticies.empty() ? 0 : verticies.size(); }
+			size_t getNumIndicies() { return indicies.empty() ? 0 : indicies.size(); }
 			VkBuffer& getVertexBuffer() { return vertexBuffer; }
 			VkBuffer& getIndexBuffer() { return indexBuffer; }
 
@@ -55,8 +55,8 @@ namespace StarryRender {
 
 			uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-			std::vector<Vertex> verticies;
-			std::vector<uint32_t> indicies;
+			std::vector<Vertex> verticies = {};
+			std::vector<uint32_t> indicies = {};
 
 			VkBuffer stagingBufferVertex = VK_NULL_HANDLE;
 			VkDeviceMemory stagingBufferMemoryVertex = VK_NULL_HANDLE;

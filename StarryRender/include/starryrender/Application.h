@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Asset.h"
 #include "Window.h"
-#include "RenderDevice.h"
+#include "Scene.h"
 
 #include <iostream>
 #include <memory>
@@ -30,15 +29,7 @@ namespace StarryRender {
         void mainLoop();
         void cleanup();
 
-        static const int RENDER_LOOP_DELAY_MS = 4;
-
-        std::thread renderThread;
-        std::atomic<bool> renderRunning{ false };
-
-        void renderLoop();
-
         std::shared_ptr<Window> window = nullptr;
-        std::shared_ptr<RenderDevice> renderer = nullptr;
-		std::shared_ptr<RenderPipeline> pipeline = nullptr;
+        std::shared_ptr<Scene> scene = nullptr;
     };
 }
