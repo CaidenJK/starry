@@ -43,7 +43,7 @@ namespace StarryRender
 		//void mainLoop();
 		void renderLoop();
 
-		static const int RENDER_LOOP_DELAY_MS = 4;
+		static const int RENDER_LOOP_DELAY_MS = 2;
 
 		std::string sceneName = DEFAULT_SCENE_NAME;
 

@@ -46,10 +46,10 @@ namespace StarryRender
 		scene->createDevice(window); ERROR_HANDLER_CHECK;
 
 		std::vector<Vertex> vertices = {
-			{{-0.5f, -0.5f, 0.0f}, RED_COLOR},
+			{{-0.5f, -0.5f, 0.0f}, CYAN_COLOR},
 			{{-0.5f, 0.5f, 0.0f}, BLUE_COLOR},
 			{{0.5f, 0.5f, 0.0f}, GREEN_COLOR},
-			{{0.5f, -0.5f, 0.0f}, YELLOW_COLOR}
+			{{0.5f, -0.5f, 0.0f}, WHITE_COLOR}
 		};
 		const std::vector<uint32_t> indices = {
 			0, 1, 2, 0, 2, 3
