@@ -25,7 +25,9 @@ namespace StarryRender
 
 		std::shared_ptr<VertexBuffer>& getRawVertexBuffer() { return vertexBuffer; }
 
+		static MeshObject primitiveCube(float size);
 
+		static MeshObject primitiveQuad(float width, float height);
 
 		const std::string getAssetName() override { return const_cast<std::string&>(name); }
 	private:
