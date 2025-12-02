@@ -9,6 +9,7 @@
 #endif
 
 #ifdef SUCCESS_VALIDATION
+
 #define STARRY_INITIALIZE_SUCCESS \
 	std::cout << "----------------------------------------\n"; \
 	std::cout << "Starry Render initialized successfully!\n"; \
@@ -22,24 +23,21 @@
 #else
 #define STARRY_INITIALIZE_SUCCESS
 #define STARRY_EXIT_SUCCESS
-
 #endif
 
-#define CHECK_ERROR(x) \
+#define EXTERN_ERROR(x) \
 	if (x->isFatal()) { \
 		return; \
 	}
 
 #define ERROR_HANDLER ErrorHandler::get().lock()
-#define ERROR_HANDLER_CHECK CHECK_ERROR(ERROR_HANDLER)
-
-#include "Timer.h"
+#define ERROR_HANDLER_CHECK EXTERN_ERROR(ERROR_HANDLER)
 
 namespace StarryRender 
 {
 	void Application::init() 
 	{
-		window = std::make_shared<Window>(); ERROR_HANDLER_CHECK;
+		window = std::make_shared<Window>("Starry Dev"); ERROR_HANDLER_CHECK;
 		scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
 
 		scene->setShaderPaths({ "../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv" }); ERROR_HANDLER_CHECK;

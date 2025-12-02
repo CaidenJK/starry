@@ -13,7 +13,7 @@ namespace StarryRender
 {
 	class Window : public RenderAsset {
 	public:
-		Window(int width = DEFAULT_WIDTH, int height = DEFAULT_HEIGHT, const char* title = DEFAULT_TITLE);
+		Window(const char* title = DEFAULT_TITLE);
 		~Window();
 
 		Window operator=(const Window&) = delete;
@@ -26,8 +26,6 @@ namespace StarryRender
 		void createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface);
 		void getFramebufferSize(int& width, int& height);
 
-		bool getError() { return error; }
-
 		bool wasFramebufferResized() { return framebufferResized; }
 		void resetFramebufferResizedFlag() { framebufferResized = false; }
 
@@ -39,13 +37,11 @@ namespace StarryRender
 	private:
 		void initWindow();
 
-		int width;
-		int height;
+		int width = DEFAULT_WIDTH;
+		int height = DEFAULT_HEIGHT;
 		const char* title;
 		GLFWwindow* window;
 
 		bool framebufferResized = false;
-
-		bool error = false;
 	};
 }

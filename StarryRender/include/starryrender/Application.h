@@ -8,7 +8,7 @@
 #include <thread>
 #include <atomic>
 
-#define STARRY_APP_VERSION "0.0.1"
+#define STARRY_APP_VERSION "0.0.2 dev"
  
 namespace StarryRender 
 {

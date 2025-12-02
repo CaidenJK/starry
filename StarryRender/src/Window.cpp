@@ -19,8 +19,8 @@
 
 namespace StarryRender 
 {
-	Window::Window(int width, int height, const char* title)
-		: width(width), height(height), title(title), window(nullptr) 
+	Window::Window(const char* title)
+		: title(title), window(nullptr) 
 	{
 		initWindow();
 	}
