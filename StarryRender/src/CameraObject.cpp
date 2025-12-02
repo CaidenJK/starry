@@ -7,7 +7,7 @@ namespace StarryRender
 {
 	CameraObject::CameraObject()
 	{
-		localToGlobalSpace = glm::translate(localToGlobalSpace, glm::vec3(0.0, 0.0, -1.5));
+		localToGlobalSpace = glm::translate(localToGlobalSpace, glm::vec3(0.0, 0.0, -2.5));
 		calculateProjectionMatrix();
 	}
 

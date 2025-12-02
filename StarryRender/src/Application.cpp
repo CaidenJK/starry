@@ -46,20 +46,29 @@ namespace StarryRender
 		scene->createDevice(window); ERROR_HANDLER_CHECK;
 
 		std::vector<Vertex> vertices = {
-			{{-0.5f, -0.5f, 0.0f}, CYAN_COLOR},
-			{{-0.5f, 0.5f, 0.0f}, BLUE_COLOR},
-			{{0.5f, 0.5f, 0.0f}, GREEN_COLOR},
-			{{0.5f, -0.5f, 0.0f}, WHITE_COLOR}
+			{{-0.5f, -0.5f, 0.5f}, CYAN_COLOR},
+			{{-0.5f, 0.5f, 0.5f}, BLUE_COLOR},
+			{{0.5f, 0.5f, 0.5f}, GREEN_COLOR},
+			{{0.5f, -0.5f, 0.5f}, BLACK_COLOR},
+			{{ -0.5f, -0.5f, -0.5f }, RED_COLOR},
+			{{-0.5f, 0.5f, -0.5f}, YELLOW_COLOR},
+			{{0.5f, 0.5f, -0.5f}, MAGENTA_COLOR},
+			{{0.5f, -0.5f, -0.5f}, RED_COLOR}
 		};
 		const std::vector<uint32_t> indices = {
-			0, 1, 2, 0, 2, 3
+			0, 1, 2, 0, 2, 3,
+			4, 5, 1, 4, 1, 0,
+			7, 4, 0, 7, 0, 3,
+			3, 2, 6, 3, 6, 7,
+			5, 6, 2, 5, 2, 1,
+			7, 6, 5, 7, 5, 4
 		};
 
-		MeshObject meshObject("Triangle Mesh"); ERROR_HANDLER_CHECK;
+		MeshObject meshObject("Cube Mesh"); ERROR_HANDLER_CHECK;
 		meshObject.addVertexData(vertices, indices); ERROR_HANDLER_CHECK;
 
 		CameraObject camera;
-		camera.setFOV(70.0f);
+		camera.setFOV(60.0f);
 
 		scene->pushPrefab(meshObject); ERROR_HANDLER_CHECK;
 		scene->addCamera(camera); ERROR_HANDLER_CHECK;

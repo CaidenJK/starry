@@ -19,6 +19,7 @@
 #define MAGENTA_COLOR glm::vec3(1.0f, 0.0f, 1.0f)
 #define YELLOW_COLOR glm::vec3(1.0f, 1.0f, 0.0f)
 #define WHITE_COLOR glm::vec3(1.0f, 1.0f, 1.0f)
+#define BLACK_COLOR glm::vec3(0.1f, 0.1f, 0.1f)
 
 namespace StarryRender
 {

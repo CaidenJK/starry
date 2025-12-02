@@ -24,6 +24,9 @@ namespace StarryRender
 		glm::mat4& getModelMatrix() { return localToGlobalSpace; }
 
 		std::shared_ptr<VertexBuffer>& getRawVertexBuffer() { return vertexBuffer; }
+
+
+
 		const std::string getAssetName() override { return const_cast<std::string&>(name); }
 	private:
 		std::string name;
