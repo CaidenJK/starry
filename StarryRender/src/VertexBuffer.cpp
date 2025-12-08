@@ -39,11 +39,15 @@ namespace StarryRender
 	}
 	VertexBuffer::~VertexBuffer() 
 	{
-		vkDestroyBuffer(device, vertexBuffer, nullptr);
-		vkFreeMemory(device, vertexBufferMemory, nullptr);
+		if (vertexBuffer != VK_NULL_HANDLE) {
+			vkDestroyBuffer(device, vertexBuffer, nullptr);
+			vkFreeMemory(device, vertexBufferMemory, nullptr);
+		}
 
-		vkDestroyBuffer(device, indexBuffer, nullptr);
-		vkFreeMemory(device, indexBufferMemory, nullptr);
+		if (indexBuffer != VK_NULL_HANDLE) {
+			vkDestroyBuffer(device, indexBuffer, nullptr);
+			vkFreeMemory(device, indexBufferMemory, nullptr);
+		}
 
 		if (stagingBufferVertex != VK_NULL_HANDLE) {
 			vkDestroyBuffer(device, stagingBufferVertex, nullptr);
@@ -59,16 +63,18 @@ namespace StarryRender
 		}
 	}
 
-	void VertexBuffer::loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput) 
+	void VertexBuffer::loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput) 
 	{
 		vertices = verticiesInput;
 		indices = indiciesInput;
-		createVertexBuffer(physicalDevice);
-		createIndexBuffer(physicalDevice);
 	}
 
 	void VertexBuffer::createVertexBuffer(VkPhysicalDevice& physicalDevice) 
 	{
+		if (vertices.empty()) {
+			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
+			return;
+		}
 		bufferSizeVertex = sizeof(vertices[0]) * vertices.size();
 		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex));
 		ERROR_VOLATILE(fillVertexBufferData(stagingBufferMemoryVertex));
@@ -79,6 +85,10 @@ namespace StarryRender
 
 	void VertexBuffer::createIndexBuffer(VkPhysicalDevice& physicalDevice) 
 	{
+		if (indices.empty()) {
+			registerAlert("No index data loaded into VertexBuffer!", FATAL);
+			return;
+		}
 		bufferSizeIndex = sizeof(indices[0]) * indices.size();
 		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferIndex, stagingBufferMemoryIndex));
 		ERROR_VOLATILE(fillIndexBufferData(stagingBufferMemoryIndex));
@@ -87,8 +97,11 @@ namespace StarryRender
 		}
 	}
 
-	void VertexBuffer::loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue) 
+	void VertexBuffer::loadBufferToMemory(VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue)
 	{
+		createVertexBuffer(physicalDevice);
+		createIndexBuffer(physicalDevice);
+
 		if (stagingBufferVertex == VK_NULL_HANDLE ||
 			stagingBufferIndex == VK_NULL_HANDLE ||
 			stagingBufferMemoryVertex == VK_NULL_HANDLE ||
@@ -174,7 +187,7 @@ namespace StarryRender
 			registerAlert("Vertex buffer not created before filling data!", FATAL);
 			return;
 		}
-		if (vertices.empty()) {
+		if (indices.empty()) {
 			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}

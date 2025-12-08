@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace StarryRender 
+namespace Starry
 {
 	Timer::Timer() 
 	{
@@ -11,7 +11,7 @@ namespace StarryRender
 	}
 	Timer::~Timer() 
 	{
-		stop();
+		end();
 	}
 	void Timer::time() 
 	{
@@ -30,9 +30,14 @@ namespace StarryRender
 		}
 		currentTime = now;
 		deltaTime = delta;
-		logFPS();
+		if (frameMetric.isHot) { logFPS(); }
 	}
 	void Timer::stop() 
+	{
+		time();
+		frameMetric.isHot = false;
+	}
+	void Timer::end() 
 	{
 		currentTime = 0;
 		frameMetric.totalTime = 0;

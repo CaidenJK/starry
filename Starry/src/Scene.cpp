@@ -3,16 +3,14 @@
 #include "Timer.h"
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
-#define EXTERN_ERROR_STACK(x) if(x.getAlertSeverity() == FATAL) { return; }
 
 #define ERROR_HANDLER ErrorHandler::get().lock()
-#define ERROR_HANDLER_CHECK CHECK_ERROR(ERROR_HANDLER)
 
-namespace StarryRender 
+namespace Starry
 {
 	Scene::Scene(const std::string name) : sceneName(name) 
 	{
-
+		
 	}
 
 	Scene::~Scene() 
@@ -20,34 +18,40 @@ namespace StarryRender
 		if (renderRunning.load()) {
 			joinRenderer();
 		}
-		prefabs.~MeshObject();
 
-		uniformBuffer.reset();
+		prefabs.~MeshObject();
 		renderer.reset();
 	}
 
-	void Scene::createDevice(std::shared_ptr<Window> window) 
+	void Scene::makeRenderContext()
 	{
-		renderer = std::make_unique<RenderDevice>(window); EXTERN_ERROR(renderer);
-
-		if (shaderPaths[0].empty() || shaderPaths[1].empty()) {
-			registerAlert("Shader paths not set before creating device!", CRITICAL);
+		if (renderRunning.load()) {
+			registerAlert("Cannot change Render Context while rendering!", CRITICAL);
 			return;
 		}
-		uniformBuffer = std::make_shared<UniformBuffer>(renderer->getDevice()); EXTERN_ERROR(uniformBuffer);
-		renderer->loadUniformBuffer(uniformBuffer);
-
-		renderer->LoadShader(shaderPaths[0], shaderPaths[1]); EXTERN_ERROR(renderer);
-		renderer->InitDraw(); EXTERN_ERROR(renderer);
+		renderer = std::make_shared<RenderContext>();
+		renderer->loadShaders(shaderPaths);
+		renderer->Init();
 	}
 
-	void Scene::attatchDevice(const std::unique_ptr<RenderDevice>& device) 
+	void Scene::makeRenderContext(std::shared_ptr<Window>& window)
 	{
-		if (device == nullptr) {
-			registerAlert("Render device pointer is null!", CRITICAL);
+		if (renderRunning.load()) {
+			registerAlert("Cannot change Render Context while rendering!", CRITICAL);
 			return;
 		}
-		renderer = std::move(const_cast<std::unique_ptr<RenderDevice>&>(device));
+		renderer = std::make_shared<RenderContext>();
+		renderer->loadShaders(shaderPaths);
+		renderer->Init(window);
+	}
+
+	void Scene::addRenderContext(std::shared_ptr<RenderContext>& renderContext) 
+	{
+		if (renderRunning.load()) {
+			registerAlert("Cannot change Render Context while rendering!", CRITICAL);
+			return;
+		}
+		renderer = renderContext;
 	}
 
 	void Scene::pushPrefab(const MeshObject& prefab) 
@@ -57,16 +61,14 @@ namespace StarryRender
 			return;
 		}
 		prefabs = prefab;
-		if (uniformBuffer == nullptr) {
-			registerAlert("Uniform buffer not initialized before pushing prefab!", CRITICAL);
-			return;
-		}
-		uniformBuffer->setModelMatrix(prefabs.getModelMatrix());
 	}
 
 	void Scene::setShaderPaths(const std::array<std::string, 2>& paths) 
 	{
 		shaderPaths = paths;
+		if (renderer != nullptr) {
+			renderer->loadShaders(shaderPaths);
+		}
 	}
 
 	void Scene::addCamera(const CameraObject& cameraRef) 
@@ -77,7 +79,7 @@ namespace StarryRender
 	void Scene::disbatchRenderer() 
 	{
 		if (renderer == nullptr) {
-			registerAlert("Render device not attatched to scene!", FATAL);
+			registerAlert("Render Context not attatched to scene!", FATAL);
 			return;
 		}
 		if (prefabs.isEmptyMesh() == true) {
@@ -85,8 +87,7 @@ namespace StarryRender
 			return;
 		}
 
-		prefabs.attatchBuffer(renderer->getDevice(), renderer->getPhysicalDevice()); EXTERN_ERROR_STACK(prefabs);
-		renderer->LoadBuffer(prefabs.getRawVertexBuffer()); EXTERN_ERROR(renderer);
+		prefabs.registerMeshBuffer(renderer);
 
 		renderRunning.store(true);
 		renderThread = std::thread(&Scene::renderLoop, this);
@@ -109,15 +110,29 @@ namespace StarryRender
 			frameTimer.time();
 			prefabs.rotateMesh(frameTimer.getDeltaTimeSeconds() * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 
-			uniformBuffer->setMVP(
-				prefabs.getModelMatrix(),
-				camera.getViewMatrix(),
-				camera.getProjectionMatrix()
-				);
-			EXTERN_ERROR(uniformBuffer);
+			UniformBufferData mvpBuffer{prefabs.getModelMatrix(),  camera.getViewMatrix(), camera.getProjectionMatrix()};
+			renderer->updateUniformBuffer(mvpBuffer);
+
+			// Error checks
+			if (renderer->getRenderErrorState()) {
+				registerAlert("Fatal rendering error occurred!", FATAL);
+				renderRunning.store(false);
+				continue;
+			}
+			if (ERROR_HANDLER->isFatal()) {
+				renderRunning.store(false);
+				continue;
+			}
 
 			renderer->Draw();
 			camera.setExtent(renderer->getExtent());
+			
+			// Error checks
+			if (renderer->getRenderErrorState()) {
+				registerAlert("Fatal rendering error occurred!", FATAL);
+				renderRunning.store(false);
+				continue;
+			}
 			if (ERROR_HANDLER->isFatal()) {
 				renderRunning.store(false);
 				continue;

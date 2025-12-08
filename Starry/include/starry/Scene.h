@@ -1,33 +1,34 @@
 #pragma once
 
+#include "StarryRender.h"
+
 #include <vector>
 #include <memory>
 #include <thread>
 
-#include "RenderDevice.h"
 #include "MeshObject.h"
 #include "CameraObject.h"
-#include "UniformBuffer.h"
 
 #define DEFAULT_SCENE_NAME "New Scene"
-#define DEFAULT_SHADER_PATHS { "../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv" }
 
-namespace StarryRender 
+namespace Starry
 {
-	class Scene : public RenderAsset {
+	class Scene : public StarryAsset {
 	public:
 		Scene(const std::string name);
+		Scene(const std::string name, std::shared_ptr<Window>& window);
 		~Scene();
 
 		Scene operator=(const Scene&) = delete;
 		Scene(const Scene&) = delete;
 
+		void makeRenderContext(std::shared_ptr<Window>& window);
+		void makeRenderContext();
+
+		void addRenderContext(std::shared_ptr<RenderContext>& renderContext);
+
 		void setShaderPaths(const std::array<std::string, 2>& paths);
 
-		void createDevice(std::shared_ptr<Window> window);
-		void attatchDevice(const std::unique_ptr<RenderDevice>& device);
-
-		void readObjectsFromFile(const std::string& filePath) {}
 		void pushPrefab(const MeshObject& prefab);
 		void addCamera(const CameraObject& cameraRef);
 
@@ -37,6 +38,7 @@ namespace StarryRender
 		void joinRenderer();
 
 		std::atomic<bool>& isRenderRunning() { return renderRunning; }
+		const std::shared_ptr<RenderContext>& getRenderContext() { return renderer; }
 
 		const std::string getAssetName() override { return "Scene: " + sceneName; }
 	private:
@@ -48,7 +50,7 @@ namespace StarryRender
 		std::string sceneName = DEFAULT_SCENE_NAME;
 
 		std::array<std::string, 2> shaderPaths = DEFAULT_SHADER_PATHS;
-		std::unique_ptr<RenderDevice> renderer = nullptr;
+		std::shared_ptr<RenderContext> renderer = nullptr;
 		
 		std::thread renderThread;
 		std::atomic<bool> renderRunning{ false };
@@ -56,8 +58,6 @@ namespace StarryRender
 		// One for now
 		MeshObject prefabs;
 		CameraObject camera;
-
-		std::shared_ptr<UniformBuffer> uniformBuffer = nullptr;
 
 		glm::mat4 modelViewProjection;
 	};

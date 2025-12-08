@@ -3,23 +3,14 @@
 
 # Cmake Version
 cmake_minimum_required (VERSION 3.8)
-
-# Set directory name for FetchContent
-set(FETCHCONTENT_BASE_DIR "${CMAKE_SOURCE_DIR}/Dependencies")
-
-# Vulkan
-set(VULKAN_DIR "C:/VulkanSDK/1.4.313.2")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
 
 # Set Sources
 set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/src")
 
 set(SOURCES
     ${SOURCE_DIR}/main.cpp
-)
-
-# Set Headers
-set(HEADERS
-    
 )
 
 # Enable Hot Reload for MSVC compilers if supported.
@@ -29,67 +20,22 @@ if (POLICY CMP0141)
 endif()
 
 # Project Name and Language
-project ("Starry" VERSION 0.0.1 LANGUAGES C CXX)
+project ("StarryApp" VERSION 0.0.1 LANGUAGES C CXX) 
 
-# DEPENDENCIES
-# ---------------------------------------
-
-# Include FetchContent for dependencies
-include(FetchContent)
-
-# Don't build bloat
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_INSTALL OFF)
-
-# GLFW
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG master
-    SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/glfw"
-)
-
-# GLM
-FetchContent_Declare(
-    glm
-    GIT_REPOSITORY https://github.com/g-truc/glm.git
-    GIT_TAG master
-    SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/glm"
-)
-
-# Populate FetchContent
-FetchContent_Populate(glfw)
-FetchContent_Populate(glm)
-
-# Make Available
-FetchContent_MakeAvailable(glfw glm)
-
-# PROJECT BUILD
-# ---------------------------------------
-
-# Include Libraries to Cmake Build System such that CMake builds them
-add_subdirectory ("StarryRender")
-add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
-add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
+add_subdirectory("Starry")
+find_package(Starry)
 
 # Add executable
-add_executable(Starry ${SOURCES} ${HEADERS})
-
-# Explicit Include Directories
-target_include_directories(Starry
-  PUBLIC
-   "${CMAKE_SOURCE_DIR}/StarryRender/include"
-)
+add_executable(StarryApp ${SOURCES})
 
 # Link Libraries
-target_link_libraries(Starry glm)
-target_link_libraries(Starry glfw)
-target_link_libraries(Starry ${VULKAN_DIR}/Lib/vulkan-1.lib)
-target_link_libraries(Starry StarryRender)
+target_link_libraries(StarryApp PRIVATE Starry)
 
-# C++ 20
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET Starry PROPERTY CXX_STANDARD 20)
+if (TARGET Starry)
+  add_custom_command(TARGET StarryApp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      "$<TARGET_FILE:Starry>"
+      "$<TARGET_FILE_DIR:StarryApp>"
+    COMMENT "Copying Starry DLL next to StarryApp executable"
+    VERBATIM)
 endif()

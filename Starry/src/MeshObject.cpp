@@ -4,7 +4,7 @@
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
-namespace StarryRender 
+namespace Starry
 {
 	MeshObject::MeshObject(std::string nameInput) : name(nameInput) 
 	{
@@ -23,18 +23,26 @@ namespace StarryRender
 		isEmpty = vertices.empty() || indices.empty();
 	}
 
-	void MeshObject::attatchBuffer(VkDevice& device, VkPhysicalDevice& physicalDevice) 
+	void MeshObject::registerMeshBuffer(std::unique_ptr<RenderContext>& renderContext)
 	{
-		if (vertices.empty() || indices.empty()) {
-			registerAlert("No vertex or index data to attatch to mesh object!", CRITICAL);
+		if (isEmptyMesh()) {
+			registerAlert("Cannot register empty mesh buffer!", FATAL);
 			return;
 		}
-		if (vertexBuffer != VK_NULL_HANDLE) {
-			registerAlert("AttatchBuffer called more than once! All calls other than the first are skipped.", WARNING);
+		vertexBuffer = renderContext->createVertexBuffer();
+		vertexBuffer->loadData(vertices, indices);
+		renderContext->loadVertexBuffer(vertexBuffer);
+	}
+
+	void MeshObject::registerMeshBuffer(std::shared_ptr<RenderContext>& renderContext)
+	{
+		if (isEmptyMesh()) {
+			registerAlert("Cannot register empty mesh buffer!", FATAL);
 			return;
 		}
-		vertexBuffer = std::make_shared<VertexBuffer>(device); EXTERN_ERROR(vertexBuffer);
-		vertexBuffer->loadData(physicalDevice, vertices, indices);
+		vertexBuffer = renderContext->createVertexBuffer();
+		vertexBuffer->loadData(vertices, indices);
+		renderContext->loadVertexBuffer(vertexBuffer);
 	}
 
 	void MeshObject::rotateMesh(float angleRadians, const glm::vec3& axis) {

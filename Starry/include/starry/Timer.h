@@ -4,9 +4,9 @@
 
 #include "Asset.h"
 
-namespace StarryRender 
+namespace Starry
 {
-	class Timer : RenderAsset {
+	class Timer : StarryAsset {
 		struct FrameMetric {
 			uint64_t frameSamples = 0;
 			uint64_t totalTime = 0;
@@ -24,6 +24,7 @@ namespace StarryRender
 			~Timer();
 			void time();
 			void stop();
+			void end();
 
 			void setLogging() {
 				toLog = true;

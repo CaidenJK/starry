@@ -751,24 +751,24 @@ namespace StarryRender
 			0, 1, 2
 		};
 
-		vertexBuffer->loadData(physicalDevice, vertices, indices);
-		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
+		vertexBuffer->loadData(vertices, indices);
+		vertexBuffer->loadBufferToMemory(physicalDevice, commandPool, graphicsQueue);
 	}
 
-	void RenderDevice::LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef) 
+	void RenderDevice::LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef) 
 	{
 		if (bufferRef == nullptr) {
 			registerAlert("Vertex buffer reference was null and was not set!", CRITICAL);
 			return;
 		}
-		if (commandPool == VK_NULL_HANDLE || graphicsQueue == VK_NULL_HANDLE) {
+		if (physicalDevice == VK_NULL_HANDLE || commandPool == VK_NULL_HANDLE || graphicsQueue == VK_NULL_HANDLE) {
 			registerAlert("Render device not fully initialized! Can't load buffer to memory.", FATAL);
 			return;
 		}
 		vertexBuffer.reset();
 		vertexBuffer = bufferRef;
 
-		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
+		vertexBuffer->loadBufferToMemory(physicalDevice, commandPool, graphicsQueue);
 	}
 
 	void RenderDevice::WaitIdle() 

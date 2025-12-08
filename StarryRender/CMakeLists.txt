@@ -3,6 +3,8 @@
 
 # Add project
 project(StarryRender VERSION 0.0.1 LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
 
 # Set Sources
 
@@ -13,17 +15,22 @@ FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 # Set Headers
 
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starryrender")
-set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 
 set(VULKAN_DIR 
 	"C:/VulkanSDK/1.4.313.2"
 )
 
-execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/simple_shader.vert -o ${SHADER_DIR}/vert.spv" )
-execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/simple_shader.frag -o ${SHADER_DIR}/frag.spv" )
-
 # Create Library
-add_library(StarryRender ${SOURCES} "src/RenderAsset.cpp")
+add_library(StarryRender ${SOURCES})
+
+set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
+
+set_target_properties(StarryRender PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
+  LIBRARY_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
+  ARCHIVE_OUTPUT_DIRECTORY "${BUILD_DIR}/lib"
+  OUTPUT_NAME "StarryRender"
+)
 
 # Gather Dependency Include Directories
 target_include_directories(StarryRender
@@ -35,11 +42,3 @@ target_include_directories(StarryRender
     ${glm_SOURCE_DIR}
 	${VULKAN_DIR}/Include
 )
-
-# C++ 20
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET StarryRender PROPERTY CXX_STANDARD 20)
-endif()
-
-# TODO: Add tests
-# PROBLEM: Code not portable because of vulkan sdk path

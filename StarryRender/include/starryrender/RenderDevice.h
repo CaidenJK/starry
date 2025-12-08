@@ -36,8 +36,9 @@ namespace StarryRender
 		VkInstance getInstance() { return instance; }
 
 		void loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef);
+		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& bufferRef);
 
-		void LoadBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
+		void LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
 
 		void LoadShader(const std::string& vertShader, const std::string& fragShader);
 		void LoadShader(std::shared_ptr<Shader>& shaderRef);

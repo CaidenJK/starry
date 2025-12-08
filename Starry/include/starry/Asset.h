@@ -1,5 +1,7 @@
 #pragma once
 
+#include "CoreDLL.h"
+
 #include <vector>
 #include <map>
 #include <string>
@@ -7,13 +9,11 @@
 #include <random>
 #include <cstdint>
 
-#define MAX_FRAMES_IN_FLIGHT 2
-
-namespace StarryRender 
+namespace Starry
 {
-	class RenderAsset {
+	class STARRY_API StarryAsset {
 	public:
-		~RenderAsset();
+		~StarryAsset();
 
 		enum CallSeverity {
 			NONE,
@@ -33,7 +33,7 @@ namespace StarryRender
 		uint64_t getUUID() { return uuid; }
 
 	protected:
-		RenderAsset();
+		StarryAsset();
 		void registerAlert(const std::string& message, CallSeverity severity);
 
 	private:
@@ -47,12 +47,12 @@ namespace StarryRender
 		uint64_t uuid = 0;
 	};
 
-	class ErrorHandler {
+	class STARRY_API ErrorHandler {
 		struct AssetCall {
 			uint64_t callerUUID;
 			std::string callerName;
 			std::string message;
-			RenderAsset::CallSeverity severity;
+			StarryAsset::CallSeverity severity;
 		};
 
 	public:
@@ -60,7 +60,7 @@ namespace StarryRender
 		ErrorHandler& operator=(const ErrorHandler&) = delete;
 
 		// Note references are always valid since they are unregistered on asset destruction
-		void registerAsset(RenderAsset* asset);
+		void registerAsset(StarryAsset* asset);
 		void unregisterAsset(uint64_t uuid);
 
 		static std::weak_ptr<ErrorHandler> get();
@@ -75,12 +75,12 @@ namespace StarryRender
 
 		void flushCalls();
 
-		static std::string severityToString(RenderAsset::CallSeverity severity);
+		static std::string severityToString(StarryAsset::CallSeverity severity);
 
 		const int BUFFER_FLUSH_LIMIT = 5;
 
 		static std::shared_ptr<ErrorHandler> globalErrorHandler;
-		std::map<uint64_t, RenderAsset*> registeredAssets;
+		std::map<uint64_t, StarryAsset*> registeredAssets;
 
 		bool shouldFlush = false;
 		bool hasFatal = false;

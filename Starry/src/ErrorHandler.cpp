@@ -6,7 +6,7 @@
 	#define SUCCESS_VALIDATION
 #endif
 
-namespace StarryRender
+namespace Starry
 {
 	std::shared_ptr<ErrorHandler> ErrorHandler::globalErrorHandler = nullptr;
 
@@ -18,7 +18,7 @@ namespace StarryRender
 		return std::weak_ptr<ErrorHandler>(globalErrorHandler);
 	}
 
-	void ErrorHandler::registerAsset(RenderAsset* asset) 
+	void ErrorHandler::registerAsset(StarryAsset* asset) 
 	{
 		if (asset == nullptr) {
 			return;
@@ -39,17 +39,17 @@ namespace StarryRender
 	bool ErrorHandler::enumerateAssets() 
 	{
 		for (const auto& asset : registeredAssets) {
-			if (asset.second->getAlert() && (asset.second->getAlertSeverity() != RenderAsset::CallSeverity::NONE)) {
+			if (asset.second->getAlert() && (asset.second->getAlertSeverity() != StarryAsset::CallSeverity::NONE)) {
 				AssetCall call;
 				call.callerUUID = asset.first;
 				call.callerName = asset.second->getAssetName();
 				call.message = asset.second->getAlertMessage();
 				call.severity = asset.second->getAlertSeverity();
 				alertMessageBuffer.push_back(call);
-				if (call.severity == RenderAsset::CallSeverity::FATAL) { hasFatal = true; }
-				if (call.severity == RenderAsset::CallSeverity::INFO_URGANT ||
-					call.severity == RenderAsset::CallSeverity::CRITICAL ||
-					call.severity == RenderAsset::CallSeverity::FATAL) {
+				if (call.severity == StarryAsset::CallSeverity::FATAL) { hasFatal = true; }
+				if (call.severity == StarryAsset::CallSeverity::INFO_URGANT ||
+					call.severity == StarryAsset::CallSeverity::CRITICAL ||
+					call.severity == StarryAsset::CallSeverity::FATAL) {
 					shouldFlush = true;
 				}
 			}
@@ -66,7 +66,7 @@ namespace StarryRender
 			return;
 		}
 #ifdef SUCCESS_VALIDATION
-		std::cerr << "\n----------> Renderer caught the following alerts:\n" << std::endl;
+		std::cerr << "\n----------> Starry caught the following alerts:\n" << std::endl;
 		for (const auto& call : alertMessageBuffer) {
 			std::cerr << "[" << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << call.callerUUID << "\": \n\t" << call.message << "\n";
 		}
@@ -76,20 +76,20 @@ namespace StarryRender
 		shouldFlush = false;
 	}
 
-	std::string ErrorHandler::severityToString(RenderAsset::CallSeverity severity)
+	std::string ErrorHandler::severityToString(StarryAsset::CallSeverity severity)
 	{
 		switch (severity) {
-		case RenderAsset::CallSeverity::NONE:
+		case StarryAsset::CallSeverity::NONE:
 			return "NONE";
-		case RenderAsset::CallSeverity::INFO:
+		case StarryAsset::CallSeverity::INFO:
 			return "INFO";
-		case RenderAsset::CallSeverity::INFO_URGANT:
+		case StarryAsset::CallSeverity::INFO_URGANT:
 			return "INFO";
-		case RenderAsset::CallSeverity::WARNING:
+		case StarryAsset::CallSeverity::WARNING:
 			return "WARNING";
-		case RenderAsset::CallSeverity::CRITICAL:
+		case StarryAsset::CallSeverity::CRITICAL:
 			return "CRITICAL";
-		case RenderAsset::CallSeverity::FATAL:
+		case StarryAsset::CallSeverity::FATAL:
 			return "!!!FATAL!!!";
 		default:
 			return "NONE";

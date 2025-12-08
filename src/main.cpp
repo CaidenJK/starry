@@ -1,7 +1,7 @@
-#include "starryrender/Application.h"
+#include "Starry.h"
 
 int main() {
-    StarryRender::Application app;
+    Starry::Application app;
 
     try {
         app.run();
@@ -11,7 +11,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-	if (StarryRender::ErrorHandler::get().lock()->isFatal()) {
+	if (Starry::ErrorHandler::get().lock()->isFatal()) {
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

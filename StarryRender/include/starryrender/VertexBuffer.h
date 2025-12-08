@@ -36,8 +36,8 @@ namespace StarryRender
 			VertexBuffer(VkDevice& device);
 			~VertexBuffer();
 
-			void loadData(VkPhysicalDevice physicalDevice, const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
-			void loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue);
+			void loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
+			void loadBufferToMemory(VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue);
 
 			size_t getNumVerticies() { return vertices.empty() ? 0 : vertices.size(); }
 			size_t getNumIndicies() { return indices.empty() ? 0 : indices.size(); }

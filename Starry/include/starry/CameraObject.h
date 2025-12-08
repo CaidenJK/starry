@@ -1,14 +1,14 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
+#include "StarryRender.h"
+
+#include <array>
 
 #include "Asset.h"
 
-namespace StarryRender 
+namespace Starry
 {
-	class CameraObject : public RenderAsset {
+	class CameraObject : public StarryAsset {
 	public:
 		CameraObject();
 		~CameraObject();
@@ -18,7 +18,7 @@ namespace StarryRender
 
 		void setClippingPlanes(float nearInput, float farInput) { nearPlane = nearInput; farPlane = farInput; calculateProjectionMatrix(); }
 		void setFOV(float fovInput) { FOV = fovInput; calculateProjectionMatrix(); }
-		void setExtent(const VkExtent2D& dimensionsInput) { dimensions = dimensionsInput; calculateProjectionMatrix(); }
+		void setExtent(const std::array<int, 2>& dimensionsInput) { dimensions = dimensionsInput; calculateProjectionMatrix(); }
 
 		const std::string getAssetName() override { return "CameraObject"; }
 	private:
@@ -33,6 +33,6 @@ namespace StarryRender
 
 		float FOV = 45.0f;
 
-		VkExtent2D dimensions = { 800, 600 };
+		std::array<int, 2> dimensions = { 800, 600 };
 	};
 }

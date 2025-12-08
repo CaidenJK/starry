@@ -3,7 +3,7 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace StarryRender
+namespace Starry
 {
 	CameraObject::CameraObject()
 	{
@@ -17,7 +17,7 @@ namespace StarryRender
 
 	void CameraObject::calculateProjectionMatrix()
 	{
-		float aspectRatio = static_cast<float>(dimensions.width) / static_cast<float>(dimensions.height);
+		float aspectRatio = static_cast<float>(dimensions[0]) / static_cast<float>(dimensions[1]);
 		projectionMatrix = glm::perspective(glm::radians(FOV), aspectRatio, nearPlane, farPlane);
 		projectionMatrix[1][1] *= -1; // Invert Y for Vulkan
 	}

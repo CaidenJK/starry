@@ -12,12 +12,12 @@
 
 #define STARRY_INITIALIZE_SUCCESS \
 	std::cout << "----------------------------------------\n"; \
-	std::cout << "Starry Render initialized successfully!\n"; \
+	std::cout << "Starry initialized successfully!\n"; \
 	std::cout << "----------------------------------------\n" << std::endl
 
 #define STARRY_EXIT_SUCCESS \
 	std::cout << "----------------------------------------\n"; \
-	std::cout << "Starry Render exited successfully!\n"; \
+	std::cout << "Starry exited successfully!\n"; \
 	std::cout << "----------------------------------------\n" << std::endl
 
 #else
@@ -29,45 +29,46 @@
 	if (x->isFatal()) { \
 		return; \
 	}
-
+  
 #define ERROR_HANDLER ErrorHandler::get().lock()
 #define ERROR_HANDLER_CHECK EXTERN_ERROR(ERROR_HANDLER)
 
-namespace StarryRender 
+namespace Starry
 {
 	void Application::init() 
 	{
-		window = std::make_shared<Window>("Starry Dev"); ERROR_HANDLER_CHECK;
-		scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
-
-		scene->setShaderPaths({ "../../../StarryRender/shaders/vert.spv", "../../../StarryRender/shaders/frag.spv" }); ERROR_HANDLER_CHECK;
-		scene->createDevice(window); ERROR_HANDLER_CHECK;
+		m_scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
+#ifdef SHADERS_PATH
+		m_scene->setShaderPaths({ SHADERS_PATH "vert.spv", SHADERS_PATH "frag.spv" }); ERROR_HANDLER_CHECK;
+#else
+	#error "SHADERS_PATH not defined!"
+#endif
+		m_scene->makeRenderContext(); ERROR_HANDLER_CHECK;
 
 		CameraObject camera;
 		camera.setFOV(60.0f);
 
-		scene->pushPrefab(MeshObject::primitiveCube(1)); ERROR_HANDLER_CHECK;
-		scene->addCamera(camera); ERROR_HANDLER_CHECK;
+		m_scene->pushPrefab(MeshObject::primitiveCube(1)); ERROR_HANDLER_CHECK;
+		m_scene->addCamera(camera); ERROR_HANDLER_CHECK;
 
 		ERROR_HANDLER_CHECK;
 		STARRY_INITIALIZE_SUCCESS;
 	}
 	void Application::mainLoop() 
 	{
-		scene->disbatchRenderer(); ERROR_HANDLER_CHECK;
+		m_scene->disbatchRenderer(); ERROR_HANDLER_CHECK;
 
-		while (!window->shouldClose() && scene->isRenderRunning().load()) {
-			window->pollEvents();
+		while (!m_scene->getRenderContext()->windowShouldClose() && m_scene->isRenderRunning().load()) {
+			m_scene->getRenderContext()->windowPollEvents();
 		}
 
-		scene->joinRenderer();
+		m_scene->joinRenderer();
 	}
 
 	// Destroy renderer then window last
 	void Application::cleanup() 
 	{
-		scene.reset();
-		window.reset();
+		m_scene.reset();
 
 		if (ERROR_HANDLER->isFatal()) {
 			std::cerr << "\n----------> Program ended prematurly due to an error.\n" << std::endl;
@@ -82,5 +83,10 @@ namespace StarryRender
 		init();
 		mainLoop();
 		cleanup();
+	}
+
+	bool Application::hasFatalError() {
+		auto errorHandler = ErrorHandler::get().lock();
+		return errorHandler->isFatal();
 	}
 }
