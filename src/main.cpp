@@ -1,4 +1,4 @@
-#include "Starry.h"
+#include <Starry.h>
 
 int main() {
     Starry::Application app;

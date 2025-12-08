@@ -1,11 +1,9 @@
 #pragma once
 
-#include "StarryRender.h"
+#include <StarryRender.h>
 
 #include <iostream>
 #include <memory>
-#include <thread>
-#include <atomic>
 
 #include "Asset.h"
 #include "Scene.h"

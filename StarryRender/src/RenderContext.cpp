@@ -32,7 +32,7 @@ namespace Starry {
 	RenderContext::~RenderContext() 
 	{
 		Destroy();
-		if (getRenderErrorState()) {
+		if (!getRenderErrorState()) {
 			STARRY_EXIT_SUCCESS;
 		}
 	}
