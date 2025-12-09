@@ -1,6 +1,3 @@
-# CMakeList.txt : CMake project for StarryApp, include source and define
-# project specific logic here.
-
 # Add project
 project(Starry VERSION 0.0.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -17,13 +14,13 @@ set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
 FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
-# Set Headers
+# Includes
 
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starry")
 
-set(VULKAN_DIR 
-        "C:/VulkanSDK/1.4.313.2"
-)
+# Vulkan
+include (FindVulkan)
+find_package(Vulkan REQUIRED)
 
 # Compile Shaders
 
@@ -36,8 +33,8 @@ set(VERT_SHADER "simple_shader.vert")
 set(FRAG_SHADER "simple_shader.frag")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/${VERT_SHADER} -o ${SHADER_DIR}/vert.spv" )
-    execute_process(COMMAND cmd /C "${VULKAN_DIR}/Bin/glslc.exe ${SHADER_DIR}/${FRAG_SHADER} -o ${SHADER_DIR}/frag.spv" )
+    execute_process(COMMAND cmd /C "${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DIR}/${VERT_SHADER} -o ${SHADER_DIR}/vert.spv" )
+    execute_process(COMMAND cmd /C "${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DIR}/${FRAG_SHADER} -o ${SHADER_DIR}/frag.spv" )
     message("Compiled Shaders for Windows")
 else()
      message(FATAL_ERROR "Unsupported OS")  
@@ -105,7 +102,7 @@ set_target_properties(Starry PROPERTIES
 # Link Libraries
 target_link_libraries(Starry PRIVATE glm)
 target_link_libraries(Starry PRIVATE glfw)
-target_link_libraries(Starry PRIVATE ${VULKAN_DIR}/Lib/vulkan-1.lib)
+target_link_libraries(Starry PRIVATE Vulkan::Vulkan)
 
 target_link_libraries(Starry PRIVATE StarryRender)
 
@@ -117,9 +114,6 @@ target_include_directories(Starry
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}
-	${VULKAN_DIR}/Include
+    ${Vulkan_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender/include
 )
-
-# TODO: Add tests
-# PROBLEM: Code not portable because of vulkan sdk path

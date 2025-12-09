@@ -1,7 +1,4 @@
-﻿# CMakeList.txt : CMake project for StarryApp, include source and define
-# project specific logic here.
-
-# Add project
+﻿# Add project
 project(StarryRender VERSION 0.0.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -16,9 +13,10 @@ FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starryrender")
 
-set(VULKAN_DIR 
-	"C:/VulkanSDK/1.4.313.2"
-)
+# Vulkan
+
+include (FindVulkan)
+find_package(Vulkan REQUIRED)
 
 # Create Library
 add_library(StarryRender ${SOURCES})
@@ -40,5 +38,5 @@ target_include_directories(StarryRender
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}
-	${VULKAN_DIR}/Include
+    ${Vulkan_INCLUDE_DIRS}
 )
