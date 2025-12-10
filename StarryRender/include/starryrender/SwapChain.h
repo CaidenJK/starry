@@ -7,7 +7,8 @@
 #include <memory>
 #include <optional>
 
-#include "Asset.h"
+#include <StarryLog.h>
+
 #include "Window.h"
 
 namespace StarryRender 
@@ -21,7 +22,7 @@ namespace StarryRender
 		}
 	};
 
-	class SwapChain : public RenderAsset {
+	class SwapChain : public StarryAsset {
 		public:
 			struct SwapChainSupportDetails {
 				VkSurfaceCapabilitiesKHR capabilities;

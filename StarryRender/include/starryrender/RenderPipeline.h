@@ -7,7 +7,8 @@
 #include <vector>
 #include <memory>
 
-#include "Asset.h"
+#include <StarryLog.h>
+
 #include "VertexBuffer.h"
 #include "Shader.h"
 #include "UniformBuffer.h"
@@ -16,7 +17,7 @@
 
 namespace StarryRender 
 {
-	class RenderPipeline : public RenderAsset {
+	class RenderPipeline : public StarryAsset {
 	public:
 		RenderPipeline(VkDevice& device);
 		~RenderPipeline();

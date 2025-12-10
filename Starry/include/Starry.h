@@ -1,4 +1,5 @@
 #pragma once 
 
-#include "starry/CoreDLL.h"
 #include "starry/Application.h"
+
+#define STARRY_INCLUDE 1

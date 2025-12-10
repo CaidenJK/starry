@@ -11,7 +11,7 @@ int main() {
         return EXIT_FAILURE;
     }
 
-	if (Starry::ErrorHandler::get().lock()->isFatal()) {
+    if (app.hasFatalError()) {
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

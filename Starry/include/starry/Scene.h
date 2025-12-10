@@ -1,6 +1,7 @@
 #pragma once
 
 #include <StarryRender.h>
+#include <StarryLog.h>
 
 #include <vector>
 #include <memory>
@@ -22,17 +23,16 @@ namespace Starry
 		Scene operator=(const Scene&) = delete;
 		Scene(const Scene&) = delete;
 
-		void makeRenderContext(std::shared_ptr<Window>& window);
 		void makeRenderContext();
-
+		void makeRenderContext(std::shared_ptr<Window>& window);
 		void addRenderContext(std::shared_ptr<RenderContext>& renderContext);
 
 		void setShaderPaths(const std::array<std::string, 2>& paths);
 
-		void pushPrefab(const MeshObject& prefab);
-		void addCamera(const CameraObject& cameraRef);
+		void pushPrefab(std::shared_ptr<MeshObject>& prefab);
+		void addCamera(std::shared_ptr<CameraObject>& cameraRef);
 
-		MeshObject& getPrefab() { return prefabs; }
+		std::shared_ptr<MeshObject>& getPrefab() { return prefabs; }
 
 		void disbatchRenderer();
 		void joinRenderer();
@@ -56,8 +56,9 @@ namespace Starry
 		std::atomic<bool> renderRunning{ false };
 
 		// One for now
-		MeshObject prefabs;
-		CameraObject camera;
+		std::shared_ptr<MeshObject> prefabs;
+		std::shared_ptr<CameraObject> camera;
+		// TODO: something wrong with stack allocated StarryAssets
 
 		glm::mat4 modelViewProjection;
 	};

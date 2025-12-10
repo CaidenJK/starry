@@ -1,11 +1,13 @@
 #pragma once
 
 #include <StarryRender.h>
+#include <StarryLog.h>
+
+#include "CoreDLL.h"
 
 #include <iostream>
 #include <memory>
 
-#include "Asset.h"
 #include "Scene.h"
 
 #define STARRY_VERSION "0.0.3 dev"
@@ -28,7 +30,7 @@ namespace Starry
 
     private:
         void printVersion() {
-            std::cout << "Hello! Starry Version: " << STARRY_VERSION << "\n" << std::endl;
+            registerAlert("Hello! Starry Version: " STARRY_VERSION "\n", BANNER);
         }
         void init();
         void mainLoop();

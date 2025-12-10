@@ -8,17 +8,17 @@
 
 namespace StarryRender
 {
-	std::shared_ptr<ErrorHandler> ErrorHandler::globalErrorHandler = nullptr;
+	std::shared_ptr<StarryLog::Logger> StarryLog::Logger::globalErrorHandler = nullptr;
 
-	std::weak_ptr<ErrorHandler> ErrorHandler::get() 
+	std::weak_ptr<StarryLog::Logger> StarryLog::Logger::get() 
 	{
 		if (globalErrorHandler == nullptr) {
-			globalErrorHandler.reset(new ErrorHandler());
+			globalErrorHandler.reset(new StarryLog::Logger());
 		}
-		return std::weak_ptr<ErrorHandler>(globalErrorHandler);
+		return std::weak_ptr<StarryLog::Logger>(globalErrorHandler);
 	}
 
-	void ErrorHandler::registerAsset(RenderAsset* asset) 
+	void StarryLog::Logger::registerAsset(StarryLog::StarryAsset* asset) 
 	{
 		if (asset == nullptr) {
 			return;
@@ -26,7 +26,7 @@ namespace StarryRender
 		registeredAssets.insert({ asset->getUUID(), asset });
 	}
 
-	void ErrorHandler::unregisterAsset(uint64_t uuid) 
+	void StarryLog::Logger::unregisterAsset(uint64_t uuid) 
 	{
 		for (const auto& asset : registeredAssets) {
 			if (asset.first == uuid) {
@@ -36,20 +36,20 @@ namespace StarryRender
 		}
 	}
 
-	bool ErrorHandler::enumerateAssets() 
+	bool StarryLog::Logger::enumerateAssets() 
 	{
 		for (const auto& asset : registeredAssets) {
-			if (asset.second->getAlert() && (asset.second->getAlertSeverity() != RenderAsset::CallSeverity::NONE)) {
+			if (asset.second->getAlert() && (asset.second->getAlertSeverity() != StarryLog::StarryAsset::CallSeverity::NONE)) {
 				AssetCall call;
 				call.callerUUID = asset.first;
 				call.callerName = asset.second->getAssetName();
 				call.message = asset.second->getAlertMessage();
 				call.severity = asset.second->getAlertSeverity();
 				alertMessageBuffer.push_back(call);
-				if (call.severity == RenderAsset::CallSeverity::FATAL) { hasFatal = true; }
-				if (call.severity == RenderAsset::CallSeverity::INFO_URGANT ||
-					call.severity == RenderAsset::CallSeverity::CRITICAL ||
-					call.severity == RenderAsset::CallSeverity::FATAL) {
+				if (call.severity == StarryLog::StarryAsset::CallSeverity::FATAL) { hasFatal = true; }
+				if (call.severity == StarryLog::StarryAsset::CallSeverity::INFO_URGANT ||
+					call.severity == StarryLog::StarryAsset::CallSeverity::CRITICAL ||
+					call.severity == StarryLog::StarryAsset::CallSeverity::FATAL) {
 					shouldFlush = true;
 				}
 			}
@@ -60,7 +60,7 @@ namespace StarryRender
 		return hasFatal;
 	}
 
-	void ErrorHandler::flushCalls() 
+	void StarryLog::Logger::flushCalls() 
 	{
 		if (alertMessageBuffer.size() == 0) {
 			return;
@@ -76,20 +76,20 @@ namespace StarryRender
 		shouldFlush = false;
 	}
 
-	std::string ErrorHandler::severityToString(RenderAsset::CallSeverity severity)
+	std::string StarryLog::Logger::severityToString(StarryLog::StarryAsset::CallSeverity severity)
 	{
 		switch (severity) {
-		case RenderAsset::CallSeverity::NONE:
+		case StarryLog::StarryAsset::CallSeverity::NONE:
 			return "NONE";
-		case RenderAsset::CallSeverity::INFO:
+		case StarryLog::StarryAsset::CallSeverity::INFO:
 			return "INFO";
-		case RenderAsset::CallSeverity::INFO_URGANT:
+		case StarryLog::StarryAsset::CallSeverity::INFO_URGANT:
 			return "INFO";
-		case RenderAsset::CallSeverity::WARNING:
+		case StarryLog::StarryAsset::CallSeverity::WARNING:
 			return "WARNING";
-		case RenderAsset::CallSeverity::CRITICAL:
+		case StarryLog::StarryAsset::CallSeverity::CRITICAL:
 			return "CRITICAL";
-		case RenderAsset::CallSeverity::FATAL:
+		case StarryLog::StarryAsset::CallSeverity::FATAL:
 			return "!!!FATAL!!!";
 		default:
 			return "NONE";

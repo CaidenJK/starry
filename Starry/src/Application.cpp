@@ -1,7 +1,5 @@
 #include "Application.h"
 
-#include <iostream>
-
 #include "MeshObject.h"
 
 #ifndef NDEBUG
@@ -11,14 +9,14 @@
 #ifdef SUCCESS_VALIDATION
 
 #define STARRY_INITIALIZE_SUCCESS \
-	std::cout << "----------------------------------------\n"; \
-	std::cout << "Starry initialized successfully!\n"; \
-	std::cout << "----------------------------------------\n" << std::endl
+	"----------------------------------------\n" \
+	"Starry initialized successfully!\n" \
+	"----------------------------------------\n"
 
 #define STARRY_EXIT_SUCCESS \
-	std::cout << "----------------------------------------\n"; \
-	std::cout << "Starry exited successfully!\n"; \
-	std::cout << "----------------------------------------\n" << std::endl
+	"----------------------------------------\n" \
+	"Starry exited successfully!\n" \
+	"----------------------------------------\n"
 
 #else
 #define STARRY_INITIALIZE_SUCCESS
@@ -30,7 +28,7 @@
 		return; \
 	}
   
-#define ERROR_HANDLER ErrorHandler::get().lock()
+#define ERROR_HANDLER Logger::get().lock()
 #define ERROR_HANDLER_CHECK EXTERN_ERROR(ERROR_HANDLER)
 
 namespace Starry
@@ -45,14 +43,17 @@ namespace Starry
 #endif
 		m_scene->makeRenderContext(); ERROR_HANDLER_CHECK;
 
-		CameraObject camera;
-		camera.setFOV(60.0f);
+		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
+		camera->setFOV(60.0f);
 
-		m_scene->pushPrefab(MeshObject::primitiveCube(1)); ERROR_HANDLER_CHECK;
+		std::shared_ptr<MeshObject> cube = std::make_shared<MeshObject>("Unit Cube");
+		MeshObject::primitiveCube(*cube, 1.0f);
+
+		m_scene->pushPrefab(cube); ERROR_HANDLER_CHECK;
 		m_scene->addCamera(camera); ERROR_HANDLER_CHECK;
 
 		ERROR_HANDLER_CHECK;
-		STARRY_INITIALIZE_SUCCESS;
+		registerAlert(STARRY_INITIALIZE_SUCCESS, BANNER);
 	}
 	void Application::mainLoop() 
 	{
@@ -71,10 +72,11 @@ namespace Starry
 		m_scene.reset();
 
 		if (ERROR_HANDLER->isFatal()) {
-			std::cerr << "\n----------> Program ended prematurly due to an error.\n" << std::endl;
+			registerAlert("\n----------> Program ended prematurly due to an error.\n", BANNER);
 			return;
 		}
-		STARRY_EXIT_SUCCESS;
+		Logger::get().lock()->dumpRegisteredAssets(true);
+		registerAlert(STARRY_EXIT_SUCCESS, BANNER);
 	}
 
 	void Application::run() 
@@ -86,7 +88,7 @@ namespace Starry
 	}
 
 	bool Application::hasFatalError() {
-		auto errorHandler = ErrorHandler::get().lock();
+		auto errorHandler = Logger::get().lock();
 		return errorHandler->isFatal();
 	}
 }

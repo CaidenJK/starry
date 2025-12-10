@@ -11,9 +11,9 @@
 
 namespace StarryRender 
 {
-	class RenderAsset {
+	class StarryLog::StarryAsset {
 	public:
-		~RenderAsset();
+		~StarryLog::StarryAsset();
 
 		enum CallSeverity {
 			NONE,
@@ -33,7 +33,7 @@ namespace StarryRender
 		uint64_t getUUID() { return uuid; }
 
 	protected:
-		RenderAsset();
+		StarryLog::StarryAsset();
 		void registerAlert(const std::string& message, CallSeverity severity);
 
 	private:
@@ -47,23 +47,23 @@ namespace StarryRender
 		uint64_t uuid = 0;
 	};
 
-	class ErrorHandler {
+	class StarryLog::Logger {
 		struct AssetCall {
 			uint64_t callerUUID;
 			std::string callerName;
 			std::string message;
-			RenderAsset::CallSeverity severity;
+			StarryLog::StarryAsset::CallSeverity severity;
 		};
 
 	public:
-		ErrorHandler(const ErrorHandler&) = delete;
-		ErrorHandler& operator=(const ErrorHandler&) = delete;
+		StarryLog::Logger(const StarryLog::Logger&) = delete;
+		StarryLog::Logger& operator=(const StarryLog::Logger&) = delete;
 
 		// Note references are always valid since they are unregistered on asset destruction
-		void registerAsset(RenderAsset* asset);
+		void registerAsset(StarryLog::StarryAsset* asset);
 		void unregisterAsset(uint64_t uuid);
 
-		static std::weak_ptr<ErrorHandler> get();
+		static std::weak_ptr<StarryLog::Logger> get();
 
 		// Can call publicly
 		bool enumerateAssets();
@@ -71,16 +71,16 @@ namespace StarryRender
 		bool isFatal() { return hasFatal; }
 
 	private:
-		ErrorHandler() {}
+		StarryLog::Logger() {}
 
 		void flushCalls();
 
-		static std::string severityToString(RenderAsset::CallSeverity severity);
+		static std::string severityToString(StarryLog::StarryAsset::CallSeverity severity);
 
 		const int BUFFER_FLUSH_LIMIT = 5;
 
-		static std::shared_ptr<ErrorHandler> globalErrorHandler;
-		std::map<uint64_t, RenderAsset*> registeredAssets;
+		static std::shared_ptr<StarryLog::Logger> globalErrorHandler;
+		std::map<uint64_t, StarryLog::StarryAsset*> registeredAssets;
 
 		bool shouldFlush = false;
 		bool hasFatal = false;

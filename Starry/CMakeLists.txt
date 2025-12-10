@@ -1,5 +1,5 @@
 # Add project
-project(Starry VERSION 0.0.1 LANGUAGES C CXX)
+project(Starry VERSION 0.0.3 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -86,6 +86,7 @@ add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
 add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender" "${CMAKE_CURRENT_BINARY_DIR}/StarryRender_build")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryLog" "${CMAKE_CURRENT_BINARY_DIR}/StarryLog_build")
 
 # Create Library
 add_library(Starry SHARED ${SOURCES})
@@ -104,6 +105,7 @@ target_link_libraries(Starry PRIVATE glm)
 target_link_libraries(Starry PRIVATE glfw)
 target_link_libraries(Starry PRIVATE Vulkan::Vulkan)
 
+target_link_libraries(Starry PRIVATE StarryLog)
 target_link_libraries(Starry PRIVATE StarryRender)
 
 # Gather Dependency Include Directories
@@ -116,4 +118,5 @@ target_include_directories(Starry
     ${glm_SOURCE_DIR}
     ${Vulkan_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../StarryLog/include
 )

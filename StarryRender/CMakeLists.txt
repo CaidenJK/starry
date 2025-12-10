@@ -1,5 +1,5 @@
 ﻿# Add project
-project(StarryRender VERSION 0.0.1 LANGUAGES C CXX)
+project(StarryRender VERSION 0.0.3 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -30,11 +30,13 @@ set_target_properties(StarryRender PROPERTIES
   OUTPUT_NAME "StarryRender"
 )
 
+set(STARRY_LOG_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../StarryLog/include")
+
 # Gather Dependency Include Directories
 target_include_directories(StarryRender
   PUBLIC
     ${INCLUDE_DIR}
-    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${STARRY_LOG_INCLUDE}
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}

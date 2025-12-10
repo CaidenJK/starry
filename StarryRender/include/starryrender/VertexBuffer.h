@@ -7,9 +7,8 @@
 
 #include <vector>
 #include <array>
-#include <type_traits>
 
-#include "Asset.h"
+#include <StarryLog.h>
 
 // Helpful debug colors
 #define RED_COLOR glm::vec3(1.0f, 0.0f, 0.0f)
@@ -31,7 +30,7 @@ namespace StarryRender
 		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
 	};
 
-	class VertexBuffer : public RenderAsset {
+	class VertexBuffer : public StarryAsset {
 		public:
 			VertexBuffer(VkDevice& device);
 			~VertexBuffer();

@@ -7,11 +7,11 @@
 #include <vector>
 #include <array>
 
-#include "Asset.h"
+#include <StarryLog.h>
 
 namespace StarryRender 
 {
-	class Shader : public RenderAsset {
+	class Shader : public StarryAsset {
 		public:
 			Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 			~Shader();

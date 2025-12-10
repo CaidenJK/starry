@@ -7,7 +7,8 @@
 #include <string>
 #include <memory>
 
-#include "Asset.h"
+#include <StarryLog.h>
+
 #include "Window.h"
 #include "RenderPipeline.h"
 #include "SwapChain.h"
@@ -18,7 +19,7 @@
 
 namespace StarryRender 
 {
-	class RenderDevice : public RenderAsset {
+	class RenderDevice : public StarryAsset {
 		// Helper structs
 		struct DeviceInfo {
 			bool isSuitible = false;

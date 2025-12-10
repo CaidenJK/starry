@@ -1,10 +1,9 @@
 #pragma once
 
 #include <StarryRender.h>
+#include <StarryLog.h>
 
 #include <array>
-
-#include "Asset.h"
 
 namespace Starry
 {

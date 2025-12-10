@@ -8,7 +8,9 @@
 
 #include "glm/glm.hpp"
 
-#include "Asset.h"
+#include <StarryLog.h>
+
+#define MAX_FRAMES_IN_FLIGHT 2
 
 namespace StarryRender 
 {
@@ -18,7 +20,7 @@ namespace StarryRender
 		glm::mat4 proj;
 	};
 
-	class UniformBuffer : public RenderAsset 
+	class UniformBuffer : public StarryAsset 
 	{
 	public:
 		UniformBuffer(VkDevice& deviceRef);

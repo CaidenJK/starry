@@ -1,28 +1,36 @@
 #pragma once
 
-#include "CoreDLL.h"
-
 #include <vector>
 #include <map>
 #include <string>
 #include <memory>
 #include <random>
 #include <cstdint>
+#include <chrono>
 
-namespace Starry
+namespace StarryLog
 {
-	class STARRY_API StarryAsset {
+	class StarryAsset {
 	public:
 		~StarryAsset();
+
+		StarryAsset(const StarryAsset& other) = delete;
+		StarryAsset& operator=(const StarryAsset& other) = delete;
+		// TODO: StarryAsset& StarryAsset::Copy(const StarryAsset&); Custom copy method
+
+		StarryAsset(StarryAsset&& other) noexcept;
+		StarryAsset& operator=(StarryAsset&& other) noexcept;
 
 		enum CallSeverity {
 			NONE,
 			INFO,
 			INFO_URGANT,
+			BANNER,
 			WARNING,
 			CRITICAL,
 			FATAL
 		};
+		// TODO: Silent and File Logging
 
 		bool getAlert() { return hasAlert; }
 		std::string& getAlertMessage() { return alertMessage; }
@@ -47,31 +55,38 @@ namespace Starry
 		uint64_t uuid = 0;
 	};
 
-	class STARRY_API ErrorHandler {
+	class Logger {
 		struct AssetCall {
 			uint64_t callerUUID;
 			std::string callerName;
 			std::string message;
 			StarryAsset::CallSeverity severity;
+			std::chrono::time_point<std::chrono::system_clock> callTime = std::chrono::system_clock::now();
 		};
 
 	public:
-		ErrorHandler(const ErrorHandler&) = delete;
-		ErrorHandler& operator=(const ErrorHandler&) = delete;
+		Logger(const Logger&) = delete;
+		Logger& operator=(const Logger&) = delete;
 
 		// Note references are always valid since they are unregistered on asset destruction
 		void registerAsset(StarryAsset* asset);
 		void unregisterAsset(uint64_t uuid);
 
-		static std::weak_ptr<ErrorHandler> get();
+		static std::weak_ptr<Logger> get();
 
 		// Can call publicly
 		bool enumerateAssets();
 
+		void dumpRegisteredAssets(bool names);
+
+		void updateAssetPointer(uint64_t uuid, StarryAsset* newPtr);
+
+		void setExitRights(bool rights) { hasExitRights = rights; }
+
 		bool isFatal() { return hasFatal; }
 
 	private:
-		ErrorHandler() {}
+		Logger() {}
 
 		void flushCalls();
 
@@ -79,12 +94,14 @@ namespace Starry
 
 		const int BUFFER_FLUSH_LIMIT = 5;
 
-		static std::shared_ptr<ErrorHandler> globalErrorHandler;
+		static std::shared_ptr<Logger> globalLogger;
 		std::map<uint64_t, StarryAsset*> registeredAssets;
 
 		bool shouldFlush = false;
 		bool hasFatal = false;
-		std::vector<AssetCall> alertMessageBuffer = {};
+		bool hasExitRights = false;
+		std::vector<AssetCall> toFlushBuffer = {};
+
+		std::vector<AssetCall> callHistory = {};
 	};
-	// TODO: Call print immediately (timer) 
 }

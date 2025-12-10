@@ -1,26 +1,27 @@
 #pragma once
 
+#include <StarryLog.h>
+
 #include "Window.h"
 #include "RenderDevice.h"
 #include "UniformBuffer.h"
 #include "VertexBuffer.h"
-#include "Asset.h"
 
 #define DEFAULT_SHADER_PATHS {}
 
-namespace Starry
+namespace StarryRender
 {
 	/*
 		The Starry Render Engine API class. Manages and interfaces with the Vulkan rendering context.
 	*/
-	class RenderContext : public StarryRender::RenderAsset
+	class RenderContext : public StarryAsset
 	{
 	public:
 		RenderContext() = default;
 		~RenderContext();
 
 		void Init();
-		void Init(std::shared_ptr<StarryRender::Window>& window);
+		void Init(std::shared_ptr<Window>& window);
 		
 		void Draw();
 
@@ -33,17 +34,17 @@ namespace Starry
 		void loadShaders(const std::string& vertShaderPath, const std::string& fragShaderPath);
 		void loadShaders(std::array<std::string, 2>& shaders);
 		
-		std::shared_ptr<StarryRender::VertexBuffer> createVertexBuffer();
-		void loadVertexBuffer(std::shared_ptr<StarryRender::VertexBuffer>& vertexBuffer);
-		void loadVertexBuffer(std::shared_ptr<StarryRender::VertexBuffer>& vertexBuffer, size_t index);
+		std::shared_ptr<VertexBuffer> createVertexBuffer();
+		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer);
+		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index);
 		void clearVertexBuffers() { m_vertexBuffers.clear(); }
 		
-		std::shared_ptr<StarryRender::UniformBuffer> createUniformBuffer();
-		void loadUniformBuffer(std::unique_ptr<StarryRender::UniformBuffer>& uniformBuffer);
-		void updateUniformBuffer(StarryRender::UniformBufferData& buffer);
+		std::shared_ptr<UniformBuffer> createUniformBuffer();
+		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer);
+		void updateUniformBuffer(UniformBufferData& buffer);
 
-		bool getRenderErrorState() const { return StarryRender::ErrorHandler::get().lock()->isFatal(); }
-		void dumpAlerts() const { StarryRender::ErrorHandler::get().lock()->isFatal(); }
+		bool getRenderErrorState() const { return Logger::get().lock()->isFatal(); }
+		void dumpAlerts() const { Logger::get().lock()->isFatal(); }
 
 		void windowPollEvents() const { m_window->pollEvents(); }
 		bool windowShouldClose() const { return m_window->shouldClose(); }
@@ -56,12 +57,12 @@ namespace Starry
 
 		bool m_isInitialized = false;
 
-		std::unique_ptr<StarryRender::RenderDevice> m_renderDevice = nullptr;
-		std::shared_ptr<StarryRender::Window> m_window = nullptr;
+		std::unique_ptr<RenderDevice> m_renderDevice = nullptr;
+		std::shared_ptr<Window> m_window = nullptr;
 
-		std::shared_ptr<StarryRender::UniformBuffer> m_uniformBuffer = nullptr;
+		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
 
-		std::vector<std::shared_ptr<StarryRender::VertexBuffer>> m_vertexBuffers = {};
+		std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
 
 		std::array<std::string, 2> m_shaderPaths = DEFAULT_SHADER_PATHS;
 	};

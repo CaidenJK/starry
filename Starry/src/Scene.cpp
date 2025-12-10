@@ -4,7 +4,7 @@
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
-#define ERROR_HANDLER ErrorHandler::get().lock()
+#define ERROR_HANDLER Logger::get().lock()
 
 namespace Starry
 {
@@ -18,31 +18,30 @@ namespace Starry
 		if (renderRunning.load()) {
 			joinRenderer();
 		}
-
-		prefabs.~MeshObject();
-		renderer.reset();
+		prefabs.reset();
+		camera.reset();
 	}
 
 	void Scene::makeRenderContext()
 	{
 		if (renderRunning.load()) {
-			registerAlert("Cannot change Render Context while rendering!", CRITICAL);
+			registerAlert("Cannot create Render Context while rendering!", CRITICAL);
 			return;
 		}
 		renderer = std::make_shared<RenderContext>();
-		renderer->loadShaders(shaderPaths);
-		renderer->Init();
+		renderer->loadShaders(shaderPaths); EXTERN_ERROR(renderer);
+		renderer->Init(); EXTERN_ERROR(renderer);
 	}
 
 	void Scene::makeRenderContext(std::shared_ptr<Window>& window)
 	{
 		if (renderRunning.load()) {
-			registerAlert("Cannot change Render Context while rendering!", CRITICAL);
+			registerAlert("Cannot create Render Context while rendering!", CRITICAL);
 			return;
 		}
 		renderer = std::make_shared<RenderContext>();
-		renderer->loadShaders(shaderPaths);
-		renderer->Init(window);
+		renderer->loadShaders(shaderPaths); EXTERN_ERROR(renderer);
+		renderer->Init(window); EXTERN_ERROR(renderer);
 	}
 
 	void Scene::addRenderContext(std::shared_ptr<RenderContext>& renderContext) 
@@ -54,9 +53,9 @@ namespace Starry
 		renderer = renderContext;
 	}
 
-	void Scene::pushPrefab(const MeshObject& prefab) 
+	void Scene::pushPrefab(std::shared_ptr<MeshObject>& prefab)
 	{
-		if (prefab.isEmptyMesh() == true) {
+		if (prefab->isEmptyMesh() == true) {
 			registerAlert("Prefab pointer is null!", CRITICAL);
 			return;
 		}
@@ -71,7 +70,7 @@ namespace Starry
 		}
 	}
 
-	void Scene::addCamera(const CameraObject& cameraRef) 
+	void Scene::addCamera(std::shared_ptr<CameraObject>& cameraRef)
 	{
 		camera = cameraRef;
 	}
@@ -82,12 +81,12 @@ namespace Starry
 			registerAlert("Render Context not attatched to scene!", FATAL);
 			return;
 		}
-		if (prefabs.isEmptyMesh() == true) {
+		if (prefabs->isEmptyMesh() == true) {
 			registerAlert("No prefabs in scene to render!", FATAL);
 			return;
 		}
 
-		prefabs.registerMeshBuffer(renderer);
+		prefabs->registerMeshBuffer(renderer);
 
 		renderRunning.store(true);
 		renderThread = std::thread(&Scene::renderLoop, this);
@@ -108,9 +107,9 @@ namespace Starry
 		frameTimer.setLogging();
 		while (renderRunning.load()) {
 			frameTimer.time();
-			prefabs.rotateMesh(frameTimer.getDeltaTimeSeconds() * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+			prefabs->rotateMesh(frameTimer.getDeltaTimeSeconds() * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
 
-			UniformBufferData mvpBuffer{prefabs.getModelMatrix(),  camera.getViewMatrix(), camera.getProjectionMatrix()};
+			UniformBufferData mvpBuffer{prefabs->getModelMatrix(),  camera->getViewMatrix(), camera->getProjectionMatrix()};
 			renderer->updateUniformBuffer(mvpBuffer);
 
 			// Error checks
@@ -125,7 +124,7 @@ namespace Starry
 			}
 
 			renderer->Draw();
-			camera.setExtent(renderer->getExtent());
+			camera->setExtent(renderer->getExtent());
 			
 			// Error checks
 			if (renderer->getRenderErrorState()) {

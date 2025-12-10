@@ -2,6 +2,8 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <iostream>
+
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
 namespace Starry
@@ -51,7 +53,7 @@ namespace Starry
 
 	// Fix colors later
 
-	MeshObject MeshObject::primitiveCube(float size) {
+	void MeshObject::primitiveCube(MeshObject& obj, float size) {
 		std::vector<Vertex> vertices = {
 			{{-0.5f, -0.5f, 0.5f}, CYAN_COLOR},
 			{{-0.5f, 0.5f, 0.5f}, BLUE_COLOR},
@@ -75,13 +77,10 @@ namespace Starry
 			vertex.position *= size;
 		}
 
-		MeshObject meshObject("Cube Primitive");
-		meshObject.addVertexData(vertices, indices);
-		if (meshObject.getAlertSeverity() == FATAL) { return {}; }
-		return meshObject;
+		obj.addVertexData(vertices, indices);
 	}
 
-	MeshObject MeshObject::primitiveQuad(float width, float height) {
+	void MeshObject::primitiveQuad(MeshObject& obj, float width, float height) {
 		std::vector<Vertex> vertices = {
 			{{-0.5f * width, -0.5f * height, 0.0f}, CYAN_COLOR},
 			{{-0.5f * width, 0.5f * height, 0.0f}, BLUE_COLOR},
@@ -92,9 +91,6 @@ namespace Starry
 			0, 1, 2, 0, 2, 3,
 		};
 
-		MeshObject meshObject("Quad Primitive");
-		meshObject.addVertexData(vertices, indices);
-		if (meshObject.getAlertSeverity() == FATAL) { return {}; }
-		return meshObject;
+		obj.addVertexData(vertices, indices);
 	}
 }

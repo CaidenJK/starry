@@ -3,7 +3,7 @@
 #include <iostream>
 
 #define ERROR_CHECK if (getRenderErrorState()) { return; }
-#define EXTERN_ERROR(x) if(x->getAlertSeverity() == StarryRender::RenderAsset::FATAL) { return; }
+#define EXTERN_ERROR(x) if(x->getAlertSeverity() == StarryAsset::FATAL) { return; }
 
 #ifndef NDEBUG
 #define SUCCESS_VALIDATION
@@ -11,29 +11,28 @@
 
 #ifdef SUCCESS_VALIDATION
 
-#define STARRY_INITIALIZE_SUCCESS \
-	std::cout << "----------------------------------------\n"; \
-	std::cout << "Starry Render initialized successfully!\n"; \
-	std::cout << "----------------------------------------\n" << std::endl
+#define STARRY_RENDER_INITIALIZE_SUCCESS \
+	"----------------------------------------\n" \
+	"Starry Render initialized successfully!\n" \
+	"----------------------------------------\n"
 
-#define STARRY_EXIT_SUCCESS \
-	std::cout << "----------------------------------------\n"; \
-	std::cout << "Starry Render exited successfully!\n"; \
-	std::cout << "----------------------------------------\n" << std::endl
+#define STARRY_RENDER_EXIT_SUCCESS \
+	"----------------------------------------\n" \
+	"Starry Render exited successfully!\n" \
+	"----------------------------------------\n"
 
 #else
 #define STARRY_INITIALIZE_SUCCESS
 #define STARRY_EXIT_SUCCESS
 #endif
 
-namespace Starry {
-	using namespace StarryRender;
+namespace StarryRender {
 
 	RenderContext::~RenderContext() 
 	{
 		Destroy();
 		if (!getRenderErrorState()) {
-			STARRY_EXIT_SUCCESS;
+			registerAlert(STARRY_RENDER_EXIT_SUCCESS, BANNER);
 		}
 	}
 
@@ -74,7 +73,7 @@ namespace Starry {
 			return { -1, -1 };
 		}
 		auto extent = m_renderDevice->getExtent();
-		if (m_renderDevice->getAlertSeverity() == StarryRender::RenderAsset::FATAL) {
+		if (m_renderDevice->getAlertSeverity() == StarryAsset::FATAL) {
 			return { -1, -1 };
 		}
 		return { static_cast<int>(extent.width), static_cast<int>(extent.height) };
@@ -91,7 +90,7 @@ namespace Starry {
 		m_shaderPaths = shaders;
 	}
 
-	void RenderContext::loadVertexBuffer(std::shared_ptr<StarryRender::VertexBuffer>& vertexBuffer)
+	void RenderContext::loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer)
 	{
 		if (m_vertexBuffers.size() >= MAX_VERTEX_BUFFERS) {
 			registerAlert("Maximum number of vertex buffers reached! Can't load more.", CRITICAL);
@@ -107,7 +106,7 @@ namespace Starry {
 		m_renderDevice->LoadVertexBuffer(m_vertexBuffers.back()); EXTERN_ERROR(m_renderDevice); EXTERN_ERROR(vertexBuffer);
 	}
 
-	void RenderContext::loadVertexBuffer(std::shared_ptr<StarryRender::VertexBuffer>& vertexBuffer, size_t index)
+	void RenderContext::loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index)
 	{
 		if (index >= m_vertexBuffers.size()) {
 			registerAlert("Index out of bounds when loading vertex buffer!", CRITICAL);
@@ -118,7 +117,7 @@ namespace Starry {
 		m_renderDevice->LoadVertexBuffer(m_vertexBuffers[index]); EXTERN_ERROR(m_renderDevice); EXTERN_ERROR(vertexBuffer);
 	}
 
-	void RenderContext::loadUniformBuffer(std::unique_ptr<StarryRender::UniformBuffer>& uniformBuffer) 
+	void RenderContext::loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer) 
 	{
 		m_uniformBuffer = std::move(uniformBuffer);
 	}
@@ -135,13 +134,13 @@ namespace Starry {
 			return nullptr;
 		}
 		auto uniformBuffer = std::make_shared<UniformBuffer>(m_renderDevice->getDevice());
-		if (uniformBuffer->getAlertSeverity() == StarryRender::RenderAsset::FATAL) {
+		if (uniformBuffer->getAlertSeverity() == StarryAsset::FATAL) {
 			return nullptr;
 		}
 		return uniformBuffer;
 	}
 
-	void RenderContext::updateUniformBuffer(StarryRender::UniformBufferData& buffer) 
+	void RenderContext::updateUniformBuffer(UniformBufferData& buffer) 
 	{
 		m_uniformBuffer->setBuffer(buffer);
 	}
@@ -153,7 +152,7 @@ namespace Starry {
 			return nullptr;
 		}
 		auto vertexBuffer = std::make_shared<VertexBuffer>(m_renderDevice->getDevice());
-		if (vertexBuffer->getAlertSeverity() == StarryRender::RenderAsset::FATAL) {
+		if (vertexBuffer->getAlertSeverity() == StarryAsset::FATAL) {
 			return nullptr;
 		}
 		return vertexBuffer;
@@ -182,7 +181,7 @@ namespace Starry {
 
 		if (!getRenderErrorState()) {
 			m_isInitialized = true;
-			STARRY_INITIALIZE_SUCCESS;
+			registerAlert(STARRY_RENDER_INITIALIZE_SUCCESS, BANNER);
 		}
 	}
 }
