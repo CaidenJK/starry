@@ -1,6 +1,5 @@
 #include "Shader.h"
 
-#include <iostream>
 #include <fstream>
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }

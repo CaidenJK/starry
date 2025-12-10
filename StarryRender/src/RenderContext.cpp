@@ -1,7 +1,5 @@
 #include "RenderContext.h"
 
-#include <iostream>
-
 #define ERROR_CHECK if (getRenderErrorState()) { return; }
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == StarryAsset::FATAL) { return; }
 

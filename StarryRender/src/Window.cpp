@@ -1,7 +1,5 @@
 #include "Window.h"
 
-#include <iostream>
-
 #ifndef NDEBUG
 #define SUCCESS_VALIDATION
 #endif

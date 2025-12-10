@@ -5,7 +5,6 @@
 
 #include "CoreDLL.h"
 
-#include <iostream>
 #include <memory>
 
 #include "Scene.h"

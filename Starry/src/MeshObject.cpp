@@ -2,8 +2,6 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <iostream>
-
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
 namespace Starry

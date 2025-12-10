@@ -2,7 +2,6 @@
 
 #include <vulkan/vk_enum_string_helper.h>
 
-#include <iostream>
 #include <algorithm>
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
