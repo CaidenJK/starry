@@ -8,6 +8,13 @@
 #include <cstdint>
 #include <chrono>
 
+#define LOG_PATH "starry_out/log"
+#define LOG_HEADER \
+	"-------------------------" \
+	"  --- Start Session ---  " \
+	"-------------------------"
+
+
 namespace StarryLog
 {
 	class StarryAsset {
@@ -71,17 +78,18 @@ namespace StarryLog
 		// Note references are always valid since they are unregistered on asset destruction
 		void registerAsset(StarryAsset* asset);
 		void unregisterAsset(uint64_t uuid);
+		void updateAssetPointer(uint64_t uuid, StarryAsset* newPtr);
 
 		static std::weak_ptr<Logger> get();
 
 		// Can call publicly
 		bool enumerateAssets();
+		void dumpToFile(const AssetCall& call);
 
 		void dumpRegisteredAssets(bool names);
 
-		void updateAssetPointer(uint64_t uuid, StarryAsset* newPtr);
-
 		void setExitRights(bool rights) { hasExitRights = rights; }
+		void setFileLogging(bool value) { logToFile = value; }
 
 		bool isFatal() { return hasFatal; }
 
@@ -92,13 +100,17 @@ namespace StarryLog
 
 		static std::string severityToString(StarryAsset::CallSeverity severity);
 
-		const int BUFFER_FLUSH_LIMIT = 5;
+		const char* LOG_FILE = LOG_PATH "/log_out.txt";
+		bool didLogToFile = false;
+		static const int BUFFER_FLUSH_LIMIT = 5;
 
 		static std::shared_ptr<Logger> globalLogger;
 		std::map<uint64_t, StarryAsset*> registeredAssets;
 
 		bool shouldFlush = false;
 		bool hasFatal = false;
+
+		bool logToFile = false;
 		bool hasExitRights = false;
 		std::vector<AssetCall> toFlushBuffer = {};
 

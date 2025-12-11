@@ -22,6 +22,9 @@ Dependencies/
 # Compiled Shaders
 *.spv
 
+# CLion
+.idea/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

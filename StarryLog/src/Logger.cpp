@@ -1,7 +1,9 @@
 #include "Asset.h"
 
 #include <iostream>
+#include <fstream>
 #include <cstdlib>
+#include <filesystem>
 
 #ifndef NDEBUG
 	#define SUCCESS_VALIDATION
@@ -89,7 +91,12 @@ namespace StarryLog
 		}
 #ifdef SUCCESS_VALIDATION
 		std::cerr << "\n---> Caught alerts:\n" << std::endl;
+#endif
 		for (const auto& call : toFlushBuffer) {
+			if (logToFile) {
+				dumpToFile(call);
+			}
+#ifdef SUCCESS_VALIDATION
 			if (call.severity == StarryAsset::CallSeverity::BANNER) {
 				std::cout << call.message << "\n";
 				continue;
@@ -98,9 +105,12 @@ namespace StarryLog
 			std::tm* lt = std::localtime(&tt);
 			std::cerr << "[" << lt->tm_year+1900 << "-" << lt->tm_mon+1 << "-" << lt->tm_mday << " " << lt->tm_hour << ":" << lt->tm_min << ":" << lt->tm_sec
 				<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << call.callerUUID << "\" => \n\t" << call.message << "\n";
+#endif
 		}
+#ifdef SUCCESS_VALIDATION
 		std::cerr << std::endl;
 #endif
+
 		toFlushBuffer.clear();
 		shouldFlush = false;
 	}
@@ -123,6 +133,30 @@ namespace StarryLog
 		default:
 			return "NULL";
 		}
+	}
+
+	void Logger::dumpToFile(const Logger::AssetCall& call)
+	{
+		if (!didLogToFile) {
+			std::filesystem::create_directories(LOG_PATH);
+		}
+		std::fstream f;
+		f.open(LOG_FILE, std::ios::app | std::fstream::out);
+		
+		if (!f) {
+			std::cerr << "Couldn't open Log File!" << std::endl;
+			return;
+		}
+
+		if (!didLogToFile) {
+			f << LOG_HEADER << "\n" << std::endl;
+			didLogToFile = true;
+		}
+		std::time_t tt = std::chrono::system_clock::to_time_t(call.callTime);
+		std::tm* lt = std::localtime(&tt);
+		f << "[" << lt->tm_year + 1900 << "-" << lt->tm_mon + 1 << "-" << lt->tm_mday << " " << lt->tm_hour << ":" << lt->tm_min << ":" << lt->tm_sec
+			<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << call.callerUUID << "\" => \n\t" << call.message << "\t<=\n" << std::endl;
+		f.close();
 	}
 
 	void Logger::dumpRegisteredAssets(bool names)
