@@ -41,4 +41,5 @@ target_include_directories(StarryRender
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}
     ${Vulkan_INCLUDE_DIRS}
+    "${CMAKE_SOURCE_DIR}/External/STB_Image"
 )

@@ -4,6 +4,9 @@
 #include <map>
 #include <string>
 #include <memory>
+#include <thread>
+#include <mutex>
+#include <atomic>
 #include <random>
 #include <cstdint>
 #include <chrono>
@@ -43,9 +46,13 @@ namespace StarryLog
 		std::string& getAlertMessage() { return alertMessage; }
 		CallSeverity getAlertSeverity() { return assetState; }
 
+		void resetAlert();
+
 		virtual const std::string getAssetName() = 0;
 
 		uint64_t getUUID() { return uuid; }
+
+		std::mutex alertMutex;
 
 	protected:
 		StarryAsset();
@@ -72,6 +79,8 @@ namespace StarryLog
 		};
 
 	public:
+		~Logger();
+
 		Logger(const Logger&) = delete;
 		Logger& operator=(const Logger&) = delete;
 
@@ -82,21 +91,20 @@ namespace StarryLog
 
 		static std::weak_ptr<Logger> get();
 
-		// Can call publicly
-		bool enumerateAssets();
-		void dumpToFile(const AssetCall& call);
-
+		void registerAlert(uint64_t uuid);
+		
 		void dumpRegisteredAssets(bool names);
+		void setExitRights(bool rights) { hasExitRights.store(rights); }
+		void setFileLogging(bool value) { logToFile.store(value); }
 
-		void setExitRights(bool rights) { hasExitRights = rights; }
-		void setFileLogging(bool value) { logToFile = value; }
-
-		bool isFatal() { return hasFatal; }
+		bool isFatal() { return hasFatal.load(); }
 
 	private:
 		Logger() {}
 
 		void flushCalls();
+		void logAlert(uint64_t uuid);
+		void dumpToFile(const AssetCall& call);
 
 		static std::string severityToString(StarryAsset::CallSeverity severity);
 
@@ -106,14 +114,17 @@ namespace StarryLog
 
 		static std::shared_ptr<Logger> globalLogger;
 		std::map<uint64_t, StarryAsset*> registeredAssets;
+		std::mutex registryMutex;
 
 		bool shouldFlush = false;
-		bool hasFatal = false;
+		std::atomic<bool> hasFatal = false;
 
-		bool logToFile = false;
-		bool hasExitRights = false;
+		std::atomic<bool> logToFile = false;
+		std::atomic<bool> hasExitRights = false;
 		std::vector<AssetCall> toFlushBuffer = {};
 
 		std::vector<AssetCall> callHistory = {};
+
+		std::thread loggingThread;
 	};
 }

@@ -2,8 +2,8 @@
 
 #include <iostream>
 #include <fstream>
-#include <cstdlib>
 #include <filesystem>
+#include <cstdlib>
 
 #ifndef NDEBUG
 	#define SUCCESS_VALIDATION
@@ -12,6 +12,12 @@
 namespace StarryLog
 {
 	std::shared_ptr<Logger> Logger::globalLogger = nullptr;
+
+	Logger::~Logger() {
+		if (loggingThread.joinable()) {
+			loggingThread.join();
+		}
+	}
 
 	std::weak_ptr<Logger> Logger::get() 
 	{
@@ -26,14 +32,18 @@ namespace StarryLog
 		if (asset == nullptr) {
 			return;
 		}
+		registryMutex.lock();
 		registeredAssets.insert({ asset->getUUID(), asset });
+		registryMutex.unlock();
 		//std::cerr << "[Logger@" << this << "] registerAsset id=" << asset->getUUID() << " ptr=" << asset << std::endl;
 	}
 
 	void Logger::unregisterAsset(uint64_t uuid) 
 	{
 		//std::cerr << "[Logger@" << this << "] unregisterAsset id=" << uuid << "\n";
+		registryMutex.lock();
 		registeredAssets.erase(uuid);
+		registryMutex.unlock();
 	}
 
 	void Logger::updateAssetPointer(uint64_t uuid, StarryAsset* newPtr) {
@@ -53,35 +63,51 @@ namespace StarryLog
 
 	}
 
-	bool Logger::enumerateAssets() 
+	void Logger::registerAlert(uint64_t uuid)
 	{
-		for (const auto& asset : registeredAssets) {
-			if (asset.second->getAlert() && (asset.second->getAlertSeverity() != StarryAsset::CallSeverity::NONE)) {
-				AssetCall call;
-				call.callerUUID = asset.first;
-				call.callerName = asset.second->getAssetName();
-				call.message = asset.second->getAlertMessage();
-				call.severity = asset.second->getAlertSeverity();
-				call.callTime = std::chrono::system_clock::now();
-				toFlushBuffer.push_back(call);
-				callHistory.push_back(call);
-				if (call.severity == StarryAsset::CallSeverity::FATAL) { hasFatal = true; }
-				if (call.severity == StarryAsset::CallSeverity::INFO_URGANT ||
-					call.severity == StarryAsset::CallSeverity::BANNER ||
-					call.severity == StarryAsset::CallSeverity::CRITICAL ||
-					call.severity == StarryAsset::CallSeverity::FATAL) {
-					shouldFlush = true;
-				}
+		if (loggingThread.joinable()) {
+			loggingThread.join();
+		}
+
+		loggingThread = std::thread(&Logger::logAlert, this, uuid);
+		loggingThread.detach();
+	}
+
+	void Logger::logAlert(uint64_t uuid) {
+		registryMutex.lock();
+		auto asset = registeredAssets.find(uuid);
+		asset->second->alertMutex.lock();
+		if (asset != registeredAssets.end() && asset->second->getAlert() &&
+			(asset->second->getAlertSeverity() != StarryAsset::CallSeverity::NONE)) {
+			AssetCall call;
+			call.callerUUID = asset->first;
+			call.callerName = asset->second->getAssetName();
+			call.message = asset->second->getAlertMessage();
+			call.severity = asset->second->getAlertSeverity();
+			call.callTime = std::chrono::system_clock::now();
+			toFlushBuffer.push_back(call);
+			callHistory.push_back(call);
+			asset->second->alertMutex.unlock();
+
+			asset->second->resetAlert();
+
+			if (call.severity == StarryAsset::CallSeverity::FATAL) hasFatal.store(true);
+			if (call.severity == StarryAsset::CallSeverity::INFO_URGANT ||
+				call.severity == StarryAsset::CallSeverity::BANNER ||
+				call.severity == StarryAsset::CallSeverity::CRITICAL ||
+				call.severity == StarryAsset::CallSeverity::FATAL) {
+				shouldFlush = true;
 			}
 		}
 		if (shouldFlush || (toFlushBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
 			flushCalls();
+			std::cout.flush();
 		}
-		if (hasFatal && hasExitRights) {
+		if (hasFatal.load() && hasExitRights.load()) {
 			std::cerr << "A fatal alert was registered. Exiting program as permitted by Logger rights." << std::endl;
 			std::exit(EXIT_FAILURE);
 		}
-		return hasFatal;
+		registryMutex.unlock();
 	}
 
 	void Logger::flushCalls() 
@@ -93,7 +119,7 @@ namespace StarryLog
 		std::cerr << "\n---> Caught alerts:\n" << std::endl;
 #endif
 		for (const auto& call : toFlushBuffer) {
-			if (logToFile) {
+			if (logToFile.load()) {
 				dumpToFile(call);
 			}
 #ifdef SUCCESS_VALIDATION
@@ -161,6 +187,7 @@ namespace StarryLog
 
 	void Logger::dumpRegisteredAssets(bool names)
 	{
+		registryMutex.lock();
 #ifdef SUCCESS_VALIDATION
 		std::cerr << "Logger: Asset Dump - Total = " << registeredAssets.size() << std::endl;
 		for (const auto& asset : registeredAssets) {
@@ -174,5 +201,6 @@ namespace StarryLog
 		}
 		std::cerr << std::endl;
 #endif
+		registryMutex.unlock();
 	}
 }
