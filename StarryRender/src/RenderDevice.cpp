@@ -1,7 +1,6 @@
 #include "RenderDevice.h"
 #include <vulkan/vk_enum_string_helper.h>
 
-#include <iostream>
 #include <map>
 #include <set>
 #include <cstdint>
@@ -11,10 +10,10 @@
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; } 
 
-#define START_WEAK_PTR \
+#define START_WINDOW_PTR \
 	if (std::shared_ptr<Window> window = windowReference.lock()) {
 
-#define END_WEAK_PTR(x) \
+#define END_WINDOW_PTR(x) \
 	} else { \
 		registerAlert("Window reference is expired!", FATAL); \
 		return x; \
@@ -54,6 +53,8 @@ namespace StarryRender
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		createInfo.pfnUserCallback = debugCallback;
+		createInfo.pNext = nullptr;
+		createInfo.flags = 0;
 	}
 
 	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name) 
@@ -64,16 +65,17 @@ namespace StarryRender
 		}
 		windowReference = windowPointer;
 #ifndef NDEBUG
+		enableValidationLayers = true;
 		debugger = new VulkanDebugger();
+#else
+		enableValidationLayers = false;
 #endif
+
 		initVulkan();
 	}
 
 	RenderDevice::~RenderDevice() 
 	{
-		// Future know where it errored as to clean up nessecary objects
-		ERROR_VOLATILE();
-
 		pipeline.reset();
 		swapChain.reset();
 		vertexBuffer.reset();
@@ -112,12 +114,12 @@ namespace StarryRender
 
 		ERROR_VOLATILE(setupDebugMessenger());
 		checkVKExtensions();
-
+	
 		ERROR_VOLATILE(createSurface());
 
 		ERROR_VOLATILE(pickPhysicalDevice());
 		ERROR_VOLATILE(createLogicalDevice());
-		
+	
 		ERROR_VOLATILE(createSwapChain());
 	}
 
@@ -136,9 +138,6 @@ namespace StarryRender
 
 	void RenderDevice::checkValidationLayerSupport() 
 	{
-#ifndef NDEBUG
-		enableValidationLayers = true;
-#endif
 		if (!enableValidationLayers) return;
 
 		uint32_t layerCount;
@@ -246,10 +245,10 @@ namespace StarryRender
 
 	void RenderDevice::createSurface() 
 	{
-		START_WEAK_PTR
+		START_WINDOW_PTR
 			window->createVulkanSurface(instance, surface);
 			EXTERN_ERROR(window);
-		END_WEAK_PTR()
+		END_WINDOW_PTR()
 	}
 
 	void RenderDevice::pickPhysicalDevice() 
@@ -732,15 +731,15 @@ namespace StarryRender
 		result = vkQueuePresentKHR(presentQueue, &presentInfo);
 
 		bool framebufferResized = false;
-		START_WEAK_PTR
+		START_WINDOW_PTR
 			framebufferResized = window->wasFramebufferResized();
-		END_WEAK_PTR()
+		END_WINDOW_PTR()
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
 			// try again next time
-			START_WEAK_PTR
+			START_WINDOW_PTR
 				window->resetFramebufferResizedFlag();
-			END_WEAK_PTR()
+			END_WINDOW_PTR()
 			recreateSwapChain();
 			return;
 		}
@@ -797,10 +796,10 @@ namespace StarryRender
 
 	void RenderDevice::recreateSwapChain() 
 	{
-		START_WEAK_PTR
+		START_WINDOW_PTR
 			// Try again later
 			if (window->isWindowMinimized()) { return; }
-		END_WEAK_PTR()
+		END_WINDOW_PTR()
 		vkDeviceWaitIdle(device);
 
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
@@ -818,15 +817,17 @@ namespace StarryRender
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData) 
 	{
-		CallSeverity severity;
-		if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT ||
-			messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+		if (debugger == nullptr) return VK_FALSE;
+
+		CallSeverity severity = INFO;
+		if (messageSeverity & (VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)) {
 				severity = INFO_URGANT;
 			}
-		else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
 			severity = WARNING;
 		}
-		else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
 			severity = CRITICAL;
 		}
 

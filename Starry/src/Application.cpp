@@ -2,11 +2,7 @@
 
 #include "MeshObject.h"
 
-#ifndef NDEBUG
-	#define SUCCESS_VALIDATION
-#endif
-
-#ifdef SUCCESS_VALIDATION
+#include <iostream>
 
 #define STARRY_INITIALIZE_SUCCESS \
 	"----------------------------------------\n" \
@@ -17,11 +13,6 @@
 	"----------------------------------------\n" \
 	"Starry exited successfully!\n" \
 	"----------------------------------------\n"
-
-#else
-#define STARRY_INITIALIZE_SUCCESS
-#define STARRY_EXIT_SUCCESS
-#endif
 
 #define EXTERN_ERROR(x) \
 	if (x->isFatal()) { \

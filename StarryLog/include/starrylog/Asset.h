@@ -12,7 +12,8 @@
 #include <chrono>
 #include <queue>
 
-#define LOG_PATH "starry_out/log"
+#define STARRY_OUT "starry_out"
+#define LOG_PATH STARRY_OUT "/log"
 #define LOG_HEADER \
 	"-------------------------" \
 	"  --- Start Session ---  " \
@@ -41,7 +42,8 @@ namespace StarryLog
 			CRITICAL,
 			FATAL
 		};
-		// TODO: Silent and File Logging
+		// TODO: File and Not File
+		// TODO: Add proper debug, release, distrubution builds.
 
 		bool getAlert() { return hasAlert; }
 		std::string& getAlertMessage() { return alertMessage; }
@@ -97,6 +99,8 @@ namespace StarryLog
 		void setExitRights(bool rights) { hasExitRights.store(rights); }
 		void setFileLogging(bool value) { logToFile.store(value); }
 
+		void flushAllCalls() { shouldFlush.store(true); }
+
 		bool isFatal();
 
 		const std::string getAssetName() override {return "Logger";}
@@ -122,14 +126,14 @@ namespace StarryLog
 		std::map<uint64_t, StarryAsset*> registeredAssets;
 		std::mutex registryMutex;
 
-		bool shouldFlush = false;
+		std::atomic<bool> shouldFlush = false; // Bit flags soon
 		std::atomic<bool> hasFatal = false;
 		std::atomic<std::queue<AssetCall>*> alertQueue;
 
 		std::atomic<bool> logToFile = false;
 		std::atomic<bool> hasExitRights = false;
+		
 		std::vector<AssetCall> toFlushBuffer = {};
-
 		std::vector<AssetCall> callHistory = {};
 
 		std::thread loggingThread;

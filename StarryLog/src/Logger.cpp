@@ -6,10 +6,6 @@
 #include <cstdlib>
 #include <string>
 
-#ifndef NDEBUG
-	#define SUCCESS_VALIDATION
-#endif
-
 namespace StarryLog
 {
 	std::shared_ptr<Logger> Logger::globalLogger = nullptr;
@@ -125,6 +121,11 @@ namespace StarryLog
 	}
 
 	void Logger::logAlert(AssetCall& call) {
+#ifdef NDEBUG
+		if (call.severity == StarryAsset::CallSeverity::INFO || call.severity == StarryAsset::CallSeverity::INFO_URGANT) {
+			return;
+		}
+#endif
 		toFlushBuffer.push_back(call);
 		callHistory.push_back(call);
 
@@ -134,10 +135,10 @@ namespace StarryLog
 				call.severity == StarryAsset::CallSeverity::BANNER ||
 				call.severity == StarryAsset::CallSeverity::CRITICAL ||
 				call.severity == StarryAsset::CallSeverity::FATAL) {
-				shouldFlush = true;
+				shouldFlush.store(true);
 			}
 		}
-		if (shouldFlush || (toFlushBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
+		if (shouldFlush.load() || (toFlushBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
 			flushCalls();
 			std::cout.flush();
 		}
@@ -153,14 +154,11 @@ namespace StarryLog
 		if (toFlushBuffer.size() == 0) {
 			return;
 		}
-#ifdef SUCCESS_VALIDATION
 		std::cerr << "\n---> Caught alerts:\n" << std::endl;
-#endif
 		for (const auto& call : toFlushBuffer) {
 			if (logToFile.load()) {
 				dumpToFile(call);
 			}
-#ifdef SUCCESS_VALIDATION
 			if (call.severity == StarryAsset::CallSeverity::BANNER) {
 				std::cout << call.message << "\n";
 				continue;
@@ -169,14 +167,11 @@ namespace StarryLog
 			std::tm* lt = std::localtime(&tt);
 			std::cerr << "[" << lt->tm_year+1900 << "-" << lt->tm_mon+1 << "-" << lt->tm_mday << " " << lt->tm_hour << ":" << lt->tm_min << ":" << lt->tm_sec
 				<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << call.callerUUID << "\" => \n\t" << call.message << "\n";
-#endif
 		}
-#ifdef SUCCESS_VALIDATION
 		std::cerr << std::endl;
-#endif
 
 		toFlushBuffer.clear();
-		shouldFlush = false;
+		shouldFlush.store(false);
 	}
 
 	std::string Logger::severityToString(StarryAsset::CallSeverity severity)
@@ -225,7 +220,6 @@ namespace StarryLog
 
 	void Logger::dumpRegisteredAssets(bool names)
 	{
-#ifdef SUCCESS_VALIDATION
 		registryMutex.lock();
 		size_t registeredAssetsSize = registeredAssets.size();
 		std::vector<std::string> pointerArray;
@@ -243,6 +237,5 @@ namespace StarryLog
 			registerAlert("  Id = " + idArray[i] + ", Address = " + pointerArray[i] + ", Name = " + nameArray[i] + "\n", INFO);
 		}
 		flushCalls();
-#endif
 	}
 }

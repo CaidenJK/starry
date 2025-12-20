@@ -1,20 +1,5 @@
 #include "Window.h"
 
-#ifndef NDEBUG
-#define SUCCESS_VALIDATION
-#endif
-
-#ifdef SUCCESS_VALIDATION
-
-#define ALERT_MSG(msg) \
-	std::cout << msg
-
-#else
-
-#define ALERT_MSG(msg)
-
-#endif
-
 namespace StarryRender 
 {
 	Window::Window(const char* title)

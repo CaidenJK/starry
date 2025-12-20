@@ -3,12 +3,6 @@
 #define ERROR_CHECK if (getRenderErrorState()) { return; }
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == StarryAsset::FATAL) { return; }
 
-#ifndef NDEBUG
-#define SUCCESS_VALIDATION
-#endif
-
-#ifdef SUCCESS_VALIDATION
-
 #define STARRY_RENDER_INITIALIZE_SUCCESS \
 	"----------------------------------------\n" \
 	"Starry Render initialized successfully!\n" \
@@ -18,11 +12,6 @@
 	"----------------------------------------\n" \
 	"Starry Render exited successfully!\n" \
 	"----------------------------------------\n"
-
-#else
-#define STARRY_INITIALIZE_SUCCESS
-#define STARRY_EXIT_SUCCESS
-#endif
 
 namespace StarryRender {
 
