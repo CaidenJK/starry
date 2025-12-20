@@ -10,18 +10,18 @@
 *.userosscache
 *.sln.docstates
 
-build/
+# Build and IDE
 *.zshrc
 .DS_Store
+.vscode/
+Dependencies/
+build/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
 # Mono auto generated files
 mono_crash.*
-
-# Dependencies built by CMake
-Dependencies/
 
 # Compiled Shaders
 *.spv
