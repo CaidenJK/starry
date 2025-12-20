@@ -30,6 +30,10 @@ namespace Starry
 			return;
 		}
 		vertexBuffer = renderContext->createVertexBuffer();
+		if (vertexBuffer == nullptr) {
+			registerAlert("Vertex Buffer NULL! Render Context is uninitilized.", FATAL);
+			return;
+		}
 		vertexBuffer->loadData(vertices, indices);
 		renderContext->loadVertexBuffer(vertexBuffer);
 	}
@@ -41,6 +45,10 @@ namespace Starry
 			return;
 		}
 		vertexBuffer = renderContext->createVertexBuffer();
+		if (vertexBuffer == nullptr) {
+			registerAlert("Vertex Buffer NULL! Render Context is uninitilized.", FATAL);
+			return;
+		}
 		vertexBuffer->loadData(vertices, indices);
 		renderContext->loadVertexBuffer(vertexBuffer);
 	}

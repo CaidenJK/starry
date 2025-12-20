@@ -1,6 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 
+
 # Cmake Version
 cmake_minimum_required (VERSION 3.8)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -25,10 +26,10 @@ project ("StarryApp" VERSION 0.0.1 LANGUAGES C CXX)
 add_subdirectory("Starry")
 find_package(Starry)
 
-# Add executable
+# add executable
 add_executable(StarryApp ${SOURCES})
 
-# Link Libraries
+# link Libraries
 target_link_libraries(StarryApp PRIVATE Starry)
 
 if (TARGET Starry)
@@ -36,6 +37,6 @@ if (TARGET Starry)
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
       "$<TARGET_FILE:Starry>"
       "$<TARGET_FILE_DIR:StarryApp>"
-    COMMENT "Copying Starry DLL next to StarryApp executable"
+    COMMENT "Copying Starry Dynamic Library next to StarryApp executable"
     VERBATIM)
 endif()

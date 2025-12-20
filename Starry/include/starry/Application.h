@@ -9,7 +9,7 @@
 
 #include "Scene.h"
 
-#define STARRY_VERSION "0.0.3 dev"
+#define STARRY_VERSION "0.0.4 dev"
  
 namespace Starry
 {

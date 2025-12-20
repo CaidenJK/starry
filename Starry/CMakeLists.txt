@@ -20,7 +20,15 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starry")
 
 # Vulkan
 include (FindVulkan)
-find_package(Vulkan REQUIRED)
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  find_package(Vulkan REQUIRED COMPONENTS MoltenVK)
+else()
+  find_package(Vulkan REQUIRED)
+endif()
+
+if (NOT Vulkan_MoltenVK_FOUND)
+  message(FATAL_ERROR "Could not find MoltenVK for MacOS Dev")
+endif()
 
 # Compile Shaders
 
@@ -33,12 +41,15 @@ set(VERT_SHADER "simple_shader.vert")
 set(FRAG_SHADER "simple_shader.frag")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    execute_process(COMMAND cmd /C "${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DIR}/${VERT_SHADER} -o ${SHADER_DIR}/vert.spv" )
-    execute_process(COMMAND cmd /C "${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DIR}/${FRAG_SHADER} -o ${SHADER_DIR}/frag.spv" )
-    message("Compiled Shaders for Windows")
+  execute_process(COMMAND cmd /C "${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DIR}/${VERT_SHADER} -o ${SHADER_DIR}/vert.spv" )
+  execute_process(COMMAND cmd /C "${Vulkan_GLSLC_EXECUTABLE} ${SHADER_DIR}/${FRAG_SHADER} -o ${SHADER_DIR}/frag.spv" )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  execute_process(COMMAND "${Vulkan_GLSLC_EXECUTABLE}" "${SHADER_DIR}/${VERT_SHADER}" -o "${SHADER_DIR}/vert.spv")
+  execute_process(COMMAND "${Vulkan_GLSLC_EXECUTABLE}" "${SHADER_DIR}/${FRAG_SHADER}" -o "${SHADER_DIR}/frag.spv")
 else()
-     message(FATAL_ERROR "Unsupported OS")  
+  message(FATAL_ERROR "Unsupported OS")
 endif()
+message("Compiled Shaders")
 
 # DEPENDENCIES
 # ---------------------------------------
@@ -100,10 +111,23 @@ set_target_properties(Starry PROPERTIES
   OUTPUT_NAME "Starry"
 )
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  set_target_properties(Starry PROPERTIES
+    FRAMEWORK FALSE
+    MACOSX_RPATH ON
+    CMAKE_CXX_VISIBILITY_PRESET hidden
+    CMAKE_VISIBILITY_INLINES_HIDDEN ON
+  )
+endif()
+
 # Link Libraries
 target_link_libraries(Starry PRIVATE glm)
 target_link_libraries(Starry PRIVATE glfw)
 target_link_libraries(Starry PRIVATE Vulkan::Vulkan)
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  find_library(IOSURFACE_FRAMEWORK IOSurface)
+  target_link_libraries(Starry PRIVATE ${IOSURFACE_FRAMEWORK})
+endif()
 
 target_link_libraries(Starry PRIVATE StarryLog)
 target_link_libraries(Starry PRIVATE StarryRender)

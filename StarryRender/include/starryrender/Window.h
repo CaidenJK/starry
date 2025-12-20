@@ -3,6 +3,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#include <atomic>
+
 #define DEFAULT_HEIGHT 600
 #define DEFAULT_WIDTH 800
 #define DEFAULT_TITLE "Starry"
@@ -26,8 +28,8 @@ namespace StarryRender
 		void createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface);
 		void getFramebufferSize(int& width, int& height);
 
-		bool wasFramebufferResized() { return framebufferResized; }
-		void resetFramebufferResizedFlag() { framebufferResized = false; }
+		bool wasFramebufferResized() { return framebufferResized.load(); }
+		void resetFramebufferResizedFlag() { framebufferResized.store(false); }
 
 		bool isWindowMinimized();
 
@@ -42,6 +44,6 @@ namespace StarryRender
 		const char* title;
 		GLFWwindow* window;
 
-		bool framebufferResized = false;
+		std::atomic<bool> framebufferResized{ false };
 	};
 }

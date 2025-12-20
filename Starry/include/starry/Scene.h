@@ -42,10 +42,9 @@ namespace Starry
 
 		const std::string getAssetName() override { return "Scene: " + sceneName; }
 	private:
-		//void mainLoop();
 		void renderLoop();
 
-		static const int RENDER_LOOP_DELAY_MS = 2;
+		inline static constexpr int RENDER_LOOP_DELAY_MS = 2;
 
 		std::string sceneName = DEFAULT_SCENE_NAME;
 

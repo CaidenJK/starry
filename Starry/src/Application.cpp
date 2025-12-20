@@ -83,7 +83,9 @@ namespace Starry
 	{
 		printVersion();
 		init();
-		mainLoop();
+		if (!ERROR_HANDLER->isFatal()) { \
+			mainLoop();
+		}
 		cleanup();
 	}
 

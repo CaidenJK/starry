@@ -19,6 +19,14 @@ namespace StarryLog
 		}
 	}
 
+	bool Logger::isFatal()
+	{ 
+		if (loggingThread.joinable()) {
+			loggingThread.join();
+		}
+		return hasFatal.load(); 
+	}
+
 	std::weak_ptr<Logger> Logger::get() 
 	{
 		if (globalLogger == nullptr) {
@@ -70,14 +78,18 @@ namespace StarryLog
 		}
 
 		loggingThread = std::thread(&Logger::logAlert, this, uuid);
-		loggingThread.detach();
+		//loggingThread.detach();
 	}
 
 	void Logger::logAlert(uint64_t uuid) {
 		registryMutex.lock();
 		auto asset = registeredAssets.find(uuid);
+		if (asset == registeredAssets.end() || asset->second == nullptr) {
+			registryMutex.unlock();
+			return;
+		}
 		asset->second->alertMutex.lock();
-		if (asset != registeredAssets.end() && asset->second->getAlert() &&
+		if (asset->second->getAlert() &&
 			(asset->second->getAlertSeverity() != StarryAsset::CallSeverity::NONE)) {
 			AssetCall call;
 			call.callerUUID = asset->first;

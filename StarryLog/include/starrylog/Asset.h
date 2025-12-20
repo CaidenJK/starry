@@ -97,7 +97,7 @@ namespace StarryLog
 		void setExitRights(bool rights) { hasExitRights.store(rights); }
 		void setFileLogging(bool value) { logToFile.store(value); }
 
-		bool isFatal() { return hasFatal.load(); }
+		bool isFatal();
 
 	private:
 		Logger() {}

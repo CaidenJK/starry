@@ -5,6 +5,7 @@
 #include <map>
 #include <set>
 #include <cstdint>
+#include <string>
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
@@ -129,6 +130,9 @@ namespace StarryRender
 #ifndef NDEBUG
 		enableValidationLayers = true;
 #endif
+		if (!enableValidationLayers) {
+			return;
+		}
 
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -145,6 +149,7 @@ namespace StarryRender
 					break;
 				}
 			}
+			
 
 			if (!layerFound) {
 				registerAlert("Validation layer requested not available!", FATAL);
@@ -182,6 +187,9 @@ namespace StarryRender
 		if (enableValidationLayers) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
+#ifdef __APPLE__
+		extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+#endif
 
 		return extensions;
 	}
@@ -199,6 +207,9 @@ namespace StarryRender
 		VkInstanceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 		createInfo.pApplicationInfo = &appInfo;
+#ifdef __APPLE__
+		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
 
 		if (enableValidationLayers) {
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
@@ -259,7 +270,7 @@ namespace StarryRender
 			}
 		}
 
-		if (candidates.rbegin()->first < 1) {
+		if (candidates.empty() || candidates.rbegin()->first < 1) {
 			registerAlert("Failed to find a suitable GPU!", FATAL);
 			return;
 		}
@@ -332,7 +343,7 @@ namespace StarryRender
 		DeviceInfo info;
 		QueueFamilyIndices indices = findQueueFamilies(device);
 		info.score = 1;
-		strcpy_s(info.name, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE, deviceProperties.deviceName);
+		std::strncpy(info.name, deviceProperties.deviceName, VK_MAX_PHYSICAL_DEVICE_NAME_SIZE);
 
 		if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
 			info.score += 1000;

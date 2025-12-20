@@ -16,7 +16,11 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starryrender")
 # Vulkan
 
 include (FindVulkan)
-find_package(Vulkan REQUIRED)
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+  find_package(Vulkan REQUIRED COMPONENTS MoltenVK)
+else()
+  find_package(Vulkan REQUIRED)
+endif()
 
 # Create Library
 add_library(StarryRender ${SOURCES})

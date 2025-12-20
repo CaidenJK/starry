@@ -81,6 +81,10 @@ namespace Starry
 			registerAlert("Render Context not attatched to scene!", FATAL);
 			return;
 		}
+		if (renderer->getAlertSeverity() == FATAL) {
+			registerAlert("Render Context experienced a fatal error, could not disbatch renderer", FATAL);
+			return;
+		}
 		if (prefabs->isEmptyMesh() == true) {
 			registerAlert("No prefabs in scene to render!", FATAL);
 			return;

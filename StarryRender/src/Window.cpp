@@ -93,6 +93,6 @@ namespace StarryRender
 	void Window::framebufferResizeCallback(GLFWwindow* window, int width, int height) 
 	{
 		auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-		app->framebufferResized = true;
+		app->framebufferResized.store(true);
 	}
 }

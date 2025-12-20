@@ -173,7 +173,7 @@ namespace StarryRender {
 			m_uniformBuffer = createUniformBuffer();
 		}
 		m_renderDevice->loadUniformBuffer(m_uniformBuffer);
-
+		
 		m_renderDevice->LoadShader(m_shaderPaths[0], m_shaderPaths[1]); EXTERN_ERROR(m_renderDevice);
 		m_renderDevice->InitDraw(); EXTERN_ERROR(m_renderDevice);
 
