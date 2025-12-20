@@ -212,7 +212,9 @@ namespace StarryRender
 		if (!isSet) {
 			currentSwapSurfaceFormat = availableFormats[0];
 		}
-		registerAlert("Chosen Swap Surface Format: " + std::string(string_VkFormat(currentSwapSurfaceFormat.format)) + ", Color Space: " + std::string(string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace)) + "\n", INFO);
+		if (swapChainExtent.height == 0 || swapChainExtent.width == 0) {
+			registerAlert("Chosen Swap Surface Format: " + std::string(string_VkFormat(currentSwapSurfaceFormat.format)) + ", Color Space: " + std::string(string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace)) + "\n", INFO);
+		}
 		return currentSwapSurfaceFormat;
 	}
 
@@ -231,7 +233,10 @@ namespace StarryRender
 		if (!isSet) {
 			currentPresentMode = VK_PRESENT_MODE_FIFO_KHR;
 		}
-		registerAlert("Chosen Present Mode: " + std::string(string_VkPresentModeKHR(currentPresentMode)) + "\n", INFO);
+
+		if (swapChainExtent.height == 0 || swapChainExtent.width == 0) {
+			registerAlert("Chosen Present Mode: " + std::string(string_VkPresentModeKHR(currentPresentMode)) + "\n", INFO);
+		}
 		return currentPresentMode;
 	}
 

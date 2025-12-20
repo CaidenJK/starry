@@ -10,6 +10,7 @@
 #include <random>
 #include <cstdint>
 #include <chrono>
+#include <queue>
 
 #define LOG_PATH "starry_out/log"
 #define LOG_HEADER \
@@ -22,7 +23,7 @@ namespace StarryLog
 {
 	class StarryAsset {
 	public:
-		~StarryAsset();
+		virtual ~StarryAsset();
 
 		StarryAsset(const StarryAsset& other) = delete;
 		StarryAsset& operator=(const StarryAsset& other) = delete;
@@ -54,7 +55,8 @@ namespace StarryLog
 
 	protected:
 		StarryAsset();
-		void registerAlert(const std::string& message, CallSeverity severity);
+		StarryAsset(bool autoRegister);
+		virtual void registerAlert(const std::string& message, CallSeverity severity);
 
 	private:
 		static uint64_t generateUUID();
@@ -67,7 +69,7 @@ namespace StarryLog
 		uint64_t uuid = 0;
 	};
 
-	class Logger {
+	class Logger : StarryAsset {
 		struct AssetCall {
 			uint64_t callerUUID;
 			std::string callerName;
@@ -89,7 +91,7 @@ namespace StarryLog
 
 		static std::weak_ptr<Logger> get();
 
-		void registerAlert(uint64_t uuid);
+		void registerAssetAlert(uint64_t uuid);
 		
 		void dumpRegisteredAssets(bool names);
 		void setExitRights(bool rights) { hasExitRights.store(rights); }
@@ -97,12 +99,16 @@ namespace StarryLog
 
 		bool isFatal();
 
+		const std::string getAssetName() override {return "Logger";}
+
 	private:
 		Logger();
 
-		void flushCalls();
 		void logAlert(AssetCall& call);
 		void dumpToFile(const AssetCall& call);
+		void flushCalls();
+
+		void registerAlert(const std::string& message, CallSeverity severity) override;
 
 		void worker();
 
@@ -127,5 +133,7 @@ namespace StarryLog
 		std::vector<AssetCall> callHistory = {};
 
 		std::thread loggingThread;
+
+		static bool isDead;
 	};
 }

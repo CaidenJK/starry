@@ -11,9 +11,13 @@ namespace StarryLog
 		Logger::get().lock()->registerAsset(this);
 	}
 
+	StarryAsset::StarryAsset(bool autoRegister) {
+		uuid = generateUUID();
+	}
+
 	StarryAsset::~StarryAsset()
 	{
-		Logger::get().lock()->unregisterAsset(uuid);
+		if (auto logger = Logger::get().lock()) logger->unregisterAsset(uuid);
 	}
 
 	StarryAsset::StarryAsset(StarryAsset&& other) noexcept
@@ -53,7 +57,7 @@ namespace StarryLog
 		alertMessage = message;
 		assetState = severity;
 
-		Logger::get().lock()->registerAlert(uuid);
+		Logger::get().lock()->registerAssetAlert(uuid);
 	}
 
 	void StarryAsset::resetAlert() {

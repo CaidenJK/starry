@@ -4,6 +4,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cstdlib>
+#include <string>
 
 #ifndef NDEBUG
 	#define SUCCESS_VALIDATION
@@ -12,16 +13,37 @@
 namespace StarryLog
 {
 	std::shared_ptr<Logger> Logger::globalLogger = nullptr;
+	bool Logger::isDead = false;
 
-	Logger::Logger() {
+	Logger::Logger() : StarryAsset(false) 
+	{
 		alertQueue.store(new std::queue<AssetCall>());
 		loggingThread = std::thread(&Logger::worker, this);
+		registerAsset(this);
 	}
 
-	Logger::~Logger() {
+	Logger::~Logger()
+	{
 		hasFatal.store(true);
 		loggingThread.join();
 		delete alertQueue.load();
+		alertQueue.store(nullptr);
+		isDead = true;
+	}
+
+	void Logger::registerAlert(const std::string& message, CallSeverity severity)
+	{
+		registryMutex.lock();
+
+		AssetCall call;
+		call.callerUUID = getUUID();
+		call.callerName = getAssetName();
+		call.message = message;
+		call.severity = severity;
+		call.callTime = std::chrono::system_clock::now();
+		alertQueue.load()->push(call);
+		
+		registryMutex.unlock();
 	}
 
 	bool Logger::isFatal()
@@ -31,13 +53,14 @@ namespace StarryLog
 
 	std::weak_ptr<Logger> Logger::get() 
 	{
+		if (isDead) return {};
 		if (globalLogger == nullptr) {
 			globalLogger.reset(new Logger());
 		}
 		return std::weak_ptr<Logger>(globalLogger);
 	}
 
-	void Logger::registerAsset(StarryAsset* asset) 
+	void Logger::registerAsset(StarryAsset* asset)
 	{
 		if (asset == nullptr) {
 			return;
@@ -49,6 +72,7 @@ namespace StarryLog
 
 	void Logger::unregisterAsset(uint64_t uuid) 
 	{
+		if (alertQueue.load() == nullptr) return;
 		registryMutex.lock();
 		while (!alertQueue.load()->empty()) {}
 		registeredAssets.erase(uuid);
@@ -81,7 +105,7 @@ namespace StarryLog
 		}
 	}
 
-	void Logger::registerAlert(uint64_t uuid)
+	void Logger::registerAssetAlert(uint64_t uuid)
 	{
 		registryMutex.lock();
 		auto asset = registeredAssets.find(uuid);
@@ -103,7 +127,7 @@ namespace StarryLog
 	void Logger::logAlert(AssetCall& call) {
 		toFlushBuffer.push_back(call);
 		callHistory.push_back(call);
-		
+
 		if ((call.severity != StarryAsset::CallSeverity::NONE)) {			
 			if (call.severity == StarryAsset::CallSeverity::FATAL) hasFatal.store(true);
 			if (call.severity == StarryAsset::CallSeverity::INFO_URGANT ||
@@ -118,7 +142,8 @@ namespace StarryLog
 			std::cout.flush();
 		}
 		if (hasFatal.load() && hasExitRights.load()) {
-			std::cerr << "A fatal alert was registered. Exiting program as permitted by Logger rights." << std::endl;
+			registerAlert("A fatal alert was registered. Exiting program as permitted by Logger rights.", INFO);
+			Logger::~Logger();
 			std::exit(EXIT_FAILURE);
 		}
 	}
@@ -183,7 +208,7 @@ namespace StarryLog
 		f.open(LOG_FILE, std::ios::app | std::fstream::out);
 		
 		if (!f) {
-			std::cerr << "Couldn't open Log File!" << std::endl;
+			registerAlert("Couldn't open Log File!", FATAL);
 			return;
 		}
 
@@ -200,20 +225,24 @@ namespace StarryLog
 
 	void Logger::dumpRegisteredAssets(bool names)
 	{
-		registryMutex.lock();
 #ifdef SUCCESS_VALIDATION
-		std::cerr << "Logger: Asset Dump - Total = " << registeredAssets.size() << std::endl;
+		registryMutex.lock();
+		size_t registeredAssetsSize = registeredAssets.size();
+		std::vector<std::string> pointerArray;
+		std::vector<std::string> idArray;
+		std::vector<std::string> nameArray;
 		for (const auto& asset : registeredAssets) {
-			const auto id = asset.first;
-			const auto ptr = asset.second;
-			std::cerr << "  Id = " << id << ", Address = " << ptr;
-			if (names) {
-				std::cerr << ", Name = " << ptr->getAssetName();
-			}
-			std::cerr << std::endl;
+			pointerArray.push_back(std::to_string((size_t)(asset.second)));
+			idArray.push_back(std::to_string(asset.first));
+			nameArray.push_back(std::string(asset.second->getAssetName()));
 		}
-		std::cerr << std::endl;
-#endif
 		registryMutex.unlock();
+		
+		registerAlert("Logger: Asset Dump - Total = " + std::to_string(registeredAssetsSize) + "\n", INFO);
+		for (int i = 0; i < pointerArray.size(); i++) {
+			registerAlert("  Id = " + idArray[i] + ", Address = " + pointerArray[i] + ", Name = " + nameArray[i] + "\n", INFO);
+		}
+		flushCalls();
+#endif
 	}
 }

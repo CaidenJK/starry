@@ -63,7 +63,7 @@ namespace StarryRender
 
 			std::vector<VkImage> swapChainImages;
 			VkFormat swapChainImageFormat;
-			VkExtent2D swapChainExtent;
+			VkExtent2D swapChainExtent = {0, 0};
 
 			std::vector<VkImageView> swapChainImageViews;
 
