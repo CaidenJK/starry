@@ -22,14 +22,12 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starry")
 include (FindVulkan)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   find_package(Vulkan REQUIRED COMPONENTS MoltenVK)
+  if (NOT Vulkan_MoltenVK_FOUND)
+    message(FATAL_ERROR "Could not find MoltenVK for MacOS Dev")
+  endif()
 else()
   find_package(Vulkan REQUIRED)
 endif()
-
-if (NOT Vulkan_MoltenVK_FOUND)
-  message(FATAL_ERROR "Could not find MoltenVK for MacOS Dev")
-endif()
-
 # Compile Shaders
 
 set(SHADER_DIR "${SOURCE_DIR}/shaders")
