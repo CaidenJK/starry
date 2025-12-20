@@ -22,6 +22,10 @@
 
 namespace StarryRender 
 {
+	VulkanDebugger* RenderDevice::debugger = nullptr;
+	void VulkanDebugger::registerDebugAlert(const std::string& message, CallSeverity severity) {
+		registerAlert(message, severity);
+	}
 
 	// Debug messenger proxy functions
 	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) 
@@ -59,6 +63,9 @@ namespace StarryRender
 			return;
 		}
 		windowReference = windowPointer;
+#ifndef NDEBUG
+		debugger = new VulkanDebugger();
+#endif
 		initVulkan();
 	}
 
@@ -93,6 +100,8 @@ namespace StarryRender
 		vkDestroySurfaceKHR(instance, surface, nullptr);
 
 		vkDestroyInstance(instance, nullptr);
+
+		if (debugger != nullptr) delete debugger;
 	}
 
 	void RenderDevice::initVulkan() 
@@ -130,9 +139,7 @@ namespace StarryRender
 #ifndef NDEBUG
 		enableValidationLayers = true;
 #endif
-		if (!enableValidationLayers) {
-			return;
-		}
+		if (!enableValidationLayers) return;
 
 		uint32_t layerCount;
 		vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -187,9 +194,6 @@ namespace StarryRender
 		if (enableValidationLayers) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		}
-#ifdef __APPLE__
-		extensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
-#endif
 
 		return extensions;
 	}
@@ -226,6 +230,10 @@ namespace StarryRender
 		}
 
 		auto extensions = getRequiredGLFWExtensions();
+		for (const auto& exten : instanceExtensions) {
+			extensions.emplace_back(exten);
+		}
+
 		createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
 		createInfo.ppEnabledExtensionNames = extensions.data();
 		
@@ -810,10 +818,19 @@ namespace StarryRender
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData) 
 	{
+		CallSeverity severity;
+		if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT ||
+			messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
+				severity = INFO_URGANT;
+			}
+		else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+			severity = WARNING;
+		}
+		else if (messageSeverity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
+			severity = CRITICAL;
+		}
 
-		std::cerr << "Vulkan Debug Message..." << std::endl;
-		std::cerr << "Validation layer: " << pCallbackData->pMessage << "\n" << std::endl;
-
+		debugger->registerDebugAlert("Validation layer: " + std::string(pCallbackData->pMessage) + "\n", severity);
 		return VK_FALSE;
 	}
 }

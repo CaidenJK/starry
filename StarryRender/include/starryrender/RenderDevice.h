@@ -19,6 +19,13 @@
 
 namespace StarryRender 
 {
+	class VulkanDebugger : public StarryAsset {
+		public:
+			void registerDebugAlert(const std::string& message, CallSeverity severity);
+
+			const std::string getAssetName() override {return "Vulkan Debugger";}
+	};
+
 	class RenderDevice : public StarryAsset {
 		// Helper structs
 		struct DeviceInfo {
@@ -101,12 +108,22 @@ namespace StarryRender
 			"VK_LAYER_KHRONOS_validation"
 		};
 		bool enableValidationLayers = false;
+
+
+
 #ifdef __APPLE__
+		const std::vector<const char*> instanceExtensions = {
+			VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
+			"VK_KHR_get_physical_device_properties2"
+		};
+
 		const std::vector<const char*> deviceExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 			"VK_KHR_portability_subset"
 		};
 #else
+		const std::vector<const char*> instanceExtensions;
+
 		const std::vector<const char*> deviceExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
@@ -149,6 +166,8 @@ namespace StarryRender
 
 		std::shared_ptr<RenderPipeline> pipeline = nullptr;
 		std::shared_ptr<SwapChain> swapChain = nullptr;
+
+		static VulkanDebugger* debugger;
 	};
 }
 
