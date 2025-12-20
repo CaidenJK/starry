@@ -13,17 +13,17 @@ namespace StarryLog
 {
 	std::shared_ptr<Logger> Logger::globalLogger = nullptr;
 
+	Logger::Logger() {
+		loggingThread = std::thread(&Logger::worker, this);
+	}
+
 	Logger::~Logger() {
-		if (loggingThread.joinable()) {
-			loggingThread.join();
-		}
+		hasFatal.store(true);
+		loggingThread.join();
 	}
 
 	bool Logger::isFatal()
 	{ 
-		if (loggingThread.joinable()) {
-			loggingThread.join();
-		}
 		return hasFatal.load(); 
 	}
 
@@ -43,12 +43,10 @@ namespace StarryLog
 		registryMutex.lock();
 		registeredAssets.insert({ asset->getUUID(), asset });
 		registryMutex.unlock();
-		//std::cerr << "[Logger@" << this << "] registerAsset id=" << asset->getUUID() << " ptr=" << asset << std::endl;
 	}
 
 	void Logger::unregisterAsset(uint64_t uuid) 
 	{
-		//std::cerr << "[Logger@" << this << "] unregisterAsset id=" << uuid << "\n";
 		registryMutex.lock();
 		registeredAssets.erase(uuid);
 		registryMutex.unlock();
@@ -71,14 +69,20 @@ namespace StarryLog
 
 	}
 
+	void Logger::worker() {
+		uint64_t currentUUID = 0;
+		while (!hasFatal.load()) {
+			currentUUID = alertUUID.load();
+			if (currentUUID != 0) {
+				logAlert(currentUUID);
+				if (currentUUID == alertUUID.load()) alertUUID.store(0);
+			}
+		}
+	}
+
 	void Logger::registerAlert(uint64_t uuid)
 	{
-		if (loggingThread.joinable()) {
-			loggingThread.join();
-		}
-
-		loggingThread = std::thread(&Logger::logAlert, this, uuid);
-		//loggingThread.detach();
+		alertUUID.store(uuid);
 	}
 
 	void Logger::logAlert(uint64_t uuid) {

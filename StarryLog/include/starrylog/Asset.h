@@ -100,11 +100,13 @@ namespace StarryLog
 		bool isFatal();
 
 	private:
-		Logger() {}
+		Logger();
 
 		void flushCalls();
 		void logAlert(uint64_t uuid);
 		void dumpToFile(const AssetCall& call);
+
+		void worker();
 
 		static std::string severityToString(StarryAsset::CallSeverity severity);
 
@@ -119,6 +121,7 @@ namespace StarryLog
 		bool shouldFlush = false;
 		std::atomic<bool> hasFatal = false;
 
+		std::atomic<uint64_t> alertUUID = 0;
 		std::atomic<bool> logToFile = false;
 		std::atomic<bool> hasExitRights = false;
 		std::vector<AssetCall> toFlushBuffer = {};
