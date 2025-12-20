@@ -14,12 +14,14 @@ namespace StarryLog
 	std::shared_ptr<Logger> Logger::globalLogger = nullptr;
 
 	Logger::Logger() {
+		alertQueue.store(new std::queue<AssetCall>());
 		loggingThread = std::thread(&Logger::worker, this);
 	}
 
 	Logger::~Logger() {
 		hasFatal.store(true);
 		loggingThread.join();
+		delete alertQueue.load();
 	}
 
 	bool Logger::isFatal()
@@ -48,6 +50,7 @@ namespace StarryLog
 	void Logger::unregisterAsset(uint64_t uuid) 
 	{
 		registryMutex.lock();
+		while (!alertQueue.load()->empty()) {}
 		registeredAssets.erase(uuid);
 		registryMutex.unlock();
 	}
@@ -70,43 +73,38 @@ namespace StarryLog
 	}
 
 	void Logger::worker() {
-		uint64_t currentUUID = 0;
 		while (!hasFatal.load()) {
-			currentUUID = alertUUID.load();
-			if (currentUUID != 0) {
-				logAlert(currentUUID);
-				if (currentUUID == alertUUID.load()) alertUUID.store(0);
+			if (!alertQueue.load()->empty()) {
+				logAlert(alertQueue.load()->front());
+				alertQueue.load()->pop();
 			}
 		}
 	}
 
 	void Logger::registerAlert(uint64_t uuid)
 	{
-		alertUUID.store(uuid);
-	}
-
-	void Logger::logAlert(uint64_t uuid) {
 		registryMutex.lock();
 		auto asset = registeredAssets.find(uuid);
 		if (asset == registeredAssets.end() || asset->second == nullptr) {
 			registryMutex.unlock();
 			return;
 		}
-		asset->second->alertMutex.lock();
-		if (asset->second->getAlert() &&
-			(asset->second->getAlertSeverity() != StarryAsset::CallSeverity::NONE)) {
-			AssetCall call;
-			call.callerUUID = asset->first;
-			call.callerName = asset->second->getAssetName();
-			call.message = asset->second->getAlertMessage();
-			call.severity = asset->second->getAlertSeverity();
-			call.callTime = std::chrono::system_clock::now();
-			toFlushBuffer.push_back(call);
-			callHistory.push_back(call);
-			asset->second->alertMutex.unlock();
+		AssetCall call;
+		call.callerUUID = asset->first;
+		call.callerName = asset->second->getAssetName();
+		call.message = asset->second->getAlertMessage();
+		call.severity = asset->second->getAlertSeverity();
+		call.callTime = std::chrono::system_clock::now();
+		alertQueue.load()->push(call);
+		asset->second->resetAlert();
+		registryMutex.unlock();
+	}
 
-			asset->second->resetAlert();
-
+	void Logger::logAlert(AssetCall& call) {
+		toFlushBuffer.push_back(call);
+		callHistory.push_back(call);
+		
+		if ((call.severity != StarryAsset::CallSeverity::NONE)) {			
 			if (call.severity == StarryAsset::CallSeverity::FATAL) hasFatal.store(true);
 			if (call.severity == StarryAsset::CallSeverity::INFO_URGANT ||
 				call.severity == StarryAsset::CallSeverity::BANNER ||
@@ -123,7 +121,6 @@ namespace StarryLog
 			std::cerr << "A fatal alert was registered. Exiting program as permitted by Logger rights." << std::endl;
 			std::exit(EXIT_FAILURE);
 		}
-		registryMutex.unlock();
 	}
 
 	void Logger::flushCalls() 

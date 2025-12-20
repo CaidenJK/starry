@@ -52,8 +52,6 @@ namespace StarryLog
 
 		uint64_t getUUID() { return uuid; }
 
-		std::mutex alertMutex;
-
 	protected:
 		StarryAsset();
 		void registerAlert(const std::string& message, CallSeverity severity);
@@ -103,7 +101,7 @@ namespace StarryLog
 		Logger();
 
 		void flushCalls();
-		void logAlert(uint64_t uuid);
+		void logAlert(AssetCall& call);
 		void dumpToFile(const AssetCall& call);
 
 		void worker();
@@ -120,8 +118,8 @@ namespace StarryLog
 
 		bool shouldFlush = false;
 		std::atomic<bool> hasFatal = false;
+		std::atomic<std::queue<AssetCall>*> alertQueue;
 
-		std::atomic<uint64_t> alertUUID = 0;
 		std::atomic<bool> logToFile = false;
 		std::atomic<bool> hasExitRights = false;
 		std::vector<AssetCall> toFlushBuffer = {};

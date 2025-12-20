@@ -49,24 +49,20 @@ namespace StarryLog
 
 	void StarryAsset::registerAlert(const std::string& message, CallSeverity severity)
 	{
-		alertMutex.lock();
 		hasAlert = true;
 		alertMessage = message;
 		assetState = severity;
-		alertMutex.unlock();
 
 		Logger::get().lock()->registerAlert(uuid);
 	}
 
 	void StarryAsset::resetAlert() {
-		alertMutex.lock();
 
 		if (assetState != FATAL) {
 			hasAlert = false;
 			alertMessage.clear();
 			assetState = NONE;
 		}
-		alertMutex.unlock();
 	}
 
 	uint64_t StarryAsset::generateUUID()
