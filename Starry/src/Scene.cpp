@@ -4,7 +4,7 @@
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
-#define ERROR_HANDLER Logger::get().lock()
+#define ERROR_HANDLER AssetManager::get().lock()
 
 namespace Starry
 {

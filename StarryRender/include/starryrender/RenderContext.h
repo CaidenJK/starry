@@ -43,8 +43,8 @@ namespace StarryRender
 		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer);
 		void updateUniformBuffer(UniformBufferData& buffer);
 
-		bool getRenderErrorState() const { return Logger::get().lock()->isFatal(); }
-		void dumpAlerts() const { Logger::get().lock()->isFatal(); }
+		bool getRenderErrorState() const { return AssetManager::get().lock()->isFatal(); }
+		void dumpAlerts() const { AssetManager::get().lock()->isFatal(); }
 
 		void windowPollEvents() const { m_window->pollEvents(); }
 		bool windowShouldClose() const { return m_window->shouldClose(); }

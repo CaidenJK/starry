@@ -154,7 +154,6 @@ namespace StarryRender
 		float renderScale = 1.0f;
 
 		std::shared_ptr<VertexBuffer> vertexBuffer = nullptr;
-
 		std::weak_ptr<UniformBuffer> uniformBuffer = {};
 
 		VkPhysicalDeviceMemoryProperties memProperties = {};

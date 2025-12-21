@@ -25,7 +25,7 @@ namespace Starry
 
         bool hasFatalError();
 
-        static void enableFileLogging(bool value) { Logger::get().lock()->setFileLogging(value); }
+        static void enableFileLogging(bool value) { AssetManager::get().lock()->setFileLogging(value); }
 
 		const std::string getAssetName() override { return "Application"; }
 

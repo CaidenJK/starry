@@ -1,4 +1,4 @@
-#include "Asset.h"
+#include "Logger.h"
 
 #include <iostream>
 #include <fstream>
@@ -8,20 +8,19 @@
 
 namespace StarryLog
 {
-	std::shared_ptr<Logger> Logger::globalLogger = nullptr;
 	bool Logger::isDead = false;
 
-	Logger::Logger() : StarryAsset(false) 
+	Logger::Logger() : StarryAsset(false)
 	{
 		alertQueue.store(new std::queue<AssetCall>());
 		loggingThread = std::thread(&Logger::worker, this);
-		registerAsset(this);
 	}
 
 	Logger::~Logger()
 	{
 		hasFatal.store(true);
 		loggingThread.join();
+		
 		delete alertQueue.load();
 		alertQueue.store(nullptr);
 		isDead = true;
@@ -29,8 +28,6 @@ namespace StarryLog
 
 	void Logger::registerAlert(const std::string& message, CallSeverity severity)
 	{
-		registryMutex.lock();
-
 		AssetCall call;
 		call.callerUUID = getUUID();
 		call.callerName = getAssetName();
@@ -38,103 +35,39 @@ namespace StarryLog
 		call.severity = severity;
 		call.callTime = std::chrono::system_clock::now();
 		alertQueue.load()->push(call);
-		
-		registryMutex.unlock();
 	}
 
-	bool Logger::isFatal()
-	{ 
-		return hasFatal.load(); 
-	}
-
-	std::weak_ptr<Logger> Logger::get() 
+	void Logger::enqueueAlert(AssetCall& call)
 	{
-		if (isDead) return {};
-		if (globalLogger == nullptr) {
-			globalLogger.reset(new Logger());
-		}
-		return std::weak_ptr<Logger>(globalLogger);
+		alertQueue.load()->push(call);
 	}
 
-	void Logger::registerAsset(StarryAsset* asset)
+	void Logger::worker() 
 	{
-		if (asset == nullptr) {
-			return;
-		}
-		registryMutex.lock();
-		registeredAssets.insert({ asset->getUUID(), asset });
-		registryMutex.unlock();
-	}
-
-	void Logger::unregisterAsset(uint64_t uuid) 
-	{
-		if (alertQueue.load() == nullptr) return;
-		registryMutex.lock();
-		while (!alertQueue.load()->empty()) {}
-		registeredAssets.erase(uuid);
-		registryMutex.unlock();
-	}
-
-	void Logger::updateAssetPointer(uint64_t uuid, StarryAsset* newPtr) {
-		if (uuid == 0 || newPtr == nullptr) {
-			hasFatal = true;
-			return;
-		}
-		auto it = registeredAssets.find(uuid);
-		if (it != registeredAssets.end()) {
-			it->second = newPtr;
-		}
-		else {
-			hasFatal = true;
-			return;
-		}
-		// TODO: add logger (this) to logger assets
-
-	}
-
-	void Logger::worker() {
 		while (!hasFatal.load()) {
 			if (!alertQueue.load()->empty()) {
 				logAlert(alertQueue.load()->front());
 				alertQueue.load()->pop();
 			}
+			else if (shouldFlush.load()) flushCalls();
 		}
-	}
-
-	void Logger::registerAssetAlert(uint64_t uuid)
-	{
-		registryMutex.lock();
-		auto asset = registeredAssets.find(uuid);
-		if (asset == registeredAssets.end() || asset->second == nullptr) {
-			registryMutex.unlock();
-			return;
-		}
-		AssetCall call;
-		call.callerUUID = asset->first;
-		call.callerName = asset->second->getAssetName();
-		call.message = asset->second->getAlertMessage();
-		call.severity = asset->second->getAlertSeverity();
-		call.callTime = std::chrono::system_clock::now();
-		alertQueue.load()->push(call);
-		asset->second->resetAlert();
-		registryMutex.unlock();
 	}
 
 	void Logger::logAlert(AssetCall& call) {
 #ifdef NDEBUG
-		if (call.severity == StarryAsset::CallSeverity::INFO || call.severity == StarryAsset::CallSeverity::INFO_URGANT) {
+		if (call.severity == INFO || call.severity == INFO_URGANT) {
 			return;
 		}
 #endif
 		toFlushBuffer.push_back(call);
 		callHistory.push_back(call);
 
-		if ((call.severity != StarryAsset::CallSeverity::NONE)) {			
-			if (call.severity == StarryAsset::CallSeverity::FATAL) hasFatal.store(true);
-			if (call.severity == StarryAsset::CallSeverity::INFO_URGANT ||
-				call.severity == StarryAsset::CallSeverity::BANNER ||
-				call.severity == StarryAsset::CallSeverity::CRITICAL ||
-				call.severity == StarryAsset::CallSeverity::FATAL) {
+		if ((call.severity != NONE)) {			
+			if (call.severity == FATAL) hasFatal.store(true);
+			if (call.severity == INFO_URGANT ||
+				call.severity == BANNER ||
+				call.severity == CRITICAL ||
+				call.severity == FATAL) {
 				shouldFlush.store(true);
 			}
 		}
@@ -218,24 +151,8 @@ namespace StarryLog
 		f.close();
 	}
 
-	void Logger::dumpRegisteredAssets(bool names)
+	void Logger::flushQueueBlock()
 	{
-		registryMutex.lock();
-		size_t registeredAssetsSize = registeredAssets.size();
-		std::vector<std::string> pointerArray;
-		std::vector<std::string> idArray;
-		std::vector<std::string> nameArray;
-		for (const auto& asset : registeredAssets) {
-			pointerArray.push_back(std::to_string((size_t)(asset.second)));
-			idArray.push_back(std::to_string(asset.first));
-			nameArray.push_back(std::string(asset.second->getAssetName()));
-		}
-		registryMutex.unlock();
-		
-		registerAlert("Logger: Asset Dump - Total = " + std::to_string(registeredAssetsSize) + "\n", INFO);
-		for (int i = 0; i < pointerArray.size(); i++) {
-			registerAlert("  Id = " + idArray[i] + ", Address = " + pointerArray[i] + ", Name = " + nameArray[i] + "\n", INFO);
-		}
-		flushCalls();
+		while (!alertQueue.load()->empty()) {}
 	}
 }

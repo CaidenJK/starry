@@ -19,7 +19,7 @@
 		return; \
 	}
   
-#define ERROR_HANDLER Logger::get().lock()
+#define ERROR_HANDLER AssetManager::get().lock()
 #define ERROR_HANDLER_CHECK EXTERN_ERROR(ERROR_HANDLER)
 
 namespace Starry
@@ -66,7 +66,7 @@ namespace Starry
 			registerAlert("\n----------> Program ended prematurly due to an error.\n", BANNER);
 			return;
 		}
-		Logger::get().lock()->dumpRegisteredAssets(true);
+		AssetManager::get().lock()->dumpRegisteredAssets(true);
 		registerAlert(STARRY_EXIT_SUCCESS, BANNER);
 	}
 
@@ -81,7 +81,7 @@ namespace Starry
 	}
 
 	bool Application::hasFatalError() {
-		auto errorHandler = Logger::get().lock();
+		auto errorHandler = AssetManager::get().lock();
 		return errorHandler->isFatal();
 	}
 }

@@ -1,4 +1,5 @@
-#include "Asset.h"
+#include "StarryAsset.h"
+#include "AssetManager.h"
 
 namespace StarryLog
 {
@@ -8,7 +9,7 @@ namespace StarryLog
 	{
 		uuid = generateUUID();
 		
-		Logger::get().lock()->registerAsset(this);
+		AssetManager::get().lock()->registerAsset(this);
 	}
 
 	StarryAsset::StarryAsset(bool autoRegister) {
@@ -17,7 +18,7 @@ namespace StarryLog
 
 	StarryAsset::~StarryAsset()
 	{
-		if (auto logger = Logger::get().lock()) logger->unregisterAsset(uuid);
+		if (auto mgr = AssetManager::get().lock()) mgr->unregisterAsset(uuid);
 	}
 
 	StarryAsset::StarryAsset(StarryAsset&& other) noexcept
@@ -27,16 +28,14 @@ namespace StarryLog
 		uuid(other.uuid)
 	{
 		other.uuid = 0; // saftey
-		if (auto lg = Logger::get().lock()) {
-			lg->updateAssetPointer(uuid, this);
-		}
+		if (auto mgr = AssetManager::get().lock()) mgr->updateAssetPointer(uuid, this);
 	}
 
 	StarryAsset& StarryAsset::operator=(StarryAsset&& other) noexcept
 	{
 		if (this != &other) {
 			if (uuid != 0) {
-				Logger::get().lock()->unregisterAsset(uuid);
+				if (auto mgr = AssetManager::get().lock()) mgr->unregisterAsset(uuid);
 			}
 			hasAlert = other.hasAlert;
 			assetState = other.assetState;
@@ -44,9 +43,7 @@ namespace StarryLog
 			uuid = other.uuid;
 
 			other.uuid = 0; // saftey
-			if (auto lg = Logger::get().lock()) {
-				lg->updateAssetPointer(uuid, this);
-			}
+			if (auto mgr = AssetManager::get().lock()) mgr->updateAssetPointer(uuid, this);
 		}
 		return *this;
 	}
@@ -57,7 +54,7 @@ namespace StarryLog
 		alertMessage = message;
 		assetState = severity;
 
-		Logger::get().lock()->registerAssetAlert(uuid);
+		if (auto mgr = AssetManager::get().lock()) mgr->registerAssetAlert(uuid);
 	}
 
 	void StarryAsset::resetAlert() {
