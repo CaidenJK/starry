@@ -1,6 +1,7 @@
 #include "AssetManager.h"
 
 #include <vector>
+#include <format>
 
 namespace StarryLog
 {
@@ -152,8 +153,8 @@ namespace StarryLog
 		std::vector<std::string> idArray;
 		std::vector<std::string> nameArray;
 		for (const auto& asset : registeredAssets) {
-			pointerArray.push_back(std::to_string((size_t)(asset.second)));
-			idArray.push_back(std::to_string(asset.first));
+            pointerArray.push_back(std::format("{:#016x}", (size_t)asset.second));
+			idArray.push_back(std::format("{:#016x}", asset.first));
 			nameArray.push_back(std::string(asset.second->getAssetName()));
 		}
 		registeryMutex.unlock();

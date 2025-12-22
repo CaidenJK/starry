@@ -4,6 +4,7 @@
 #include "Logger.h"
 
 #include <optional>
+#include <unordered_map>
 
 namespace StarryLog
 {

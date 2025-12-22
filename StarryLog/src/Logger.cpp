@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <cstdlib>
 #include <string>
+#include <format>
 
 namespace StarryLog
 {
@@ -99,7 +100,7 @@ namespace StarryLog
 			std::time_t tt = std::chrono::system_clock::to_time_t(call.callTime);
 			std::tm* lt = std::localtime(&tt);
 			std::cerr << "[" << lt->tm_year+1900 << "-" << lt->tm_mon+1 << "-" << lt->tm_mday << " " << lt->tm_hour << ":" << lt->tm_min << ":" << lt->tm_sec
-				<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << call.callerUUID << "\" => \n\t" << call.message << "\n";
+				<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << std::format("{:#016x}", call.callerUUID) << "\" => \n\t" << call.message << "\n";
 		}
 		std::cerr << std::endl;
 
@@ -147,7 +148,7 @@ namespace StarryLog
 		std::time_t tt = std::chrono::system_clock::to_time_t(call.callTime);
 		std::tm* lt = std::localtime(&tt);
 		f << "[" << lt->tm_year + 1900 << "-" << lt->tm_mon + 1 << "-" << lt->tm_mday << " " << lt->tm_hour << ":" << lt->tm_min << ":" << lt->tm_sec
-			<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << call.callerUUID << "\" => \n\t" << call.message << "\t<=\n" << std::endl;
+			<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << std::format("{:#016x}", call.callerUUID) << "\" => \n\t" << call.message << "\t<=\n" << std::endl;
 		f.close();
 	}
 
