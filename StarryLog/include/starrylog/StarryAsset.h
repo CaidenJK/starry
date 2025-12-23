@@ -13,6 +13,9 @@
 
 namespace StarryLog
 {
+	template <typename T>
+	class ResourceHandle;
+
 	class StarryAsset {
 	public:
 		virtual ~StarryAsset();
@@ -45,6 +48,9 @@ namespace StarryLog
 		// Mabye a lifetimes enum
 
 		virtual std::optional<void*> getResource(uint8_t resourceID) { return {}; };
+
+		template <typename T>
+    	ResourceHandle<T> requestResource(uint64_t senderID, uint64_t resourceID);
 
 		virtual const std::string getAssetName() = 0;
 

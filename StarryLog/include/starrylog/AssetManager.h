@@ -39,8 +39,8 @@ namespace StarryLog
     template<typename T>
     class ResourceHandle : public StarryAsset
     {
+        friend class AssetManager;
     public:
-        ResourceHandle(std::shared_ptr<ResourceRequest> reference) : requestPointer(reference) {}
         ResourceHandle() = default; // empty handle
         ~ResourceHandle() {
             std::scoped_lock lock(requestPointer->mutex);
@@ -72,6 +72,8 @@ namespace StarryLog
         }
 
     private:
+        ResourceHandle(std::shared_ptr<ResourceRequest> reference) : requestPointer(reference) {}
+
         std::shared_ptr<ResourceRequest> requestPointer;
         T* resourcePointer = nullptr;
     };
@@ -126,6 +128,13 @@ namespace StarryLog
             static std::atomic<bool> isDead;
     };
     // returns uuid, can get a response using it
+
+    template <typename T>
+	ResourceHandle<T> StarryAsset::requestResource(uint64_t senderID, uint64_t resourceID)
+	{
+		if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderID, resourceID);
+		return {};
+	}
 }
 // manage shared resources
 // logger is enclosed class
