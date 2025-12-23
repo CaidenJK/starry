@@ -31,13 +31,6 @@ namespace StarryRender
 		UniformBufferData& getBuffer() { return buffer; }
 		void setBuffer(const UniformBufferData& ubo) { buffer = ubo; }
 
-		//void setModelMatrix(const glm::mat4& modelMatrix) { buffer.model = modelMatrix; }
-		//void setViewMatrix(const glm::mat4& viewMatrix) { buffer.view = viewMatrix; }
-		//void setProjectionMatrix(const glm::mat4& projectionMatrix) { buffer.proj = projectionMatrix; }
-
-		//void setMVP(UniformBufferObject& ubo) { buffer = ubo; }
-		//void setMVP(glm::mat4& model, glm::mat4& view, glm::mat4& proj) { buffer = { model, view, proj }; }
-
 		void updateUniformBuffer(uint32_t currentFrame);
 
 		VkDescriptorSetLayout& getDescriptorSetLayout() { return descriptorSetLayout; }
