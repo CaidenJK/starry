@@ -45,12 +45,20 @@ namespace StarryLog
 
 		void resetAlert();
 
-		// Mabye a lifetimes enum
-
-		virtual std::optional<void*> getResource(uint8_t resourceID) { return {}; };
+		virtual std::optional<void*> getResource(size_t resourceID) { return {}; }
+		virtual size_t getResourceIDFromString(std::string resourceName) { return -1; }
+		
+		template <typename T>
+    	ResourceHandle<T> requestResource(uint64_t senderID, size_t resourceID);
 
 		template <typename T>
-    	ResourceHandle<T> requestResource(uint64_t senderID, uint64_t resourceID);
+    	ResourceHandle<T> requestResource(uint64_t senderID, std::string resourceName);
+
+		template <typename T>
+    	ResourceHandle<T> requestResource(std::string senderName, size_t resourceID);
+
+		template <typename T>
+    	ResourceHandle<T> requestResource(std::string senderName, std::string resourceName);
 
 		virtual const std::string getAssetName() = 0;
 

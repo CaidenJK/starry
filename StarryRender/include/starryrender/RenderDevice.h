@@ -62,6 +62,13 @@ namespace StarryRender
 
 		const std::string getAssetName() override { return "RenderDevice"; }
 
+		enum SharedResources {
+			VK_DEVICE = 0
+		};
+
+		std::optional<void*> getResource(size_t resourceID) override;
+		size_t getResourceIDFromString(std::string resourceName) override;
+
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 			VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,

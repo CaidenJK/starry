@@ -106,6 +106,22 @@ namespace StarryRender
 		if (debugger != nullptr) delete debugger;
 	}
 
+	std::optional<void*> RenderDevice::getResource(size_t resourceID)
+	{
+		if (resourceID == SharedResources::VK_DEVICE) {
+			return (void*)&device;
+		}
+		return {};
+	}
+
+	size_t RenderDevice::getResourceIDFromString(std::string resourceName)
+	{
+		if (resourceName.compare("VkDevice") == 0) {
+			return SharedResources::VK_DEVICE;
+		}
+		return -1;
+	}
+
 	void RenderDevice::initVulkan() 
 	{
 		ERROR_VOLATILE(checkValidationLayerSupport());
@@ -456,7 +472,7 @@ namespace StarryRender
 		std::shared_ptr<Shader> shader = std::make_shared<Shader>(device, vertShader, fragShader);
 		EXTERN_ERROR(shader);
 
-		pipeline = std::make_shared<RenderPipeline>(device);
+		pipeline = std::make_shared<RenderPipeline>();
 		EXTERN_ERROR(pipeline);
 
 		pipeline->loadShader(shader);
@@ -477,7 +493,7 @@ namespace StarryRender
 		}
 		EXTERN_ERROR(shader);
 
-		pipeline = std::make_shared<RenderPipeline>(device);
+		pipeline = std::make_shared<RenderPipeline>();
 		EXTERN_ERROR(pipeline);
 
 		pipeline->loadShader(shader);

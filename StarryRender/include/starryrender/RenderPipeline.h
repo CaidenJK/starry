@@ -19,7 +19,7 @@ namespace StarryRender
 {
 	class RenderPipeline : public StarryAsset {
 	public:
-		RenderPipeline(VkDevice& device);
+		RenderPipeline();
 		~RenderPipeline();
 
 		RenderPipeline operator=(const RenderPipeline&) = delete;
@@ -49,6 +49,6 @@ namespace StarryRender
 		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
-		VkDevice& device;
+		ResourceHandle<VkDevice> device;
 	};
 }
