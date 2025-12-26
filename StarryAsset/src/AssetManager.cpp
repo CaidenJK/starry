@@ -3,7 +3,7 @@
 #include <vector>
 #include <format>
 
-namespace StarryLog
+namespace StarryAssets
 {
     std::atomic<bool> AssetManager::isDead = false;
     std::shared_ptr<AssetManager> AssetManager::globalPointer = nullptr;
@@ -27,7 +27,8 @@ namespace StarryLog
         assetThread.join();
     }
 
-    std::weak_ptr<AssetManager> AssetManager::get() {
+    std::weak_ptr<AssetManager> AssetManager::get() 
+    {
         if (isDead) return {};
 		if (!globalPointer) {
 			globalPointer.reset(new AssetManager());
@@ -64,7 +65,8 @@ namespace StarryLog
         std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::DEAD;});
 	}
 
-	void AssetManager::updateAssetPointer(uint64_t uuid, StarryAsset* newPtr) {
+	void AssetManager::updateAssetPointer(uint64_t uuid, StarryAsset* newPtr) 
+    {
 		if (uuid == 0 || newPtr == nullptr) {
 			registerAlert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
             return;
@@ -118,7 +120,7 @@ namespace StarryLog
     void AssetManager::findResources(std::shared_ptr<ResourceRequest>& request)
     {
         auto asset = registeredAssets.find(request->senderUUID);
-        if (!asset->second) { // should be redundent
+        if (!asset->second) { // should be redundant
             request->resourceState = ResourceRequest::DEAD;
             return;
         }
@@ -135,7 +137,7 @@ namespace StarryLog
             }
         }
 
-        std::optional<void*> result = asset->second->getResource(request->resourceID);
+        std::optional<void*> result = asset->second->getResource(request->resourceID, request->typeInfo);
         if (result.has_value()) {
             request->resource = result.value();
             request->resourceState = ResourceRequest::YES;

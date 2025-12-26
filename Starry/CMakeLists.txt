@@ -95,7 +95,7 @@ add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
 add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender" "${CMAKE_CURRENT_BINARY_DIR}/StarryRender_build")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryLog" "${CMAKE_CURRENT_BINARY_DIR}/StarryLog_build")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryAsset" "${CMAKE_CURRENT_BINARY_DIR}/StarryAsset_build")
 
 # Create Library
 add_library(Starry SHARED ${SOURCES})
@@ -127,7 +127,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   target_link_libraries(Starry PRIVATE ${IOSURFACE_FRAMEWORK})
 endif()
 
-target_link_libraries(Starry PRIVATE StarryLog)
+target_link_libraries(Starry PRIVATE StarryAsset)
 target_link_libraries(Starry PRIVATE StarryRender)
 
 # Gather Dependency Include Directories
@@ -140,5 +140,5 @@ target_include_directories(Starry
     ${glm_SOURCE_DIR}
     ${Vulkan_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../StarryLog/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../StarryAsset/include
 )

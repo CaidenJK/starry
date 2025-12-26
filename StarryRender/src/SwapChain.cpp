@@ -28,13 +28,14 @@ namespace StarryRender
 		cleanupSwapChain();
 	}
 	
-	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices) 
+	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, VkSurfaceKHR& surface) 
 	{
 		auto windowReference = requestResource<std::weak_ptr<Window>>("RenderDevice", "Window");
-		auto surface = requestResource<VkSurfaceKHR>("RenderDevice", "VkSurface");
+
 		cleanupSwapChain();
-		while (!windowReference.hasRequest() || !surface.hasRequest()) {} // wait
-		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, *windowReference, *surface));
+
+		while (!windowReference) {} // wait
+		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, *windowReference, surface));
 		createImageViews();
 	}
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <StarryRender.h>
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 #include <string>
 

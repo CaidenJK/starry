@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 #include "VertexBuffer.h"
 #include "Shader.h"

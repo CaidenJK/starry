@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 namespace Starry
 {

@@ -7,7 +7,7 @@
 #include <string>
 #include <format>
 
-namespace StarryLog
+namespace StarryAssets
 {
 	bool Logger::isDead = false;
 

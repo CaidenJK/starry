@@ -10,8 +10,9 @@
 #include <random>
 #include <cstdint>
 #include <chrono>
+#include <typeindex>
 
-namespace StarryLog
+namespace StarryAssets
 {
 	template <typename T>
 	class ResourceHandle;
@@ -22,7 +23,7 @@ namespace StarryLog
 
 		StarryAsset(const StarryAsset& other) = delete;
 		StarryAsset& operator=(const StarryAsset& other) = delete;
-		// TODO: StarryAsset& StarryAsset::Copy(const StarryAsset&); Custom copy method
+		// TODO: Custom copy method
 
 		StarryAsset(StarryAsset&& other) noexcept;
 		StarryAsset& operator=(StarryAsset&& other) noexcept;
@@ -37,7 +38,7 @@ namespace StarryLog
 			FATAL
 		};
 		// TODO: File and Not File
-		// TODO: Add proper debug, release, distrubution builds.
+		// TODO: Add proper debug, release, distribution builds.
 
 		bool getAlert() { return hasAlert; }
 		std::string& getAlertMessage() { return alertMessage; }
@@ -45,7 +46,7 @@ namespace StarryLog
 
 		void resetAlert();
 
-		virtual std::optional<void*> getResource(size_t resourceID) { return {}; }
+		virtual std::optional<void*> getResource(size_t resourceID, const std::type_index& typeInfo) { return {}; }
 		virtual size_t getResourceIDFromString(std::string resourceName) { return -1; }
 		
 		template <typename T>

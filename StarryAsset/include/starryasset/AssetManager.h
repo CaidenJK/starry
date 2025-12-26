@@ -5,8 +5,9 @@
 
 #include <optional>
 #include <unordered_map>
+#include <typeindex>
 
-namespace StarryLog
+namespace StarryAssets
 {
     class AssetManager;
     
@@ -24,6 +25,7 @@ namespace StarryLog
         };
 
         const uint64_t resourceID; 
+        const std::type_index typeInfo;
 
         std::mutex mutex;
         ResourceState resourceState = NO;
@@ -33,9 +35,9 @@ namespace StarryLog
         const uint64_t senderUUID;
         
         private:
-            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID);
+            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID, std::type_index& typeInfo);
 
-            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id);
+            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id, std::type_index typeInfo);
     };
 
     // Caller side API
@@ -131,7 +133,7 @@ namespace StarryLog
             ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, size_t resourceID)
             {
                 std::scoped_lock lock(resourceMutex);
-                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
+                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID, typeid(T)));
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }
@@ -144,7 +146,7 @@ namespace StarryLog
                 for(auto& it : registeredAssets) {
                     if (it.second->getAssetName().compare(senderName) == 0) {
                         registeryMutex.unlock();
-                        resourceRequests.emplace(ResourceRequest::create(callerID, it.second->getUUID(), resourceID));
+                        resourceRequests.emplace(ResourceRequest::create(callerID, it.second->getUUID(), resourceID, typeid(T)));
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }
@@ -161,7 +163,7 @@ namespace StarryLog
                 size_t resourceID = 0; auto asset = registeredAssets.find(senderID);
                 if (asset == registeredAssets.end()) size_t resourceID = asset->second->getResourceIDFromString(resourceName);
                 registeryMutex.unlock();
-                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
+                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID, typeid(T)));
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }
@@ -176,7 +178,7 @@ namespace StarryLog
                         uint64_t uuid = it.second->getUUID();
                         size_t resourceID = it.second->getResourceIDFromString(resourceName);
                         registeryMutex.unlock();
-                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID));
+                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID, typeid(T)));
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }
@@ -238,4 +240,3 @@ namespace StarryLog
 }
 // manage shared resources
 // logger is enclosed class
-// manage exit state

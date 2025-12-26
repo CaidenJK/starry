@@ -7,7 +7,7 @@
 #include <memory>
 #include <optional>
 
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 #include "Window.h"
 
@@ -36,7 +36,7 @@ namespace StarryRender
 			SwapChain operator=(const SwapChain&) = delete;
 			SwapChain(const SwapChain&) = delete;
 
-			void constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices);
+			void constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, VkSurfaceKHR& surface);
 			void generateFramebuffers(VkRenderPass& renderPass);
 
 			std::vector<VkFramebuffer>& getFramebuffers() { return swapChainFramebuffers; }

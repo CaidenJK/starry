@@ -9,7 +9,7 @@
 #define DEFAULT_WIDTH 800
 #define DEFAULT_TITLE "Starry"
 
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 namespace StarryRender
 {

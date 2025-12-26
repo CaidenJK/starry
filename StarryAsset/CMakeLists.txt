@@ -1,5 +1,5 @@
 # Add project
-project(StarryLog VERSION 0.0.1 LANGUAGES C CXX)
+project(StarryAsset VERSION 0.0.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 
@@ -11,22 +11,22 @@ FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
 # Set Headers
 
-set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starrylog")
+set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starryasset")
 
 # Create Library
-add_library(StarryLog ${SOURCES})
+add_library(StarryAsset ${SOURCES})
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
 
-set_target_properties(StarryLog PROPERTIES
+set_target_properties(StarryAsset PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
   LIBRARY_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
   ARCHIVE_OUTPUT_DIRECTORY "${BUILD_DIR}/lib"
-  OUTPUT_NAME "StarryLog"
+  OUTPUT_NAME "StarryAsset"
 )
 
 # Gather Dependency Include Directories
-target_include_directories(StarryLog
+target_include_directories(StarryAsset
   PUBLIC
     ${INCLUDE_DIR}
 )

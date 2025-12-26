@@ -8,7 +8,7 @@
 #include <vector>
 #include <array>
 
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 // Helpful debug colors
 #define RED_COLOR glm::vec3(1.0f, 0.0f, 0.0f)
@@ -32,7 +32,7 @@ namespace StarryRender
 
 	class VertexBuffer : public StarryAsset {
 		public:
-			VertexBuffer(VkDevice& device);
+			VertexBuffer();
 			~VertexBuffer();
 
 			void loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
@@ -73,7 +73,7 @@ namespace StarryRender
 			VkDeviceSize bufferSizeVertex = 0;
 			VkDeviceSize bufferSizeIndex = 0;
 
-			VkDevice& device;
+			ResourceHandle<VkDevice> device;
 	};
 }
 /*

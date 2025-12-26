@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 #include "Window.h"
 #include "RenderPipeline.h"
@@ -66,11 +66,10 @@ namespace StarryRender
 			VK_DEVICE = 0,
 			SWAP_CHAIN_IMAGE_FORMAT = 1,
 			UNIFORM_BUFFER = 2,
-			VK_SURFACE  = 3,
-			WINDOW_REFERENCE = 4
+			WINDOW_REFERENCE = 3
 		};
 
-		std::optional<void*> getResource(size_t resourceID) override;
+		std::optional<void*> getResource(size_t resourceID, const std::type_index& typeInfo) override;
 		size_t getResourceIDFromString(std::string resourceName) override;
 
 		// Error Handler can use this

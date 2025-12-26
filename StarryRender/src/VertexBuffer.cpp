@@ -31,35 +31,35 @@ namespace StarryRender
 		return attributeDescriptions;
 	}
 
-	VertexBuffer::VertexBuffer(VkDevice& deviceRef) : device(deviceRef) 
+	VertexBuffer::VertexBuffer()
 	{
-		if (device == VK_NULL_HANDLE) {
-			registerAlert("Null Vulkan device provided to VertexBuffer!", FATAL);
-		}
+		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
 	}
 	VertexBuffer::~VertexBuffer() 
 	{
-		if (vertexBuffer != VK_NULL_HANDLE) {
-			vkDestroyBuffer(device, vertexBuffer, nullptr);
-			vkFreeMemory(device, vertexBufferMemory, nullptr);
-		}
+		if (device) {
+			if (vertexBuffer != VK_NULL_HANDLE) {
+				vkDestroyBuffer(*device, vertexBuffer, nullptr);
+				vkFreeMemory(*device, vertexBufferMemory, nullptr);
+			}
 
-		if (indexBuffer != VK_NULL_HANDLE) {
-			vkDestroyBuffer(device, indexBuffer, nullptr);
-			vkFreeMemory(device, indexBufferMemory, nullptr);
-		}
+			if (indexBuffer != VK_NULL_HANDLE) {
+				vkDestroyBuffer(*device, indexBuffer, nullptr);
+				vkFreeMemory(*device, indexBufferMemory, nullptr);
+			}
 
-		if (stagingBufferVertex != VK_NULL_HANDLE) {
-			vkDestroyBuffer(device, stagingBufferVertex, nullptr);
-		}
-		if (stagingBufferMemoryVertex != VK_NULL_HANDLE) {
-			vkFreeMemory(device, stagingBufferMemoryVertex, nullptr);
-		}
-		if (stagingBufferIndex != VK_NULL_HANDLE) {
-			vkDestroyBuffer(device, stagingBufferIndex, nullptr);
-		}
-		if (stagingBufferMemoryIndex != VK_NULL_HANDLE) {
-			vkFreeMemory(device, stagingBufferMemoryIndex, nullptr);
+			if (stagingBufferVertex != VK_NULL_HANDLE) {
+				vkDestroyBuffer(*device, stagingBufferVertex, nullptr);
+			}
+			if (stagingBufferMemoryVertex != VK_NULL_HANDLE) {
+				vkFreeMemory(*device, stagingBufferMemoryVertex, nullptr);
+			}
+			if (stagingBufferIndex != VK_NULL_HANDLE) {
+				vkDestroyBuffer(*device, stagingBufferIndex, nullptr);
+			}
+			if (stagingBufferMemoryIndex != VK_NULL_HANDLE) {
+				vkFreeMemory(*device, stagingBufferMemoryIndex, nullptr);
+			}
 		}
 	}
 
@@ -115,13 +115,14 @@ namespace StarryRender
 		copyBuffer(commandPool, graphicsQueue, stagingBufferVertex, vertexBuffer, bufferSizeVertex);
 		copyBuffer(commandPool, graphicsQueue, stagingBufferIndex, indexBuffer, bufferSizeIndex);
 		
-		vkDestroyBuffer(device, stagingBufferVertex, nullptr);
-		vkFreeMemory(device, stagingBufferMemoryVertex, nullptr);
+		while (!device) {}
+		vkDestroyBuffer(*device, stagingBufferVertex, nullptr);
+		vkFreeMemory(*device, stagingBufferMemoryVertex, nullptr);
 		stagingBufferVertex = VK_NULL_HANDLE;
 		stagingBufferMemoryVertex = VK_NULL_HANDLE;
 
-		vkDestroyBuffer(device, stagingBufferIndex, nullptr);
-		vkFreeMemory(device, stagingBufferMemoryIndex, nullptr);
+		vkDestroyBuffer(*device, stagingBufferIndex, nullptr);
+		vkFreeMemory(*device, stagingBufferMemoryIndex, nullptr);
 		stagingBufferIndex = VK_NULL_HANDLE;
 		stagingBufferMemoryIndex = VK_NULL_HANDLE;
 	}
@@ -143,25 +144,26 @@ namespace StarryRender
 		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		if (vkCreateBuffer(device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+		while (!device) {}
+		if (vkCreateBuffer(*device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
 			registerAlert("Failed to create buffer!", FATAL);
 			return;
 		}
 
 		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(device, buffer, &memRequirements);
+		vkGetBufferMemoryRequirements(*device, buffer, &memRequirements);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
 		allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
 
-		if (vkAllocateMemory(device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+		if (vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 			registerAlert("Failed to allocate buffer memory!", FATAL);
 			return;
 		}
 
-		vkBindBufferMemory(device, buffer, bufferMemory, 0);
+		vkBindBufferMemory(*device, buffer, bufferMemory, 0);
 	}
 
 	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory) 
@@ -176,9 +178,11 @@ namespace StarryRender
 		}
 
 		void* data;
-		vkMapMemory(device, bufferMemory, 0, bufferSizeVertex, 0, &data);
+
+		while (!device) {}
+		vkMapMemory(*device, bufferMemory, 0, bufferSizeVertex, 0, &data);
 		memcpy(data, vertices.data(), (size_t)bufferSizeVertex);
-		vkUnmapMemory(device, bufferMemory);
+		vkUnmapMemory(*device, bufferMemory);
 	}
 
 	void VertexBuffer::fillIndexBufferData(VkDeviceMemory& bufferMemory) 
@@ -193,9 +197,11 @@ namespace StarryRender
 		}
 
 		void* data;
-		vkMapMemory(device, bufferMemory, 0, bufferSizeIndex, 0, &data);
+
+		while (!device) {}
+		vkMapMemory(*device, bufferMemory, 0, bufferSizeIndex, 0, &data);
 		memcpy(data, indices.data(), (size_t)bufferSizeIndex);
-		vkUnmapMemory(device, bufferMemory);
+		vkUnmapMemory(*device, bufferMemory);
 	}
 
 	void VertexBuffer::copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size) 
@@ -207,7 +213,9 @@ namespace StarryRender
 		allocInfo.commandBufferCount = 1;
 
 		VkCommandBuffer commandBuffer;
-		vkAllocateCommandBuffers(device, &allocInfo, &commandBuffer);
+		
+		while (!device) {}
+		vkAllocateCommandBuffers(*device, &allocInfo, &commandBuffer);
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -230,7 +238,7 @@ namespace StarryRender
 		vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
 		vkQueueWaitIdle(graphicsQueue);
 
-		vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
+		vkFreeCommandBuffers(*device, commandPool, 1, &commandBuffer);
 	}
 
 	uint32_t VertexBuffer::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) 

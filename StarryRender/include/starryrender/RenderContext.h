@@ -1,6 +1,6 @@
 #pragma once
 
-#include <StarryLog.h>
+#include <StarryAsset.h>
 
 #include "Window.h"
 #include "RenderDevice.h"

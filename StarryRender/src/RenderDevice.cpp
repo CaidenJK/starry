@@ -106,23 +106,21 @@ namespace StarryRender
 		if (debugger != nullptr) delete debugger;
 	}
 
-	std::optional<void*> RenderDevice::getResource(size_t resourceID)
+	std::optional<void*> RenderDevice::getResource(size_t resourceID, const std::type_index& typeInfo)
 	{
-		if (resourceID == SharedResources::VK_DEVICE) {
+		if (resourceID == SharedResources::VK_DEVICE && typeInfo == typeid(VkDevice)) {
 			return (void*)&device;
 		}
-		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT) {
+		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT && typeInfo == typeid(VkFormat)) {
 			return (void*)&(swapChain->getImageFormat());
 		}
-		if (resourceID == SharedResources::UNIFORM_BUFFER) {
+		if (resourceID == SharedResources::UNIFORM_BUFFER && typeInfo == typeid(std::weak_ptr<UniformBuffer>)) {
 			return (void*)&uniformBuffer;
 		}
-		if (resourceID == SharedResources::WINDOW_REFERENCE) {
+		if (resourceID == SharedResources::WINDOW_REFERENCE && typeInfo == typeid(std::weak_ptr<Window>)) {
 			return (void*)&windowReference;
 		}
-		if (resourceID == SharedResources::VK_SURFACE) {
-			return (void*)&surface;
-		}
+		registerAlert("No matching resource and type available for sharing", WARNING);
 		return {};
 	}
 
@@ -139,9 +137,6 @@ namespace StarryRender
 		}
 		if (resourceName.compare("Window") == 0) {
 			return SharedResources::WINDOW_REFERENCE;
-		}
-		if (resourceName.compare("VkSurface") == 0) {
-			return SharedResources::VK_SURFACE;
 		}
 		return -1;
 	}
@@ -471,7 +466,7 @@ namespace StarryRender
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-		swapChain->constructSwapChain(swapChainSupport, indices);
+		swapChain->constructSwapChain(swapChainSupport, indices, surface);
 		EXTERN_ERROR(swapChain);
 	}
 
@@ -783,7 +778,7 @@ namespace StarryRender
 			return;
 		}
 		vertexBuffer.reset();
-		vertexBuffer = std::make_shared<VertexBuffer>(device);
+		vertexBuffer = std::make_shared<VertexBuffer>();
 
 		std::vector<Vertex> vertices = {
 			{{0.0f, -0.5f, 0.0f}, RED_COLOR},
@@ -830,7 +825,7 @@ namespace StarryRender
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-		swapChain->constructSwapChain(swapChainSupport, indices);
+		swapChain->constructSwapChain(swapChainSupport, indices, surface);
 		EXTERN_ERROR(swapChain);
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
 		EXTERN_ERROR(swapChain);
