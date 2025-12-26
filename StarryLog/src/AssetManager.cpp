@@ -123,11 +123,11 @@ namespace StarryLog
             return;
         }
 
+        // remove STALE
+        std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::STALE; });
+
         for (auto it = closedRequests.begin(); it != closedRequests.end(); ++it) {
-            if ((*it)->resourceState == ResourceRequest::STALE) {
-                closedRequests.erase(it);
-            }
-            else if ((*it)->senderUUID == asset->first && 
+            if ((*it)->senderUUID == asset->first && 
                 (*it)->resourceID == request->resourceID) {
                 request->resourceState = ResourceRequest::YES;
                 request->resource = (*it)->resource;

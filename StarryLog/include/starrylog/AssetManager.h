@@ -207,7 +207,6 @@ namespace StarryLog
             std::atomic<bool> hasFatal = false;
             static std::atomic<bool> isDead;
     };
-    // returns uuid, can get a response using it
 
     template <typename T>
 	ResourceHandle<T> StarryAsset::requestResource(uint64_t senderID, size_t resourceID)
