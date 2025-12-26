@@ -6,9 +6,6 @@
 #include <optional>
 #include <unordered_map>
 
-#define IS_HANDLE(obj) (obj.request() == ResourceState::YES)
-#define HANDLE_VALUE(obj) (*(obj.get().value()))
-
 namespace StarryLog
 {
     class AssetManager;
@@ -87,6 +84,20 @@ namespace StarryLog
                 }
             }
             return state;
+        }
+
+        bool hasRequest()
+        {
+            return request() == ResourceRequest::ResourceState::YES;
+        }
+
+        T& operator*()
+        {
+            return *(get().value());
+        }
+
+        explicit operator bool() {
+            return hasRequest();
         }
 
         const std::string getAssetName() override { return "Resource Handle"; }

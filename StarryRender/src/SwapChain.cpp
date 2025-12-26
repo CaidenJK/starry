@@ -15,13 +15,12 @@
 		return x; \
 	}
 
+#define DEVICE_WAIT while (!device.hasRequest()) {}
+
 namespace StarryRender 
 {
-	SwapChain::SwapChain(VkDevice& device) : device(device) {
-		if (device == VK_NULL_HANDLE) {
-			registerAlert("Device is null!", FATAL);
-			return;
-		}
+	SwapChain::SwapChain() {
+		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
 	}
 
 	SwapChain::~SwapChain() 
@@ -29,14 +28,13 @@ namespace StarryRender
 		cleanupSwapChain();
 	}
 	
-	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) 
+	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices) 
 	{
-		if (device == VK_NULL_HANDLE) {
-			registerAlert("Device never set!", FATAL);
-			return;
-		}
+		auto windowReference = requestResource<std::weak_ptr<Window>>("RenderDevice", "Window");
+		auto surface = requestResource<VkSurfaceKHR>("RenderDevice", "VkSurface");
 		cleanupSwapChain();
-		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, windowReference, surface));
+		while (!windowReference.hasRequest() || !surface.hasRequest()) {} // wait
+		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, *windowReference, *surface));
 		createImageViews();
 	}
 
@@ -85,14 +83,15 @@ namespace StarryRender
 		// Needed for resizing. No resizing
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+		DEVICE_WAIT;
+		if (vkCreateSwapchainKHR(*device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
 			registerAlert("Failed to create swap chain!", FATAL);
 			return;
 		}
 
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
+		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, nullptr);
 		swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChainImages.data());
+		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, swapChainImages.data());
 
 
 		swapChainImageFormat = surfaceFormat.format;
@@ -120,8 +119,9 @@ namespace StarryRender
 			createInfo.subresourceRange.levelCount = 1;
 			createInfo.subresourceRange.baseArrayLayer = 0;
 			createInfo.subresourceRange.layerCount = 1;
-
-			if (vkCreateImageView(device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
+			
+			DEVICE_WAIT;
+			if (vkCreateImageView(*device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
 				registerAlert("Failed to create image views!", FATAL);
 				return;
 			}
@@ -130,8 +130,9 @@ namespace StarryRender
 
 	void SwapChain::generateFramebuffers(VkRenderPass& renderPass) 
 	{
+		DEVICE_WAIT;
 		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
+			vkDestroyFramebuffer(*device, framebuffer, nullptr);
 		}
 
 		swapChainFramebuffers.resize(swapChainImageViews.size());
@@ -150,7 +151,7 @@ namespace StarryRender
 			framebufferInfo.height = swapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+			if (vkCreateFramebuffer(*device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
 				registerAlert("Failed to create a required framebuffers!", FATAL);
 				return;
 			}
@@ -159,17 +160,21 @@ namespace StarryRender
 
 	void SwapChain::cleanupSwapChain() 
 	{
-		for (auto imageView : swapChainImageViews) {
-			vkDestroyImageView(device, imageView, nullptr);
+		if (device) {
+			for (auto imageView : swapChainImageViews) {
+				vkDestroyImageView(*device, imageView, nullptr);
+			}
 		}
 		swapChainImageViews.clear();
-
-		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(device, framebuffer, nullptr);
+		if (device) {
+			for (auto framebuffer : swapChainFramebuffers) {
+				vkDestroyFramebuffer(*device, framebuffer, nullptr);
+			}
 		}
 		swapChainFramebuffers.clear();
-
-		vkDestroySwapchainKHR(device, swapChain, nullptr);
+		if (device) {
+			vkDestroySwapchainKHR(*device, swapChain, nullptr);
+		}
 	}
 
 	SwapChain::SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface) 

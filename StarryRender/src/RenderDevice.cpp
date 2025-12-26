@@ -111,6 +111,18 @@ namespace StarryRender
 		if (resourceID == SharedResources::VK_DEVICE) {
 			return (void*)&device;
 		}
+		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT) {
+			return (void*)&(swapChain->getImageFormat());
+		}
+		if (resourceID == SharedResources::UNIFORM_BUFFER) {
+			return (void*)&uniformBuffer;
+		}
+		if (resourceID == SharedResources::WINDOW_REFERENCE) {
+			return (void*)&windowReference;
+		}
+		if (resourceID == SharedResources::VK_SURFACE) {
+			return (void*)&surface;
+		}
 		return {};
 	}
 
@@ -118,6 +130,18 @@ namespace StarryRender
 	{
 		if (resourceName.compare("VkDevice") == 0) {
 			return SharedResources::VK_DEVICE;
+		}
+		if (resourceName.compare("Swapchain Image Format") == 0) {
+			return SharedResources::SWAP_CHAIN_IMAGE_FORMAT;
+		}
+		if (resourceName.compare("Uniform Buffer") == 0) {
+			return SharedResources::UNIFORM_BUFFER;
+		}
+		if (resourceName.compare("Window") == 0) {
+			return SharedResources::WINDOW_REFERENCE;
+		}
+		if (resourceName.compare("VkSurface") == 0) {
+			return SharedResources::VK_SURFACE;
 		}
 		return -1;
 	}
@@ -443,11 +467,11 @@ namespace StarryRender
 			return;
 		}
 
-		swapChain = std::make_shared<SwapChain>(device);
+		swapChain = std::make_shared<SwapChain>();
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-		swapChain->constructSwapChain(swapChainSupport, indices, windowReference, surface);
+		swapChain->constructSwapChain(swapChainSupport, indices);
 		EXTERN_ERROR(swapChain);
 	}
 
@@ -469,16 +493,10 @@ namespace StarryRender
 			registerAlert("Vulkan device not initialized! Can't create pipeline with shader.", FATAL);
 			return;
 		}
-		std::shared_ptr<Shader> shader = std::make_shared<Shader>(device, vertShader, fragShader);
+		std::shared_ptr<Shader> shader = std::make_shared<Shader>(vertShader, fragShader);
 		EXTERN_ERROR(shader);
 
-		pipeline = std::make_shared<RenderPipeline>();
-		EXTERN_ERROR(pipeline);
-
-		pipeline->loadShader(shader);
-		EXTERN_ERROR(pipeline);
-
-		pipeline->constructPipeline(swapChain->getImageFormat(), uniformBuffer);
+		pipeline = std::make_shared<RenderPipeline>(shader);
 		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
@@ -493,13 +511,7 @@ namespace StarryRender
 		}
 		EXTERN_ERROR(shader);
 
-		pipeline = std::make_shared<RenderPipeline>();
-		EXTERN_ERROR(pipeline);
-
-		pipeline->loadShader(shader);
-		EXTERN_ERROR(pipeline);
-
-		pipeline->constructPipeline(swapChain->getImageFormat(), uniformBuffer);
+		pipeline = std::make_shared<RenderPipeline>(shader);
 		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
@@ -510,9 +522,6 @@ namespace StarryRender
 	{
 		EXTERN_ERROR(pipelineRef);
 		pipeline = pipelineRef;
-
-		pipeline->constructPipeline(swapChain->getImageFormat(), uniformBuffer);
-		EXTERN_ERROR(pipeline);
 
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
 		EXTERN_ERROR(swapChain);
@@ -821,7 +830,7 @@ namespace StarryRender
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
-		swapChain->constructSwapChain(swapChainSupport, indices, windowReference, surface);
+		swapChain->constructSwapChain(swapChainSupport, indices);
 		EXTERN_ERROR(swapChain);
 		swapChain->generateFramebuffers(pipeline->getRenderPass());
 		EXTERN_ERROR(swapChain);

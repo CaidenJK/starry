@@ -19,15 +19,11 @@ namespace StarryRender
 {
 	class RenderPipeline : public StarryAsset {
 	public:
-		RenderPipeline();
+		RenderPipeline(std::shared_ptr<Shader>& shaderValue);
 		~RenderPipeline();
 
 		RenderPipeline operator=(const RenderPipeline&) = delete;
 		RenderPipeline(const RenderPipeline&) = delete;
-
-		void loadShader(std::shared_ptr<Shader>& shaderValue);
-
-		void constructPipeline(VkFormat swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer);
 
 		VkRenderPass& getRenderPass() { return renderPass; }
 
@@ -38,6 +34,7 @@ namespace StarryRender
 		const std::string getAssetName() override { return "Pipeline"; }
 
 	private:
+		void constructPipeline(ResourceHandle<VkFormat>& swapChainImageFormat, ResourceHandle<std::weak_ptr<UniformBuffer>>& uniformBuffer);
 		void createRenderPass(VkFormat swapChainImageFormat);
 		void constructPipelineLayout(std::weak_ptr<UniformBuffer>& uniformBuffer);
 

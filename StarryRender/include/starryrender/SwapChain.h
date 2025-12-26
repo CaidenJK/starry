@@ -30,13 +30,13 @@ namespace StarryRender
 				std::vector<VkPresentModeKHR> presentModes;
 			};
 		public:
-			SwapChain(VkDevice& device);
+			SwapChain();
 			~SwapChain();
 
 			SwapChain operator=(const SwapChain&) = delete;
 			SwapChain(const SwapChain&) = delete;
 
-			void constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface);
+			void constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices);
 			void generateFramebuffers(VkRenderPass& renderPass);
 
 			std::vector<VkFramebuffer>& getFramebuffers() { return swapChainFramebuffers; }
@@ -69,6 +69,6 @@ namespace StarryRender
 
 			std::vector<VkFramebuffer> swapChainFramebuffers;
 
-			VkDevice& device;
+			ResourceHandle<VkDevice> device;
 	};
 }

@@ -13,7 +13,7 @@ namespace StarryRender
 {
 	class Shader : public StarryAsset {
 		public:
-			Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+			Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 			~Shader();
 
 			std::array<VkPipelineShaderStageCreateInfo, 2>& getShaderStages() { return shaderStages; }
@@ -43,6 +43,6 @@ namespace StarryRender
 
 			std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {};
 
-			VkDevice& device;
+			ResourceHandle<VkDevice> device;
 	};
 }

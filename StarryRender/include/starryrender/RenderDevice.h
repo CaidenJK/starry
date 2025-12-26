@@ -17,7 +17,7 @@
 
 #define DEFAULT_NAME "My Starry App"
 
-namespace StarryRender 
+namespace StarryRender
 {
 	class VulkanDebugger : public StarryAsset {
 		public:
@@ -63,7 +63,11 @@ namespace StarryRender
 		const std::string getAssetName() override { return "RenderDevice"; }
 
 		enum SharedResources {
-			VK_DEVICE = 0
+			VK_DEVICE = 0,
+			SWAP_CHAIN_IMAGE_FORMAT = 1,
+			UNIFORM_BUFFER = 2,
+			VK_SURFACE  = 3,
+			WINDOW_REFERENCE = 4
 		};
 
 		std::optional<void*> getResource(size_t resourceID) override;

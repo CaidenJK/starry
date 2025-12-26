@@ -2,9 +2,23 @@
 
 namespace StarryRender 
 {
-	RenderPipeline::RenderPipeline()
+	RenderPipeline::RenderPipeline(std::shared_ptr<Shader>& shaderValue)
 	{
 		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
+		ResourceHandle<VkFormat> swapChainImageFormat = requestResource<VkFormat>("RenderDevice", "Swapchain Image Format");
+		ResourceHandle<std::weak_ptr<UniformBuffer>> uniformBuffer = requestResource<std::weak_ptr<UniformBuffer>>("RenderDevice", "Uniform Buffer");
+
+		shader = shaderValue;
+		if (shader == nullptr) {
+			registerAlert("Shader not loaded before pipeline construction!", WARNING);
+			return;
+		}
+		if (shader->getAlertSeverity() == FATAL) {
+			registerAlert("Shader has error after loading into pipeline!", FATAL);
+			return;
+		}
+
+		constructPipeline(swapChainImageFormat, uniformBuffer);
 	}
 
 	RenderPipeline::~RenderPipeline() 
@@ -13,41 +27,25 @@ namespace StarryRender
 		if (shader != nullptr) {
 			shader.reset();
 		}
-		if (IS_HANDLE(device)) {
-			vkDestroyPipelineLayout(HANDLE_VALUE(device), pipelineLayout, nullptr);
-			vkDestroyRenderPass(HANDLE_VALUE(device), renderPass, nullptr);
+		if (device) {
+			vkDestroyPipelineLayout(*device, pipelineLayout, nullptr);
+			vkDestroyRenderPass(*device, renderPass, nullptr);
 
-			vkDestroyPipeline(HANDLE_VALUE(device), graphicsPipeline, nullptr);
+			vkDestroyPipeline(*device, graphicsPipeline, nullptr);
 		}
 	}
 
-	void RenderPipeline::loadShader(std::shared_ptr<Shader>& shaderValue) 
-	{
-		if (shader != nullptr) {
-			registerAlert("Shader already loaded! All calls other than the first are skipped.", WARNING);
-			return;
-		}
-		shader = shaderValue;
-		if (shader->getAlertSeverity() == FATAL) {
-			registerAlert("Shader has error after loading into pipeline!", FATAL);
-			return;
-		}
-	}
-
-	void RenderPipeline::constructPipeline(VkFormat swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer)
+	void RenderPipeline::constructPipeline(ResourceHandle<VkFormat>& swapChainImageFormat, ResourceHandle<std::weak_ptr<UniformBuffer>>& uniformBuffer)
 	{
 		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
 			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
 			return;
 		}
 
-		if (shader == nullptr) {
-			registerAlert("Shader not loaded before pipeline construction!", FATAL);
-			return;
-		}
+		while (!swapChainImageFormat.hasRequest() || !uniformBuffer.hasRequest()) {} //wait
 
-		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
-		ERROR_VOLATILE(constructPipelineLayout(uniformBuffer));
+		ERROR_VOLATILE(createRenderPass(*swapChainImageFormat));
+		ERROR_VOLATILE(constructPipelineLayout(*uniformBuffer));
 
 		registerAlert("Successful Pipeline Creation!", INFO);
 	}
@@ -92,8 +90,8 @@ namespace StarryRender
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		while (!IS_HANDLE(device)) {} // TODO, create priority resource, getNOW
-		if (vkCreateRenderPass(HANDLE_VALUE(device), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+		while (!device.hasRequest()) {} // TODO, create priority resource, getNOW
+		if (vkCreateRenderPass(*device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 			registerAlert("Failed to create render pass!", FATAL);
 			return;
 		}
@@ -199,8 +197,8 @@ namespace StarryRender
 			return;
 		}
 
-		while (!IS_HANDLE(device)) {}
-		if (vkCreatePipelineLayout(HANDLE_VALUE(device), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+		while (!device.hasRequest()) {}
+		if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			registerAlert("Failed to create pipeline layout!", FATAL);
 			return;
 		}
@@ -227,8 +225,8 @@ namespace StarryRender
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
-		while (!IS_HANDLE(device)) {}
-		if (vkCreateGraphicsPipelines(HANDLE_VALUE(device), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+		while (!device) {}
+		if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 			registerAlert("Failed to create graphics pipeline!", FATAL);
 			return;
 		}

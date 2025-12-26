@@ -6,24 +6,20 @@
 
 namespace StarryRender 
 {
-	Shader::Shader(VkDevice& device, const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : device(device), vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) 
+	Shader::Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) 
 	{
-		if (device == VK_NULL_HANDLE) {
-			registerAlert("Device is null!", FATAL);
-			return;
-		}
+		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
 		initShader();
 	}
 
-	Shader::~Shader() 
+	Shader::~Shader()
 	{
-		if (vertShaderModule != VK_NULL_HANDLE) {
-			vkDestroyShaderModule(device, vertShaderModule, nullptr);
+		if (vertShaderModule != VK_NULL_HANDLE && device.hasRequest()) {
+			vkDestroyShaderModule(*device, vertShaderModule, nullptr);
 		}
-		if (fragShaderModule != VK_NULL_HANDLE) {
-			vkDestroyShaderModule(device, fragShaderModule, nullptr);
+		if (fragShaderModule != VK_NULL_HANDLE && device.hasRequest()) {
+			vkDestroyShaderModule(*device, fragShaderModule, nullptr);
 		}
-
 	}
 
 	void Shader::initShader() 
@@ -32,13 +28,14 @@ namespace StarryRender
 		ERROR_VOLATILE(loadFragmentShaderFromFile());
 
 		bool error = false;
-		vertShaderModule = createShaderModule(device, vertexShaderCode, error);
+		while(!device) {} // wait
+		vertShaderModule = createShaderModule(*device, vertexShaderCode, error);
 		if (error) {
 			registerAlert("Failed to create vertex shader module!", FATAL);
 			return;
 		}
 
-		fragShaderModule = createShaderModule(device, fragmentShaderCode, error);
+		fragShaderModule = createShaderModule(*device, fragmentShaderCode, error);
 		if (error) {
 			registerAlert("Failed to create vertex shader module!", FATAL);
 			return;

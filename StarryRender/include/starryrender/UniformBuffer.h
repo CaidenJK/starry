@@ -26,7 +26,7 @@ namespace StarryRender
 		UniformBuffer(VkDevice& deviceRef);
 		~UniformBuffer();
 
-		void attatchBuffer(VkPhysicalDevice& physicalDevice);
+		void attatchBuffer(VkPhysicalDevice& physicalDevice); // fix this whole mess
 
 		UniformBufferData& getBuffer() { return buffer; }
 		void setBuffer(const UniformBufferData& ubo) { buffer = ubo; }
