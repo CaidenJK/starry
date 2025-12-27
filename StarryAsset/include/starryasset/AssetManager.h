@@ -7,6 +7,8 @@
 #include <unordered_map>
 #include <typeindex>
 
+#include <iostream>
+
 namespace StarryAssets
 {
     class AssetManager;
@@ -41,28 +43,30 @@ namespace StarryAssets
 
     // Caller side API
     template<typename T>
-    class ResourceHandle : public StarryAsset
+    class ResourceHandle
     {
         friend class AssetManager;
     public:
         ResourceHandle() = default; // empty handle
         ~ResourceHandle()
         {
-            if (requestPointer) {
+            if (requestPointer && requestPointer.use_count() == 1) {
                 std::scoped_lock lock(requestPointer->mutex);
                 requestPointer->resourceState = ResourceRequest::STALE;
             }
         }
 
-        ResourceHandle(const ResourceHandle& handle)
+        ResourceHandle(const ResourceHandle& handle) noexcept
         {
             requestPointer = handle.requestPointer;
             resourcePointer = handle.resourcePointer;
         }
-        ResourceHandle& operator=(const ResourceHandle& handle)
+
+        ResourceHandle& operator=(const ResourceHandle& handle) noexcept
         {
-            this->requestPointer = handle.requestPointer;
-            this->resourcePointer = handle.resourcePointer;
+            requestPointer = handle.requestPointer;
+            resourcePointer = handle.resourcePointer;
+
             return *this;
         }
 
@@ -81,7 +85,6 @@ namespace StarryAssets
                 resourcePointer = static_cast<T*>(requestPointer->resource); // Need type checking
 
                 if (resourcePointer == nullptr) {
-                    registerAlert("Requested resource is NULL. Resource is either dead/stale or not type compatible.", CRITICAL);
                     requestPointer->resourceState = ResourceRequest::STALE;
                     return ResourceRequest::STALE;
                 }
@@ -94,6 +97,13 @@ namespace StarryAssets
             return request() == ResourceRequest::ResourceState::YES;
         }
 
+        volatile void wait() {
+            bool isReady = false;
+            while (!isReady) isReady = hasRequest();
+
+            return;
+        }
+
         T& operator*()
         {
             return *(get().value());
@@ -102,8 +112,6 @@ namespace StarryAssets
         explicit operator bool() {
             return hasRequest();
         }
-
-        const std::string getAssetName() override { return "Resource Handle"; }
 
     private:
         ResourceHandle(std::shared_ptr<ResourceRequest> reference) : requestPointer(reference) {}
@@ -214,7 +222,7 @@ namespace StarryAssets
     template <typename T>
 	ResourceHandle<T> StarryAsset::requestResource(uint64_t senderID, size_t resourceID)
 	{
-		if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderID, resourceID);
+		if (auto ptr = AssetManager::get().lock()) return std::move(ptr->requestResource<T>(uuid, senderID, resourceID));
 		return {};
 	}
 

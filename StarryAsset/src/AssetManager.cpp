@@ -105,10 +105,13 @@ namespace StarryAssets
     void AssetManager::worker() 
     {
         while (!hasFatal.load()) {
-            std::scoped_lock lock(resourceMutex);
+            std::scoped_lock resourceLock(resourceMutex);
+
             if (!resourceRequests.empty()) {
-                std::scoped_lock requestLock(resourceRequests.front()->mutex);
-                findResources(resourceRequests.front());
+                {
+                    std::scoped_lock requestLock(resourceRequests.front()->mutex);
+                    findResources(resourceRequests.front());
+                }
                 if (resourceRequests.front()->resourceState == ResourceRequest::YES) {
                     closedRequests.push_back(resourceRequests.front());
                 }

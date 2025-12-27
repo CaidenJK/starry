@@ -10,8 +10,6 @@
 
 #include <StarryAsset.h>
 
-#include "Buffer.h"
-
 // Helpful debug colors
 #define RED_COLOR glm::vec3(1.0f, 0.0f, 0.0f)
 #define GREEN_COLOR glm::vec3(0.0f, 1.0f, 0.0f)
@@ -32,7 +30,7 @@ namespace StarryRender
 		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
 	};
 
-	class VertexBuffer : public Buffer {
+	class VertexBuffer : public StarryAsset {
 		public:
 			VertexBuffer();
 			~VertexBuffer();
@@ -40,8 +38,8 @@ namespace StarryRender
 			void loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
 			void loadBufferToMemory(VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue);
 
-			size_t getNumVerticies() { return vertices.empty() ? 0 : vertices.size(); }
-			size_t getNumIndicies() { return indices.empty() ? 0 : indices.size(); }
+			size_t getNumVertices() { return vertices.empty() ? 0 : vertices.size(); }
+			size_t getNumIndices() { return indices.empty() ? 0 : indices.size(); }
 			VkBuffer& getVertexBuffer() { return vertexBuffer; }
 			VkBuffer& getIndexBuffer() { return indexBuffer; }
 
@@ -70,6 +68,11 @@ namespace StarryRender
 
 			VkDeviceSize bufferSizeVertex = 0;
 			VkDeviceSize bufferSizeIndex = 0;
+
+			void createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+			void copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
+			uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+			ResourceHandle<VkDevice> device;
 	};
 }
 /*

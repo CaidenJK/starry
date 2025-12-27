@@ -106,6 +106,8 @@ namespace StarryRender
 		vkDestroyInstance(instance, nullptr);
 
 		delete debugger;
+
+		uniformBuffer = {};
 	}
 
 	std::optional<void*> RenderDevice::getResource(size_t resourceID)
@@ -476,7 +478,7 @@ namespace StarryRender
 		EXTERN_ERROR(bufferRef);
 		uniformBuffer = bufferRef;
 		if (auto ub = uniformBuffer.lock()) {
-			ub->attatchBuffer(physicalDevice);
+			ub->attachBuffer(physicalDevice);
 			EXTERN_ERROR(ub);
 		} else {
 			registerAlert("Uniform buffer reference is expired!", FATAL);
@@ -678,7 +680,7 @@ namespace StarryRender
 		scissor.extent = swapChain->getExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vertexBuffer->getNumIndicies()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vertexBuffer->getNumIndices()), 1, 0, 0, 0);
 		// End
 		vkCmdEndRenderPass(commandBuffer);
 

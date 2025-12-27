@@ -15,8 +15,6 @@
 		return x; \
 	}
 
-#define DEVICE_WAIT while (!device.hasRequest()) {}
-
 namespace StarryRender 
 {
 	SwapChain::SwapChain() {
@@ -34,7 +32,7 @@ namespace StarryRender
 
 		cleanupSwapChain();
 
-		while (!windowReference) {} // wait
+		windowReference.wait();
 		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, *windowReference, surface));
 		createImageViews();
 	}
@@ -84,7 +82,7 @@ namespace StarryRender
 		// Needed for resizing. No resizing
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-		DEVICE_WAIT;
+		device.wait();
 		if (vkCreateSwapchainKHR(*device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
 			registerAlert("Failed to create swap chain!", FATAL);
 			return;
@@ -121,7 +119,7 @@ namespace StarryRender
 			createInfo.subresourceRange.baseArrayLayer = 0;
 			createInfo.subresourceRange.layerCount = 1;
 			
-			DEVICE_WAIT;
+			device.wait();
 			if (vkCreateImageView(*device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
 				registerAlert("Failed to create image views!", FATAL);
 				return;
@@ -131,7 +129,7 @@ namespace StarryRender
 
 	void SwapChain::generateFramebuffers(VkRenderPass& renderPass) 
 	{
-		DEVICE_WAIT;
+		device.wait();
 		for (auto framebuffer : swapChainFramebuffers) {
 			vkDestroyFramebuffer(*device, framebuffer, nullptr);
 		}

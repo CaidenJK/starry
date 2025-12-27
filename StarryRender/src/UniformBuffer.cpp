@@ -6,6 +6,8 @@ namespace StarryRender
 {
 	UniformBuffer::UniformBuffer()
 	{
+		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
+
 		createDescriptorSetLayout(); ERROR_VOLATILE();
 		createDescriptorPool();
 	}
@@ -23,7 +25,7 @@ namespace StarryRender
 		}
 	}
 
-	void UniformBuffer::attatchBuffer(VkPhysicalDevice& physicalDevice)
+	void UniformBuffer::attachBuffer(VkPhysicalDevice& physicalDevice)
 	{
 		createUniformBuffers(physicalDevice); ERROR_VOLATILE();
 		createDescriptorSets();
@@ -48,7 +50,7 @@ namespace StarryRender
 		layoutInfo.bindingCount = 1;
 		layoutInfo.pBindings = &uboLayoutBinding;
 		
-		while (!device) {}
+		device.wait();
 		if (vkCreateDescriptorSetLayout(*device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
 			registerAlert("Failed to create descriptor set layout!", FATAL);
 		}
@@ -62,9 +64,11 @@ namespace StarryRender
 		uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 		uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
-		while (!device) {}
+		device.wait();
+		VkCommandBufferUsageFlags usageFlags = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			createBuffer(physicalDevice, bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+			createBuffer(physicalDevice, bufferSize, usageFlags, memoryFlags, uniformBuffers[i], uniformBuffersMemory[i]);
 
 			vkMapMemory(*device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 		}
@@ -83,7 +87,7 @@ namespace StarryRender
 
 		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		while (!device) {}
+		device.wait();
 		if (vkCreateDescriptorPool(*device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 			registerAlert("Failed to create descriptor pool!", FATAL);
 			return;
@@ -108,7 +112,7 @@ namespace StarryRender
 
 		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
-		while (!device) {}
+		device.wait();
 		if (vkAllocateDescriptorSets(*device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
 			registerAlert("Failed to allocate descriptor sets!", FATAL);
 			return;
@@ -133,5 +137,59 @@ namespace StarryRender
 
 			vkUpdateDescriptorSets(*device, 1, &descriptorWrite, 0, nullptr);
 		}
+	}
+
+	void UniformBuffer::createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+	{
+		if (buffer != VK_NULL_HANDLE || bufferMemory != VK_NULL_HANDLE) {
+			registerAlert("Vertex buffer already created! All calls other than the first are skipped.", WARNING);
+			return;
+		}
+
+		VkBufferCreateInfo bufferInfo{};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = size;
+		bufferInfo.usage = usage;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		device.wait();
+		if (vkCreateBuffer(*device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
+			registerAlert("Failed to create buffer!", FATAL);
+			return;
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(*device, buffer, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+
+		if (vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+			registerAlert("Failed to allocate buffer memory!", FATAL);
+			return;
+		}
+
+		vkBindBufferMemory(*device, buffer, bufferMemory, 0);
+	}
+
+	uint32_t UniformBuffer::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+	{
+		if (physicalDevice == VK_NULL_HANDLE) {
+			registerAlert("Vulkan physical device null! Can't find memory type.", FATAL);
+			return 0;
+		}
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+
+		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				return i;
+			}
+		}
+
+		registerAlert("Failed to find suitable memory type on given device!", FATAL);
+		return 0;
 	}
 }

@@ -86,7 +86,7 @@ namespace StarryRender {
 
 		m_vertexBuffers.push_back(vertexBuffer);
 
-		if (m_vertexBuffers.back()->getNumVerticies() == 0 || m_vertexBuffers.back()->getNumIndicies() == 0) {
+		if (m_vertexBuffers.back()->getNumVertices() == 0 || m_vertexBuffers.back()->getNumIndices() == 0) {
 			registerAlert("No vertex or index data to attatch to mesh object!", CRITICAL);
 			return;
 		}
