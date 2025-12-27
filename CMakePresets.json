@@ -27,10 +27,7 @@
         },
         "cacheVariables": {
           "CMAKE_BUILD_TYPE": "Debug"
-        },
-        "clangTidyChecks": "llvm-include-order, -modernize-use-override",
-        "enableMicrosoftCodeAnalysis": true,
-        "enableClangTidyCodeAnalysis": true
+        }
       },
         {
             "name": "windows-x64-release",
