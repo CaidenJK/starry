@@ -1,4 +1,5 @@
 ﻿# Add project
+cmake_minimum_required (VERSION 3.10)
 project(StarryRender VERSION 0.0.3 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -47,3 +48,5 @@ target_include_directories(StarryRender
     ${Vulkan_INCLUDE_DIRS}
     "${CMAKE_SOURCE_DIR}/External/STB_Image"
 )
+
+message("${CMAKE_SOURCE_DIR}/External/STB_Image")

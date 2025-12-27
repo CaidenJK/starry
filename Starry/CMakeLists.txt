@@ -1,4 +1,5 @@
 # Add project
+cmake_minimum_required (VERSION 3.10)
 project(Starry VERSION 0.0.3 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -119,9 +120,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 # Link Libraries
-target_link_libraries(Starry PRIVATE glm)
-target_link_libraries(Starry PRIVATE glfw)
-target_link_libraries(Starry PRIVATE Vulkan::Vulkan)
+target_link_libraries(Starry PRIVATE REQUIRED glm)
+target_link_libraries(Starry PRIVATE REQUIRED glfw)
+target_link_libraries(Starry PRIVATE REQUIRED Vulkan::Vulkan)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   find_library(IOSURFACE_FRAMEWORK IOSurface)
   target_link_libraries(Starry PRIVATE ${IOSURFACE_FRAMEWORK})
