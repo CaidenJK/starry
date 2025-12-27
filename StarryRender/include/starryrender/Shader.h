@@ -43,6 +43,6 @@ namespace StarryRender
 
 			std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {};
 
-			ResourceHandle<VkDevice> device;
+			ResourceHandle<VkDevice> device{};
 	};
 }

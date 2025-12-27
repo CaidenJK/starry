@@ -46,6 +46,6 @@ namespace StarryRender
 		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
-		ResourceHandle<VkDevice> device;
+		ResourceHandle<VkDevice> device{};
 	};
 }

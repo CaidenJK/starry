@@ -190,15 +190,15 @@ namespace StarryRender
 			}
 			pipelineLayoutInfo.setLayoutCount = 1;
 			pipelineLayoutInfo.pSetLayouts = &(ub->getDescriptorSetLayout());
+
+			while (!device.hasRequest()) {}
+			if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+				registerAlert("Failed to create pipeline layout!", FATAL);
+				return;
+			}
 		}
 		else {
 			registerAlert("No or NULL Uniform Buffer Passed!", FATAL);
-			return;
-		}
-
-		while (!device.hasRequest()) {}
-		if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-			registerAlert("Failed to create pipeline layout!", FATAL);
 			return;
 		}
 

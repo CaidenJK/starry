@@ -158,6 +158,7 @@ namespace StarryRender {
 			registerAlert("Shader paths not set before creating device!", FATAL);
 			return;
 		}
+
 		if (m_uniformBuffer == nullptr) {
 			m_uniformBuffer = createUniformBuffer();
 		}

@@ -40,7 +40,7 @@ namespace StarryRender
 		const std::string getAssetName() override { return "Uniform Buffer"; }
 	private:
 		void createDescriptorSetLayout();
-		void createUniformBuffers(VkPhysicalDevice& physicalDevice);	
+		void createUniformBuffers(VkPhysicalDevice& physicalDevice);
 		void createDescriptorPool();
 		void createDescriptorSets();
 

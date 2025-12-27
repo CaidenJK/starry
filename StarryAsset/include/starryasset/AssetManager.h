@@ -48,8 +48,10 @@ namespace StarryAssets
         ResourceHandle() = default; // empty handle
         ~ResourceHandle()
         {
-            std::scoped_lock lock(requestPointer->mutex);
-            if (requestPointer) requestPointer->resourceState = ResourceRequest::STALE;
+            if (requestPointer) {
+                std::scoped_lock lock(requestPointer->mutex);
+                requestPointer->resourceState = ResourceRequest::STALE;
+            }
         }
 
         ResourceHandle(const ResourceHandle& handle)

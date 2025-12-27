@@ -17,18 +17,21 @@
                 "rhs": "Windows"
             }
         },
-        {
-            "name": "windows-x64-debug",
-            "displayName": "Windows x64 Debug",
-            "inherits": "windows-base",
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
+      {
+        "name": "windows-x64-debug",
+        "displayName": "Windows x64 Debug",
+        "inherits": "windows-base",
+        "architecture": {
+          "value": "x64",
+          "strategy": "external"
         },
+        "cacheVariables": {
+          "CMAKE_BUILD_TYPE": "Debug"
+        },
+        "clangTidyChecks": "llvm-include-order, -modernize-use-override",
+        "enableMicrosoftCodeAnalysis": true,
+        "enableClangTidyCodeAnalysis": true
+      },
         {
             "name": "windows-x64-release",
             "displayName": "Windows x64 Release",

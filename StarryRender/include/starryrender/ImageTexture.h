@@ -32,6 +32,6 @@ namespace StarryRender
 		VkImage textureImage;
 		VkDeviceMemory textureImageMemory;
 
-		ResourceHandle<VkDevice> device;
+		ResourceHandle<VkDevice> device{};
 	};
 }

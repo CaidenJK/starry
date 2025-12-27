@@ -10,7 +10,8 @@
 #include <random>
 #include <cstdint>
 #include <chrono>
-#include <typeindex>
+
+#define INVALID_RESOURCE 400
 
 namespace StarryAssets
 {

@@ -5,8 +5,7 @@
 #include <set>
 #include <cstdint>
 #include <string>
-
-#include <iostream>
+#include <cstring>
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
@@ -70,6 +69,7 @@ namespace StarryRender
 		enableValidationLayers = true;
 		debugger = new VulkanDebugger();
 #else
+		debugger = nullptr;
 		enableValidationLayers = false;
 #endif
 
@@ -105,7 +105,7 @@ namespace StarryRender
 
 		vkDestroyInstance(instance, nullptr);
 
-		if (debugger != nullptr) delete debugger;
+		delete debugger;
 	}
 
 	std::optional<void*> RenderDevice::getResource(size_t resourceID)
@@ -140,7 +140,7 @@ namespace StarryRender
 		if (resourceName.compare("Window") == 0) {
 			return SharedResources::WINDOW_REFERENCE;
 		}
-		return -1;
+		return INVALID_RESOURCE;
 	}
 
 	void RenderDevice::initVulkan() 

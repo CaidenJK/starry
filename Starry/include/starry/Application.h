@@ -3,11 +3,11 @@
 #include <StarryRender.h>
 #include <StarryAsset.h>
 
-#include "CoreDLL.h"
-
 #include <memory>
 
 #include "Scene.h"
+
+#include "CoreDLL.h"
 
 #define STARRY_VERSION "0.0.4 dev"
  
