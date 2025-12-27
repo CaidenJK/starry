@@ -5,9 +5,10 @@ namespace StarryRender
     Buffer::Buffer()
     {
         device = requestResource<VkDevice>("RenderDevice", "VkDevice");
+        physicalDevice = requestResource<VkPhysicalDevice>("RenderDevice", "VkPhysicalDevice");
     }
 
-    void Buffer::createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
+    void Buffer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 	{
 		if (buffer != VK_NULL_HANDLE || bufferMemory != VK_NULL_HANDLE) {
 			registerAlert("Vertex buffer already created! All calls other than the first are skipped.", WARNING);
@@ -32,7 +33,9 @@ namespace StarryRender
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+
+        physicalDevice.wait();
+		allocInfo.memoryTypeIndex = findMemoryType(*physicalDevice, memRequirements.memoryTypeBits, properties);
 
 		if (vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 			registerAlert("Failed to allocate buffer memory!", FATAL);

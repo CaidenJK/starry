@@ -69,7 +69,7 @@ namespace StarryRender
 		indices = indiciesInput;
 	}
 
-	void VertexBuffer::createVertexBuffer(VkPhysicalDevice& physicalDevice) 
+	void VertexBuffer::createVertexBuffer() 
 	{
 		if (vertices.empty()) {
 			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
@@ -78,18 +78,16 @@ namespace StarryRender
 
 		bufferSizeVertex = sizeof(vertices[0]) * vertices.size();
 
-		VkCommandBufferUsageFlags usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeVertex, usageFlags, memoryFlags, stagingBufferVertex, stagingBufferMemoryVertex));
+		ERROR_VOLATILE(createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex));
 		ERROR_VOLATILE(fillVertexBufferData(stagingBufferMemoryVertex));
 		if (vertexBuffer == VK_NULL_HANDLE) {
-			VkCommandBufferUsageFlags usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-			VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-			ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeVertex, usageFlags, memoryFlags, vertexBuffer, vertexBufferMemory));
+			ERROR_VOLATILE(createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory));
 		}
 	}
 
-	void VertexBuffer::createIndexBuffer(VkPhysicalDevice& physicalDevice) 
+	void VertexBuffer::createIndexBuffer() 
 	{
 		if (indices.empty()) {
 			registerAlert("No index data loaded into VertexBuffer!", FATAL);
@@ -97,21 +95,19 @@ namespace StarryRender
 		}
 		bufferSizeIndex = sizeof(indices[0]) * indices.size();
 
-		VkCommandBufferUsageFlags usageFlags = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeIndex, usageFlags, memoryFlags, stagingBufferIndex, stagingBufferMemoryIndex));
+		ERROR_VOLATILE(createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferIndex, stagingBufferMemoryIndex));
 		ERROR_VOLATILE(fillIndexBufferData(stagingBufferMemoryIndex));
 		if (indexBuffer == VK_NULL_HANDLE) {
-			VkCommandBufferUsageFlags usageFlags = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-			VkMemoryPropertyFlags memoryFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-			ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeIndex, usageFlags, memoryFlags, indexBuffer, indexBufferMemory));
+			ERROR_VOLATILE(createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory));
 		}
 	}
 
-	void VertexBuffer::loadBufferToMemory(VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue)
+	void VertexBuffer::loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue)
 	{
-		createVertexBuffer(physicalDevice);
-		createIndexBuffer(physicalDevice);
+		createVertexBuffer();
+		createIndexBuffer();
 
 		if (stagingBufferVertex == VK_NULL_HANDLE ||
 			stagingBufferIndex == VK_NULL_HANDLE ||

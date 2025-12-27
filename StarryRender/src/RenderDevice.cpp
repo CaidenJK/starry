@@ -112,9 +112,14 @@ namespace StarryRender
 
 	std::optional<void*> RenderDevice::getResource(size_t resourceID)
 	{
-		if (resourceID == SharedResources::VK_DEVICE) {
+		if (resourceID == SharedResources::VK_DEVICE &&
+			device != VK_NULL_HANDLE) {
 			return (void*)&device;
 		}
+		if (resourceID == SharedResources::VK_PHYSICAL_DEVICE &&
+			physicalDevice != VK_NULL_HANDLE) {
+				return (void*)&physicalDevice;
+			}
 		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT) {
 			return (void*)&(swapChain->getImageFormat());
 		}
@@ -132,6 +137,9 @@ namespace StarryRender
 	{
 		if (resourceName.compare("VkDevice") == 0) {
 			return SharedResources::VK_DEVICE;
+		}
+		if (resourceName.compare("VkPhysicalDevice") == 0) {
+			return SharedResources::VK_PHYSICAL_DEVICE;
 		}
 		if (resourceName.compare("Swapchain Image Format") == 0) {
 			return SharedResources::SWAP_CHAIN_IMAGE_FORMAT;
@@ -794,7 +802,7 @@ namespace StarryRender
 		};
 
 		vertexBuffer->loadData(vertices, indices);
-		vertexBuffer->loadBufferToMemory(physicalDevice, commandPool, graphicsQueue);
+		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
 	}
 
 	void RenderDevice::LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef) 
@@ -810,7 +818,7 @@ namespace StarryRender
 		vertexBuffer.reset();
 		vertexBuffer = bufferRef;
 
-		vertexBuffer->loadBufferToMemory(physicalDevice, commandPool, graphicsQueue);
+		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
 	}
 
 	void RenderDevice::WaitIdle() 

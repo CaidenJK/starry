@@ -36,7 +36,7 @@ namespace StarryRender
 			~VertexBuffer();
 
 			void loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
-			void loadBufferToMemory(VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue);
+			void loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue);
 
 			size_t getNumVertices() { return vertices.empty() ? 0 : vertices.size(); }
 			size_t getNumIndices() { return indices.empty() ? 0 : indices.size(); }
@@ -46,8 +46,8 @@ namespace StarryRender
 			const std::string getAssetName() override { return "Vertex Buffer"; }
 
 		private:
-			void createVertexBuffer(VkPhysicalDevice& physicalDevice);
-			void createIndexBuffer(VkPhysicalDevice& physicalDevice);
+			void createVertexBuffer();
+			void createIndexBuffer();
 
 			void fillVertexBufferData(VkDeviceMemory& bufferMemory);
 			void fillIndexBufferData(VkDeviceMemory& bufferMemory);

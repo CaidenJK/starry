@@ -1,5 +1,5 @@
 #pragma once
-#include <StarryAsset.h>
+#include "Buffer.h"
 
 #include <stb_image.h>
 
@@ -10,7 +10,7 @@
 
 namespace StarryRender
 {
-	class ImageTexture : StarryAsset
+	class ImageTexture : public Buffer
 	{
 	public:
 		ImageTexture();
@@ -20,7 +20,7 @@ namespace StarryRender
 
 	private:
 		void loadFromFile(const char* filePath);
-		void loadImageToMemory() = delete;
+		void loadImageToMemory(VkDeviceSize imageSize);
 
 		int texWidth = 0;
 		int texHeight = 0;
@@ -31,7 +31,5 @@ namespace StarryRender
 
 		VkImage textureImage;
 		VkDeviceMemory textureImageMemory;
-
-		ResourceHandle<VkDevice> device{};
 	};
 }

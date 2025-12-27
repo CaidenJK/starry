@@ -7,7 +7,6 @@ namespace StarryRender
 {
     ImageTexture::ImageTexture()
     {
-        device = requestResource<VkDevice>("RenderDevice", "VkDevice");
     }
 
     ImageTexture::~ImageTexture()
@@ -18,7 +17,6 @@ namespace StarryRender
     void ImageTexture::loadImageFromFile(std::string filePath)
     {
         ERROR_VOLATILE(loadFromFile(filePath.c_str()));
-        //loadImageToMemory();
     }
 
     void ImageTexture::loadFromFile(const char* filePath)
@@ -29,5 +27,15 @@ namespace StarryRender
         if (!pixels) {
             registerAlert("Failed to load image from file!", CRITICAL);
         }
+
+        loadImageToMemory(imageSize);
+    }
+
+    void ImageTexture::loadImageToMemory(VkDeviceSize imageSize)
+    {
+        VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
+
+        createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
     }
 }
