@@ -25,7 +25,6 @@ namespace StarryAssets
         };
 
         const uint64_t resourceID; 
-        const std::type_index typeInfo;
 
         std::mutex mutex;
         ResourceState resourceState = NO;
@@ -35,9 +34,9 @@ namespace StarryAssets
         const uint64_t senderUUID;
         
         private:
-            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID, std::type_index& typeInfo);
+            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID);
 
-            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id, std::type_index typeInfo);
+            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id);
     };
 
     // Caller side API
@@ -133,7 +132,7 @@ namespace StarryAssets
             ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, size_t resourceID)
             {
                 std::scoped_lock lock(resourceMutex);
-                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID, typeid(T)));
+                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }
@@ -146,7 +145,7 @@ namespace StarryAssets
                 for(auto& it : registeredAssets) {
                     if (it.second->getAssetName().compare(senderName) == 0) {
                         registeryMutex.unlock();
-                        resourceRequests.emplace(ResourceRequest::create(callerID, it.second->getUUID(), resourceID, typeid(T)));
+                        resourceRequests.emplace(ResourceRequest::create(callerID, it.second->getUUID(), resourceID));
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }
@@ -163,7 +162,7 @@ namespace StarryAssets
                 size_t resourceID = 0; auto asset = registeredAssets.find(senderID);
                 if (asset == registeredAssets.end()) size_t resourceID = asset->second->getResourceIDFromString(resourceName);
                 registeryMutex.unlock();
-                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID, typeid(T)));
+                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }
@@ -178,7 +177,7 @@ namespace StarryAssets
                         uint64_t uuid = it.second->getUUID();
                         size_t resourceID = it.second->getResourceIDFromString(resourceName);
                         registeryMutex.unlock();
-                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID, typeid(T)));
+                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID));
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }

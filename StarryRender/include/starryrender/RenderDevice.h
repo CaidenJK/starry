@@ -69,7 +69,7 @@ namespace StarryRender
 			WINDOW_REFERENCE = 3
 		};
 
-		std::optional<void*> getResource(size_t resourceID, const std::type_index& typeInfo) override;
+		std::optional<void*> getResource(size_t resourceID) override;
 		size_t getResourceIDFromString(std::string resourceName) override;
 
 		// Error Handler can use this
