@@ -120,14 +120,25 @@ namespace StarryRender
 			physicalDevice != VK_NULL_HANDLE) {
 				return (void*)&physicalDevice;
 			}
-		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT) {
+		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT &&
+			swapChain != nullptr) {
 			return (void*)&(swapChain->getImageFormat());
 		}
-		if (resourceID == SharedResources::UNIFORM_BUFFER) {
+		if (resourceID == SharedResources::UNIFORM_BUFFER &&
+			!uniformBuffer.expired()) {
 			return (void*)&uniformBuffer;
 		}
-		if (resourceID == SharedResources::WINDOW_REFERENCE) {
+		if (resourceID == SharedResources::WINDOW_REFERENCE &&
+			!windowReference.expired()) {
 			return (void*)&windowReference;
+		}
+		if (resourceID == SharedResources::COMMAND_POOL &&
+			commandPool != VK_NULL_HANDLE) {
+			return (void*)&commandPool;
+		}
+		if (resourceID == SharedResources::GRAPHICS_QUEUE &&
+			graphicsQueue != VK_NULL_HANDLE) {
+			return (void*)&graphicsQueue;
 		}
 		registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
 		return {};
@@ -138,7 +149,7 @@ namespace StarryRender
 		if (resourceName.compare("VkDevice") == 0) {
 			return SharedResources::VK_DEVICE;
 		}
-		if (resourceName.compare("VkPhysicalDevice") == 0) {
+		if (resourceName.compare("Physical Device") == 0) {
 			return SharedResources::VK_PHYSICAL_DEVICE;
 		}
 		if (resourceName.compare("Swapchain Image Format") == 0) {
@@ -149,6 +160,12 @@ namespace StarryRender
 		}
 		if (resourceName.compare("Window") == 0) {
 			return SharedResources::WINDOW_REFERENCE;
+		}
+		if (resourceName.compare("Command Pool") == 0) {
+			return SharedResources::COMMAND_POOL;
+		}
+		if (resourceName.compare("Graphics Queue") == 0) {
+			return SharedResources::GRAPHICS_QUEUE;
 		}
 		return INVALID_RESOURCE;
 	}
@@ -802,7 +819,7 @@ namespace StarryRender
 		};
 
 		vertexBuffer->loadData(vertices, indices);
-		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
+		vertexBuffer->loadBufferToMemory();
 	}
 
 	void RenderDevice::LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef) 
@@ -818,7 +835,7 @@ namespace StarryRender
 		vertexBuffer.reset();
 		vertexBuffer = bufferRef;
 
-		vertexBuffer->loadBufferToMemory(commandPool, graphicsQueue);
+		vertexBuffer->loadBufferToMemory();
 	}
 
 	void RenderDevice::WaitIdle() 

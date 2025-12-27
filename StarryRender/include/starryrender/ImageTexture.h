@@ -21,7 +21,11 @@ namespace StarryRender
 	private:
 		void loadFromFile(const char* filePath);
 		void loadImageToMemory(VkDeviceSize imageSize);
-		void createImageObject();
+		void createImageObject(uint32_t width, uint32_t height, VkFormat format, 
+        VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
+        VkImage& image, VkDeviceMemory& imageMemory);
+
+		void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 
 		int texWidth = 0;
 		int texHeight = 0;

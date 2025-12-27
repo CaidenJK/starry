@@ -22,8 +22,8 @@ namespace StarryManager
 	public:
 		virtual ~StarryAsset();
 
-		StarryAsset(const StarryAsset& other) = delete;
-		StarryAsset& operator=(const StarryAsset& other) = delete;
+		StarryAsset(const StarryAsset& other) = default;
+		StarryAsset& operator=(const StarryAsset& other) = default;
 		// TODO: Custom copy method
 
 		StarryAsset(StarryAsset&& other) noexcept;

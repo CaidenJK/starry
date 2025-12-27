@@ -64,6 +64,7 @@ namespace StarryManager
                 if (asset == registeredAssets.end()) size_t resourceID = asset->second->getResourceIDFromString(resourceName);
                 registeryMutex.unlock();
                 resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
+                if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }
@@ -79,6 +80,8 @@ namespace StarryManager
                         size_t resourceID = it.second->getResourceIDFromString(resourceName);
                         registeryMutex.unlock();
                         resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID));
+                        if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
+                        
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }

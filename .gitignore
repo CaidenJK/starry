@@ -16,6 +16,7 @@
 .vscode/
 Dependencies/
 build/
+tests/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

@@ -67,7 +67,9 @@ namespace StarryRender
 			VK_PHYSICAL_DEVICE = 1,
 			SWAP_CHAIN_IMAGE_FORMAT = 2,
 			UNIFORM_BUFFER = 3,
-			WINDOW_REFERENCE = 4
+			WINDOW_REFERENCE = 4,
+			COMMAND_POOL = 5,
+			GRAPHICS_QUEUE = 6
 		};
 
 		std::optional<void*> getResource(size_t resourceID) override;

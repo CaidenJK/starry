@@ -104,7 +104,7 @@ namespace StarryRender
 		}
 	}
 
-	void VertexBuffer::loadBufferToMemory(VkCommandPool& commandPool, VkQueue& graphicsQueue)
+	void VertexBuffer::loadBufferToMemory()
 	{
 		createVertexBuffer();
 		createIndexBuffer();
@@ -119,8 +119,8 @@ namespace StarryRender
 				return;
 		}
 
-		copyBuffer(commandPool, graphicsQueue, stagingBufferVertex, vertexBuffer, bufferSizeVertex);
-		copyBuffer(commandPool, graphicsQueue, stagingBufferIndex, indexBuffer, bufferSizeIndex);
+		copyBuffer(stagingBufferVertex, vertexBuffer, bufferSizeVertex);
+		copyBuffer(stagingBufferIndex, indexBuffer, bufferSizeIndex);
 		
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);

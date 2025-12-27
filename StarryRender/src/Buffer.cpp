@@ -5,7 +5,9 @@ namespace StarryRender
     Buffer::Buffer()
     {
         device = requestResource<VkDevice>("RenderDevice", "VkDevice");
-        physicalDevice = requestResource<VkPhysicalDevice>("RenderDevice", "VkPhysicalDevice");
+        physicalDevice = requestResource<VkPhysicalDevice>("RenderDevice", "Physical Device");
+		commandPool = requestResource<VkCommandPool>("RenderDevice", "Command Pool");
+    	graphicsQueue = requestResource<VkQueue>("RenderDevice", "Graphics Queue");
     }
 
     void Buffer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -71,16 +73,30 @@ namespace StarryRender
 		return 0;
 	}
 
-	void Buffer::copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size)
+	void Buffer::copyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size)
 	{
+		VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+
+		VkBufferCopy copyRegion{};
+		copyRegion.size = size;
+		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+
+		endSingleTimeCommands(commandBuffer);
+	}
+
+	VkCommandBuffer Buffer::beginSingleTimeCommands() {
+		if (commandPool.wait() != ResourceState::YES) {
+			registerAlert("Command Pool died before it was ready to be used.", FATAL);
+			return VK_NULL_HANDLE;
+		}
+
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = commandPool;
+		allocInfo.commandPool = *commandPool;
 		allocInfo.commandBufferCount = 1;
 
 		VkCommandBuffer commandBuffer;
-
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
 		}
@@ -92,11 +108,10 @@ namespace StarryRender
 
 		vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-		VkBufferCopy copyRegion{};
-		copyRegion.srcOffset = 0; // Optional
-		copyRegion.dstOffset = 0; // Optional
-		copyRegion.size = size;
-		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+		return commandBuffer;
+	}
+
+	void Buffer::endSingleTimeCommands(VkCommandBuffer& commandBuffer) {
 		vkEndCommandBuffer(commandBuffer);
 
 		VkSubmitInfo submitInfo{};
@@ -104,9 +119,14 @@ namespace StarryRender
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandBuffer;
 
-		vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(graphicsQueue);
+		if (graphicsQueue.wait() != ResourceState::YES) {
+			registerAlert("Graphics Queue died before it was ready to be used.", FATAL);
+			return;
+		}
 
-		vkFreeCommandBuffers(*device, commandPool, 1, &commandBuffer);
+		vkQueueSubmit(*graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(*graphicsQueue);
+
+		vkFreeCommandBuffers(*device, *commandPool, 1, &commandBuffer);
 	}
 }

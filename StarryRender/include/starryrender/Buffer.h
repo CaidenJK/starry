@@ -15,10 +15,15 @@ namespace StarryRender
         protected:
 
             void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-			void copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
+			void copyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
 			uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+            VkCommandBuffer beginSingleTimeCommands();
+            void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
 			
             ResourceHandle<VkDevice> device;
             ResourceHandle<VkPhysicalDevice> physicalDevice;
+            ResourceHandle<VkCommandPool> commandPool;
+            ResourceHandle<VkQueue> graphicsQueue;
     };
 }
