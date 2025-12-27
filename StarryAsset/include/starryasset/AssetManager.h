@@ -97,8 +97,8 @@ namespace StarryAssets
             return request() == ResourceRequest::ResourceState::YES;
         }
 
-        volatile void wait() {
-            bool isReady = false;
+        void wait() {
+            volatile bool isReady = false;
             while (!isReady) isReady = hasRequest();
 
             return;

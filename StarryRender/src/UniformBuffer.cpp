@@ -6,8 +6,6 @@ namespace StarryRender
 {
 	UniformBuffer::UniformBuffer()
 	{
-		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
-
 		createDescriptorSetLayout(); ERROR_VOLATILE();
 		createDescriptorPool();
 	}
@@ -137,59 +135,5 @@ namespace StarryRender
 
 			vkUpdateDescriptorSets(*device, 1, &descriptorWrite, 0, nullptr);
 		}
-	}
-
-	void UniformBuffer::createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
-	{
-		if (buffer != VK_NULL_HANDLE || bufferMemory != VK_NULL_HANDLE) {
-			registerAlert("Vertex buffer already created! All calls other than the first are skipped.", WARNING);
-			return;
-		}
-
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = size;
-		bufferInfo.usage = usage;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		device.wait();
-		if (vkCreateBuffer(*device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-			registerAlert("Failed to create buffer!", FATAL);
-			return;
-		}
-
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(*device, buffer, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
-
-		if (vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-			registerAlert("Failed to allocate buffer memory!", FATAL);
-			return;
-		}
-
-		vkBindBufferMemory(*device, buffer, bufferMemory, 0);
-	}
-
-	uint32_t UniformBuffer::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
-	{
-		if (physicalDevice == VK_NULL_HANDLE) {
-			registerAlert("Vulkan physical device null! Can't find memory type.", FATAL);
-			return 0;
-		}
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				return i;
-			}
-		}
-
-		registerAlert("Failed to find suitable memory type on given device!", FATAL);
-		return 0;
 	}
 }
