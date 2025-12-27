@@ -39,6 +39,8 @@ namespace StarryManager
         void flushQueueBlock();
 
 		bool isFatal() { return hasFatal.load(); }
+		
+		static bool isLoggerDead() { return isDead; }
 
 		const std::string getAssetName() override {return "Logger";}
 
@@ -49,6 +51,7 @@ namespace StarryManager
 
 		void registerAlert(const std::string& message, CallSeverity severity) override;
 
+		void checkQueue();
 		void worker();
 
 		static std::string severityToString(StarryAsset::CallSeverity severity);
@@ -65,7 +68,6 @@ namespace StarryManager
         std::atomic<std::queue<AssetCall>*> alertQueue;
 
 		std::atomic<bool> logToFile = false;
-		std::atomic<bool> hasExitRights = false;
 		
 		std::vector<AssetCall> toFlushBuffer = {};
 		std::vector<AssetCall> callHistory = {};

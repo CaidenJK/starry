@@ -43,15 +43,21 @@ namespace StarryManager
 		alertQueue.load()->push(call);
 	}
 
+	void Logger::checkQueue()
+	{
+		if (!alertQueue.load()->empty()) {
+			logAlert(alertQueue.load()->front());
+			alertQueue.load()->pop();
+		}
+		else if (shouldFlush.load()) flushCalls();
+	}
+
 	void Logger::worker() 
 	{
 		while (!hasFatal.load()) {
-			if (!alertQueue.load()->empty()) {
-				logAlert(alertQueue.load()->front());
-				alertQueue.load()->pop();
-			}
-			else if (shouldFlush.load()) flushCalls();
+			checkQueue();
 		}
+		checkQueue();
 	}
 
 	void Logger::logAlert(AssetCall& call) {
@@ -74,12 +80,6 @@ namespace StarryManager
 		}
 		if (shouldFlush.load() || (toFlushBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
 			flushCalls();
-			std::cout.flush();
-		}
-		if (hasFatal.load() && hasExitRights.load()) {
-			registerAlert("A fatal alert was registered. Exiting program as permitted by Logger rights.", INFO);
-			Logger::~Logger();
-			std::exit(EXIT_FAILURE);
 		}
 	}
 
@@ -103,6 +103,7 @@ namespace StarryManager
 				<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << std::format("{:#016x}", call.callerUUID) << "\" => \n\t" << call.message << "\n";
 		}
 		std::cerr << std::endl;
+		std::cout.flush();
 
 		toFlushBuffer.clear();
 		shouldFlush.store(false);
@@ -154,6 +155,9 @@ namespace StarryManager
 
 	void Logger::flushQueueBlock()
 	{
+		if (alertQueue.load() == nullptr) {
+			return;
+		}
 		while (!alertQueue.load()->empty()) {}
 	}
 }

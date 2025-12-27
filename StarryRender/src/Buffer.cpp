@@ -25,6 +25,7 @@ namespace StarryRender
 
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		if (vkCreateBuffer(*device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
 			registerAlert("Failed to create buffer!", FATAL);
@@ -40,6 +41,7 @@ namespace StarryRender
 
         if (physicalDevice.wait() != ResourceState::YES) {
 			registerAlert("Physical Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
@@ -55,6 +57,7 @@ namespace StarryRender
 	{
 		if (physicalDevice.wait() != ResourceState::YES) {
 			registerAlert("Physical Device died before it was ready to be used.", FATAL);
+			return 0;
 		}
 		if (*physicalDevice == VK_NULL_HANDLE) {
 			registerAlert("Vulkan physical device null! Can't find memory type.", FATAL);
@@ -99,6 +102,7 @@ namespace StarryRender
 		VkCommandBuffer commandBuffer;
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return VK_NULL_HANDLE;
 		}
 		vkAllocateCommandBuffers(*device, &allocInfo, &commandBuffer);
 

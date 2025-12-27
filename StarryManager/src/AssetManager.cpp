@@ -48,7 +48,7 @@ namespace StarryManager
 
 	void AssetManager::unregisterAsset(uint64_t uuid) 
 	{
-		if (logger == nullptr) return;
+		if (logger == nullptr || Logger::isLoggerDead()) return;
 		
         std::scoped_lock lock(registeryMutex);
 		logger->flushQueueBlock();
@@ -81,25 +81,48 @@ namespace StarryManager
             return;
 		}
 	}
+
+    Logger::AssetCall AssetManager::getFatalAlert()
+    {
+        Logger::AssetCall call;
+        call.callerName = getAssetName();
+        call.callerUUID = getUUID();
+        call.severity = CRITICAL;
+        call.message = "A fatal alert was registered. Exiting program as permitted by Manager rights.";
+        call.callTime = std::chrono::system_clock::now();
+
+        return call;
+    }
     
     void AssetManager::registerAssetAlert(uint64_t uuid)
     {
-        std::scoped_lock lock(registeryMutex);
-        
-        auto asset = registeredAssets.find(uuid);
-        if (asset == registeredAssets.end()) return;
-
         Logger::AssetCall call;
-        call.callerName = asset->second->getAssetName();
-        call.callerUUID = asset->second->getUUID();
-        call.severity = asset->second->getAlertSeverity();
-        call.message = asset->second->getAlertMessage();
-        call.callTime = std::chrono::system_clock::now();
+        {
+            std::scoped_lock lock(registeryMutex);
+        
+            auto asset = registeredAssets.find(uuid);
+            if (asset == registeredAssets.end()) return;
 
-        if (call.severity != FATAL) {
-            asset->second->resetAlert();
+            call.callerName = asset->second->getAssetName();
+            call.callerUUID = asset->second->getUUID();
+            call.severity = asset->second->getAlertSeverity();
+            call.message = asset->second->getAlertMessage();
+            call.callTime = std::chrono::system_clock::now();
+
+            if (call.severity != FATAL) {
+                asset->second->resetAlert();
+            }
         }
+
         logger->enqueueAlert(call);
+
+        if (hasExitRights.load() && call.severity == FATAL) {
+            call = getFatalAlert();
+            logger->enqueueAlert(call);
+			delete logger;
+            logger = nullptr;
+			std::exit(EXIT_FAILURE);
+		}
     }
 
     void AssetManager::worker() 

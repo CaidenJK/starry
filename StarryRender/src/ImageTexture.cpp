@@ -43,6 +43,7 @@ namespace StarryRender
 
         if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+            return;
 		}
 
         void* data;
@@ -72,6 +73,7 @@ namespace StarryRender
 
         if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+            return;
 		}
 
         if (vkCreateImage(*device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
@@ -97,6 +99,8 @@ namespace StarryRender
     {
         VkCommandBuffer commandBuffer = beginSingleTimeCommands();
 
+        // *** ///
+        
         endSingleTimeCommands(commandBuffer);
     }
 }

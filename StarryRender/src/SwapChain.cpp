@@ -34,6 +34,7 @@ namespace StarryRender
 
 		if (windowReference.wait() != ResourceState::YES) {
 			registerAlert("Window died before it was ready to be used.", FATAL);
+			return;
 		}
 		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, *windowReference, surface));
 		createImageViews();
@@ -86,6 +87,7 @@ namespace StarryRender
 
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		if (vkCreateSwapchainKHR(*device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
 			registerAlert("Failed to create swap chain!", FATAL);
@@ -125,6 +127,7 @@ namespace StarryRender
 			
 			if (device.wait() != ResourceState::YES) {
 				registerAlert("Device died before it was ready to be used.", FATAL);
+				return;
 			}
 			if (vkCreateImageView(*device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
 				registerAlert("Failed to create image views!", FATAL);
@@ -137,6 +140,7 @@ namespace StarryRender
 	{
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		for (auto framebuffer : swapChainFramebuffers) {
 			vkDestroyFramebuffer(*device, framebuffer, nullptr);

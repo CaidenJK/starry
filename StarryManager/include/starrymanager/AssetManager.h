@@ -28,6 +28,7 @@ namespace StarryManager
             bool isFatal() { return hasFatal.load(); }
 
             void setFileLogging(bool value) { logger->setFileLogging(value); }
+            void setExitRights(bool value) { hasExitRights.store(value); }
 
             template <typename T>
             ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, size_t resourceID)
@@ -81,7 +82,7 @@ namespace StarryManager
                         registeryMutex.unlock();
                         resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID));
                         if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
-                        
+
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }
@@ -97,6 +98,8 @@ namespace StarryManager
 
             void findResources(std::shared_ptr<ResourceRequest>& request);
 
+            std::atomic<bool> hasExitRights = false;
+
             Logger* logger;
 
             std::mutex registeryMutex;
@@ -111,6 +114,8 @@ namespace StarryManager
 
             std::atomic<bool> hasFatal = false;
             static std::atomic<bool> isDead;
+
+            Logger::AssetCall getFatalAlert();
     };
 
     template <typename T>

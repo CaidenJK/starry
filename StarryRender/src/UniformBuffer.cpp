@@ -50,6 +50,7 @@ namespace StarryRender
 		
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		if (vkCreateDescriptorSetLayout(*device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
 			registerAlert("Failed to create descriptor set layout!", FATAL);
@@ -66,6 +67,7 @@ namespace StarryRender
 
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
@@ -89,6 +91,7 @@ namespace StarryRender
 
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		if (vkCreateDescriptorPool(*device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 			registerAlert("Failed to create descriptor pool!", FATAL);
@@ -116,6 +119,7 @@ namespace StarryRender
 
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
 		}
 		if (vkAllocateDescriptorSets(*device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
 			registerAlert("Failed to allocate descriptor sets!", FATAL);
