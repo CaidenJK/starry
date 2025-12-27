@@ -33,8 +33,8 @@ namespace StarryRender
 
 	VertexBuffer::VertexBuffer()
 	{
-		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
 	}
+
 	VertexBuffer::~VertexBuffer() 
 	{
 		if (device) {
@@ -75,6 +75,7 @@ namespace StarryRender
 			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
+
 		bufferSizeVertex = sizeof(vertices[0]) * vertices.size();
 		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex));
 		ERROR_VOLATILE(fillVertexBufferData(stagingBufferMemoryVertex));
@@ -127,45 +128,6 @@ namespace StarryRender
 		stagingBufferMemoryIndex = VK_NULL_HANDLE;
 	}
 
-	void VertexBuffer::createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory) 
-	{
-		if (vertices.empty()) {
-			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
-			return;
-		}
-		if (buffer != VK_NULL_HANDLE || bufferMemory != VK_NULL_HANDLE) {
-			registerAlert("Vertex buffer already created! All calls other than the first are skipped.", WARNING);
-			return;
-		}
-
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = size;
-		bufferInfo.usage = usage;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		while (!device) {}
-		if (vkCreateBuffer(*device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
-			registerAlert("Failed to create buffer!", FATAL);
-			return;
-		}
-
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(*device, buffer, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = findMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
-
-		if (vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
-			registerAlert("Failed to allocate buffer memory!", FATAL);
-			return;
-		}
-
-		vkBindBufferMemory(*device, buffer, bufferMemory, 0);
-	}
-
 	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory) 
 	{
 		if (bufferMemory == VK_NULL_HANDLE) {
@@ -202,62 +164,6 @@ namespace StarryRender
 		vkMapMemory(*device, bufferMemory, 0, bufferSizeIndex, 0, &data);
 		memcpy(data, indices.data(), (size_t)bufferSizeIndex);
 		vkUnmapMemory(*device, bufferMemory);
-	}
-
-	void VertexBuffer::copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size) 
-	{
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = commandPool;
-		allocInfo.commandBufferCount = 1;
-
-		VkCommandBuffer commandBuffer;
-		
-		while (!device) {}
-		vkAllocateCommandBuffers(*device, &allocInfo, &commandBuffer);
-
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-		vkBeginCommandBuffer(commandBuffer, &beginInfo);
-		
-		VkBufferCopy copyRegion{};
-		copyRegion.srcOffset = 0; // Optional
-		copyRegion.dstOffset = 0; // Optional
-		copyRegion.size = size;
-		vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
-		vkEndCommandBuffer(commandBuffer);
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
-
-		vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(graphicsQueue);
-
-		vkFreeCommandBuffers(*device, commandPool, 1, &commandBuffer);
-	}
-
-	uint32_t VertexBuffer::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) 
-	{
-		if (physicalDevice == VK_NULL_HANDLE) {
-			registerAlert("Vulkan physical device null! Can't find memory type.", FATAL);
-			return 0;
-		}
-		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
-
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-				return i;
-			}
-		}
-
-		registerAlert("Failed to find suitable memory type on given device!", FATAL);
-		return 0;
 	}
 }
 // Possibly sendData() with asset handler

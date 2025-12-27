@@ -34,7 +34,7 @@ namespace StarryRender
 		const std::string getAssetName() override { return "Pipeline"; }
 
 	private:
-		void constructPipeline(ResourceHandle<VkFormat>& swapChainImageFormat, ResourceHandle<std::weak_ptr<UniformBuffer>>& uniformBuffer);
+		void constructPipeline(VkFormat& swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer);
 		void createRenderPass(VkFormat swapChainImageFormat);
 		void constructPipelineLayout(std::weak_ptr<UniformBuffer>& uniformBuffer);
 

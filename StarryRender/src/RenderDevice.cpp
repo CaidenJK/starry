@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <string>
 
+#include <iostream>
+
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
 #define EXTERN_ERROR(x) if(x->getAlertSeverity() == FATAL) { return; } 
@@ -57,7 +59,7 @@ namespace StarryRender
 		createInfo.flags = 0;
 	}
 
-	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name) 
+	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name)
 	{
 		if (windowPointer == nullptr) {
 			registerAlert("Window pointer is null!", FATAL);
@@ -106,21 +108,21 @@ namespace StarryRender
 		if (debugger != nullptr) delete debugger;
 	}
 
-	std::optional<void*> RenderDevice::getResource(size_t resourceID, const std::type_index& typeInfo)
+	std::optional<void*> RenderDevice::getResource(size_t resourceID)
 	{
-		if (resourceID == SharedResources::VK_DEVICE && typeInfo == typeid(VkDevice)) {
+		if (resourceID == SharedResources::VK_DEVICE) {
 			return (void*)&device;
 		}
-		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT && typeInfo == typeid(VkFormat)) {
+		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT) {
 			return (void*)&(swapChain->getImageFormat());
 		}
-		if (resourceID == SharedResources::UNIFORM_BUFFER && typeInfo == typeid(std::weak_ptr<UniformBuffer>)) {
+		if (resourceID == SharedResources::UNIFORM_BUFFER) {
 			return (void*)&uniformBuffer;
 		}
-		if (resourceID == SharedResources::WINDOW_REFERENCE && typeInfo == typeid(std::weak_ptr<Window>)) {
+		if (resourceID == SharedResources::WINDOW_REFERENCE) {
 			return (void*)&windowReference;
 		}
-		registerAlert("No matching resource and type available for sharing", WARNING);
+		registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
 		return {};
 	}
 

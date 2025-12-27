@@ -13,7 +13,7 @@ namespace StarryRender
 	class ImageTexture : StarryAsset
 	{
 	public:
-		ImageTexture(VkDevice& device);
+		ImageTexture();
 		~ImageTexture();
 
 		void loadImageFromFile(std::string filePath);
@@ -32,6 +32,6 @@ namespace StarryRender
 		VkImage textureImage;
 		VkDeviceMemory textureImageMemory;
 
-		VkDevice& device;
+		ResourceHandle<VkDevice> device;
 	};
 }

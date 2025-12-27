@@ -46,7 +46,7 @@ namespace StarryAssets
 
 		void resetAlert();
 
-		virtual std::optional<void*> getResource(size_t resourceID, const std::type_index& typeInfo) { return {}; }
+		virtual std::optional<void*> getResource(size_t resourceID) { return {}; }
 		virtual size_t getResourceIDFromString(std::string resourceName) { return -1; }
 		
 		template <typename T>

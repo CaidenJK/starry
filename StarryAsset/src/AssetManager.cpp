@@ -137,7 +137,7 @@ namespace StarryAssets
             }
         }
 
-        std::optional<void*> result = asset->second->getResource(request->resourceID, request->typeInfo);
+        std::optional<void*> result = asset->second->getResource(request->resourceID);
         if (result.has_value()) {
             request->resource = result.value();
             request->resourceState = ResourceRequest::YES;
