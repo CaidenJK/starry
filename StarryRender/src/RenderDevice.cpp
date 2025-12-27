@@ -57,7 +57,7 @@ namespace StarryRender
 		createInfo.flags = 0;
 	}
 
-	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name) 
+	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name)
 	{
 		if (windowPointer == nullptr) {
 			registerAlert("Window pointer is null!", FATAL);

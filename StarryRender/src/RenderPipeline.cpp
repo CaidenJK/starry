@@ -18,7 +18,8 @@ namespace StarryRender
 			return;
 		}
 
-		constructPipeline(swapChainImageFormat, uniformBuffer);
+		while (!swapChainImageFormat.hasRequest() || !uniformBuffer.hasRequest()) {} //wait
+		constructPipeline(*swapChainImageFormat, *uniformBuffer);
 	}
 
 	RenderPipeline::~RenderPipeline() 
@@ -35,17 +36,15 @@ namespace StarryRender
 		}
 	}
 
-	void RenderPipeline::constructPipeline(ResourceHandle<VkFormat>& swapChainImageFormat, ResourceHandle<std::weak_ptr<UniformBuffer>>& uniformBuffer)
+	void RenderPipeline::constructPipeline(VkFormat& swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer)
 	{
 		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
 			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
 			return;
 		}
 
-		while (!swapChainImageFormat.hasRequest() || !uniformBuffer.hasRequest()) {} //wait
-
-		ERROR_VOLATILE(createRenderPass(*swapChainImageFormat));
-		ERROR_VOLATILE(constructPipelineLayout(*uniformBuffer));
+		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
+		ERROR_VOLATILE(constructPipelineLayout(uniformBuffer));
 
 		registerAlert("Successful Pipeline Creation!", INFO);
 	}
@@ -190,10 +189,10 @@ namespace StarryRender
 				return;
 			}
 			pipelineLayoutInfo.setLayoutCount = 1;
-			pipelineLayoutInfo.pSetLayouts = &ub->getDescriptorSetLayout();
+			pipelineLayoutInfo.pSetLayouts = &(ub->getDescriptorSetLayout());
 		}
 		else {
-			registerAlert("No or NULL Uniform Buffer Passed!", WARNING);
+			registerAlert("No or NULL Uniform Buffer Passed!", FATAL);
 			return;
 		}
 

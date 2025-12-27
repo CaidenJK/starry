@@ -5,9 +5,9 @@
 
 namespace StarryRender
 {
-    ImageTexture::ImageTexture(VkDevice& device) : device(device)
+    ImageTexture::ImageTexture()
     {
-
+        device = requestResource<VkDevice>("RenderDevice", "VkDevice");
     }
 
     ImageTexture::~ImageTexture()
