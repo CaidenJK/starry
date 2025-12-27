@@ -23,9 +23,9 @@ namespace StarryRender
 		}
 	}
 
-	void UniformBuffer::attachBuffer(VkPhysicalDevice& physicalDevice)
+	void UniformBuffer::attachBuffer()
 	{
-		createUniformBuffers(physicalDevice); ERROR_VOLATILE();
+		createUniformBuffers(); ERROR_VOLATILE();
 		createDescriptorSets();
 	}
 
@@ -48,13 +48,15 @@ namespace StarryRender
 		layoutInfo.bindingCount = 1;
 		layoutInfo.pBindings = &uboLayoutBinding;
 		
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		if (vkCreateDescriptorSetLayout(*device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
 			registerAlert("Failed to create descriptor set layout!", FATAL);
 		}
 	}
 
-	void UniformBuffer::createUniformBuffers(VkPhysicalDevice& physicalDevice)
+	void UniformBuffer::createUniformBuffers()
 	{
 		VkDeviceSize bufferSize = sizeof(buffer);
 
@@ -62,7 +64,9 @@ namespace StarryRender
 		uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 		uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 			createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 
@@ -83,7 +87,9 @@ namespace StarryRender
 
 		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		if (vkCreateDescriptorPool(*device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 			registerAlert("Failed to create descriptor pool!", FATAL);
 			return;
@@ -108,7 +114,9 @@ namespace StarryRender
 
 		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		if (vkAllocateDescriptorSets(*device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
 			registerAlert("Failed to allocate descriptor sets!", FATAL);
 			return;

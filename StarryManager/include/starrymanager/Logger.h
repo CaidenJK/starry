@@ -12,7 +12,7 @@
 	"-------------------------"
 
 
-namespace StarryAssets
+namespace StarryManager
 {
     class Logger : public StarryAsset {
     public:

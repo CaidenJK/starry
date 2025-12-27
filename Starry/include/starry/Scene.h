@@ -1,7 +1,7 @@
 #pragma once
 
 #include <StarryRender.h>
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include <vector>
 #include <memory>

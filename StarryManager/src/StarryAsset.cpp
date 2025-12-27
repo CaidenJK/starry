@@ -1,7 +1,7 @@
 #include "StarryAsset.h"
 #include "AssetManager.h"
 
-namespace StarryAssets
+namespace StarryManager
 {
 	std::mt19937_64 StarryAsset::randomGen = std::mt19937_64(std::time(nullptr));
 

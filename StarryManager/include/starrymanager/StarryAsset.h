@@ -13,7 +13,7 @@
 
 #define INVALID_RESOURCE 400
 
-namespace StarryAssets
+namespace StarryManager
 {
 	template <typename T>
 	class ResourceHandle;

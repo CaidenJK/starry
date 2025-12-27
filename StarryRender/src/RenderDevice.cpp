@@ -486,7 +486,7 @@ namespace StarryRender
 		EXTERN_ERROR(bufferRef);
 		uniformBuffer = bufferRef;
 		if (auto ub = uniformBuffer.lock()) {
-			ub->attachBuffer(physicalDevice);
+			ub->attachBuffer();
 			EXTERN_ERROR(ub);
 		} else {
 			registerAlert("Uniform buffer reference is expired!", FATAL);

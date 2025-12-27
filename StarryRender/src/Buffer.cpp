@@ -21,7 +21,9 @@ namespace StarryRender
 		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		if (vkCreateBuffer(*device, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) {
 			registerAlert("Failed to create buffer!", FATAL);
 			return;
@@ -34,8 +36,10 @@ namespace StarryRender
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
 
-        physicalDevice.wait();
-		allocInfo.memoryTypeIndex = findMemoryType(*physicalDevice, memRequirements.memoryTypeBits, properties);
+        if (physicalDevice.wait() != ResourceState::YES) {
+			registerAlert("Physical Device died before it was ready to be used.", FATAL);
+		}
+		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
 		if (vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
 			registerAlert("Failed to allocate buffer memory!", FATAL);
@@ -45,14 +49,17 @@ namespace StarryRender
 		vkBindBufferMemory(*device, buffer, bufferMemory, 0);
 	}
 
-	uint32_t Buffer::findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties)
+	uint32_t Buffer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 	{
-		if (physicalDevice == VK_NULL_HANDLE) {
+		if (physicalDevice.wait() != ResourceState::YES) {
+			registerAlert("Physical Device died before it was ready to be used.", FATAL);
+		}
+		if (*physicalDevice == VK_NULL_HANDLE) {
 			registerAlert("Vulkan physical device null! Can't find memory type.", FATAL);
 			return 0;
 		}
 		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+		vkGetPhysicalDeviceMemoryProperties(*physicalDevice, &memProperties);
 
 		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -74,7 +81,9 @@ namespace StarryRender
 
 		VkCommandBuffer commandBuffer;
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		vkAllocateCommandBuffers(*device, &allocInfo, &commandBuffer);
 
 		VkCommandBufferBeginInfo beginInfo{};

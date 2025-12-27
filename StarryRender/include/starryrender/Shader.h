@@ -7,7 +7,7 @@
 #include <vector>
 #include <array>
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 namespace StarryRender 
 {

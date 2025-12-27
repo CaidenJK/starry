@@ -3,7 +3,7 @@
 #include <vector>
 #include <format>
 
-namespace StarryAssets
+namespace StarryManager
 {
     std::atomic<bool> AssetManager::isDead = false;
     std::shared_ptr<AssetManager> AssetManager::globalPointer = nullptr;

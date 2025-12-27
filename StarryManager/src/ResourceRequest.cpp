@@ -1,6 +1,6 @@
-#include "AssetManager.h"
+#include "Resource.h"
 
-namespace StarryAssets
+namespace StarryManager
 {
     ResourceRequest::ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID) :
     callerUUID(callerUUID), senderUUID(senderUUID), resourceID(resourceID)

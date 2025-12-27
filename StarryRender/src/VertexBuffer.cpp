@@ -122,7 +122,9 @@ namespace StarryRender
 		copyBuffer(commandPool, graphicsQueue, stagingBufferVertex, vertexBuffer, bufferSizeVertex);
 		copyBuffer(commandPool, graphicsQueue, stagingBufferIndex, indexBuffer, bufferSizeIndex);
 		
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		vkDestroyBuffer(*device, stagingBufferVertex, nullptr);
 		vkFreeMemory(*device, stagingBufferMemoryVertex, nullptr);
 		stagingBufferVertex = VK_NULL_HANDLE;
@@ -147,7 +149,9 @@ namespace StarryRender
 
 		void* data;
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		vkMapMemory(*device, bufferMemory, 0, bufferSizeVertex, 0, &data);
 		memcpy(data, vertices.data(), (size_t)bufferSizeVertex);
 		vkUnmapMemory(*device, bufferMemory);
@@ -166,7 +170,9 @@ namespace StarryRender
 
 		void* data;
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+		}
 		vkMapMemory(*device, bufferMemory, 0, bufferSizeIndex, 0, &data);
 		memcpy(data, indices.data(), (size_t)bufferSizeIndex);
 		vkUnmapMemory(*device, bufferMemory);

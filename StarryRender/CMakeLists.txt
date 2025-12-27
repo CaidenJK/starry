@@ -35,16 +35,14 @@ set_target_properties(StarryRender PROPERTIES
   OUTPUT_NAME "StarryRender"
 )
 
-set(STARRY_ASSET_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../StarryAsset/include")
-
 # Gather Dependency Include Directories
 target_include_directories(StarryRender
   PUBLIC
     ${INCLUDE_DIR}
-    ${STARRY_ASSET_INCLUDE}
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}
     ${Vulkan_INCLUDE_DIRS}
     "${CMAKE_SOURCE_DIR}/External/STB_Image"
+    ${CMAKE_CURRENT_SOURCE_DIR}/../StarryManager/include
 )
