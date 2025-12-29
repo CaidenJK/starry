@@ -20,7 +20,7 @@ if (POLICY CMP0141)
 endif()
 
 # Project Name and Language
-project ("StarryApp" VERSION 0.0.1 LANGUAGES C CXX) 
+project ("StarryApp" VERSION 0.0.1 LANGUAGES C CXX)
 
 add_subdirectory("Starry")
 find_package(Starry)
