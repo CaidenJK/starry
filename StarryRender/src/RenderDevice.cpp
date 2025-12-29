@@ -96,18 +96,16 @@ namespace StarryRender
 			vkDestroyFence(device, inFlightFence, nullptr);
 		}
 
-		vkDestroyDevice(device, nullptr);
+		vkDestroyDevice(device, nullptr); // ---- DEVICE DESTRUCTION ----
 
 		if (enableValidationLayers) {
 			DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 		}
 		vkDestroySurfaceKHR(instance, surface, nullptr);
 
-		vkDestroyInstance(instance, nullptr);
+		vkDestroyInstance(instance, nullptr); // ---- INSTANCE DESTRUCTION ----
 
 		delete debugger;
-
-		uniformBuffer = {};
 	}
 
 	std::optional<void*> RenderDevice::getResource(size_t resourceID)
