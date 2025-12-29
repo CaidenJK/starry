@@ -120,9 +120,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 # Link Libraries
-target_link_libraries(Starry PRIVATE REQUIRED glm)
-target_link_libraries(Starry PRIVATE REQUIRED glfw)
-target_link_libraries(Starry PRIVATE REQUIRED Vulkan::Vulkan)
+target_link_libraries(Starry PRIVATE glm)
+target_link_libraries(Starry PRIVATE glfw)
+target_link_libraries(Starry PRIVATE Vulkan::Vulkan)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   find_library(IOSURFACE_FRAMEWORK IOSurface)
   target_link_libraries(Starry PRIVATE ${IOSURFACE_FRAMEWORK})
