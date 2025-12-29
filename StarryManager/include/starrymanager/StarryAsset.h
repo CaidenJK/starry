@@ -13,7 +13,7 @@
 
 #define INVALID_RESOURCE 400
 
-namespace StarryAssets
+namespace StarryManager
 {
 	template <typename T>
 	class ResourceHandle;
@@ -22,8 +22,8 @@ namespace StarryAssets
 	public:
 		virtual ~StarryAsset();
 
-		StarryAsset(const StarryAsset& other) = delete;
-		StarryAsset& operator=(const StarryAsset& other) = delete;
+		StarryAsset(const StarryAsset& other) = default;
+		StarryAsset& operator=(const StarryAsset& other) = default;
 		// TODO: Custom copy method
 
 		StarryAsset(StarryAsset&& other) noexcept;

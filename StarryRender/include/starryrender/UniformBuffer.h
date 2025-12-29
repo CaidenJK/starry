@@ -8,7 +8,7 @@
 
 #include "glm/glm.hpp"
 
-#include <StarryAsset.h>
+#include "Buffer.h"
 
 #define MAX_FRAMES_IN_FLIGHT 2
 
@@ -20,13 +20,13 @@ namespace StarryRender
 		glm::mat4 proj;
 	};
 
-	class UniformBuffer : public StarryAsset
+	class UniformBuffer : public Buffer
 	{
 	public:
 		UniformBuffer();
 		~UniformBuffer();
 
-		void attachBuffer(VkPhysicalDevice& physicalDevice); // TODO: fix this whole mess
+		void attachBuffer(); // TODO: fix this whole mess
 
 		UniformBufferData& getBuffer() { return buffer; }
 		void setBuffer(const UniformBufferData& ubo) { buffer = ubo; }
@@ -39,7 +39,7 @@ namespace StarryRender
 		const std::string getAssetName() override { return "Uniform Buffer"; }
 	private:
 		void createDescriptorSetLayout();
-		void createUniformBuffers(VkPhysicalDevice& physicalDevice);
+		void createUniformBuffers();
 		void createDescriptorPool();
 		void createDescriptorSets();
 
@@ -53,10 +53,5 @@ namespace StarryRender
 
 		VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 		std::vector<VkDescriptorSet> descriptorSets;
-
-		void createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-		uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
-		ResourceHandle<VkDevice> device;
-
 	};
 }

@@ -1,6 +1,7 @@
 #include <Starry.h>
 
 int main() {
+    Starry::Application::setManagerExitRights(true);
     Starry::Application::enableFileLogging(true);
 
     Starry::Application app;

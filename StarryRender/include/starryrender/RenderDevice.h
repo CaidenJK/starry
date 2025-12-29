@@ -7,7 +7,7 @@
 #include <string>
 #include <memory>
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include "Window.h"
 #include "RenderPipeline.h"
@@ -64,9 +64,12 @@ namespace StarryRender
 
 		enum SharedResources {
 			VK_DEVICE = 0,
-			SWAP_CHAIN_IMAGE_FORMAT = 1,
-			UNIFORM_BUFFER = 2,
-			WINDOW_REFERENCE = 3
+			VK_PHYSICAL_DEVICE = 1,
+			SWAP_CHAIN_IMAGE_FORMAT = 2,
+			UNIFORM_BUFFER = 3,
+			WINDOW_REFERENCE = 4,
+			COMMAND_POOL = 5,
+			GRAPHICS_QUEUE = 6
 		};
 
 		std::optional<void*> getResource(size_t resourceID) override;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <StarryRender.h>
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include <memory>
 
@@ -26,6 +26,7 @@ namespace Starry
         bool hasFatalError();
 
         static void enableFileLogging(bool value) { AssetManager::get().lock()->setFileLogging(value); }
+        static void setManagerExitRights(bool value) { AssetManager::get().lock()->setExitRights(value); }
 
 		const std::string getAssetName() override { return "Application"; }
 

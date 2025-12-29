@@ -112,17 +112,33 @@ namespace StarryRender
 
 	std::optional<void*> RenderDevice::getResource(size_t resourceID)
 	{
-		if (resourceID == SharedResources::VK_DEVICE) {
+		if (resourceID == SharedResources::VK_DEVICE &&
+			device != VK_NULL_HANDLE) {
 			return (void*)&device;
 		}
-		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT) {
+		if (resourceID == SharedResources::VK_PHYSICAL_DEVICE &&
+			physicalDevice != VK_NULL_HANDLE) {
+				return (void*)&physicalDevice;
+			}
+		if (resourceID == SharedResources::SWAP_CHAIN_IMAGE_FORMAT &&
+			swapChain != nullptr) {
 			return (void*)&(swapChain->getImageFormat());
 		}
-		if (resourceID == SharedResources::UNIFORM_BUFFER) {
+		if (resourceID == SharedResources::UNIFORM_BUFFER &&
+			!uniformBuffer.expired()) {
 			return (void*)&uniformBuffer;
 		}
-		if (resourceID == SharedResources::WINDOW_REFERENCE) {
+		if (resourceID == SharedResources::WINDOW_REFERENCE &&
+			!windowReference.expired()) {
 			return (void*)&windowReference;
+		}
+		if (resourceID == SharedResources::COMMAND_POOL &&
+			commandPool != VK_NULL_HANDLE) {
+			return (void*)&commandPool;
+		}
+		if (resourceID == SharedResources::GRAPHICS_QUEUE &&
+			graphicsQueue != VK_NULL_HANDLE) {
+			return (void*)&graphicsQueue;
 		}
 		registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
 		return {};
@@ -133,6 +149,9 @@ namespace StarryRender
 		if (resourceName.compare("VkDevice") == 0) {
 			return SharedResources::VK_DEVICE;
 		}
+		if (resourceName.compare("Physical Device") == 0) {
+			return SharedResources::VK_PHYSICAL_DEVICE;
+		}
 		if (resourceName.compare("Swapchain Image Format") == 0) {
 			return SharedResources::SWAP_CHAIN_IMAGE_FORMAT;
 		}
@@ -141,6 +160,12 @@ namespace StarryRender
 		}
 		if (resourceName.compare("Window") == 0) {
 			return SharedResources::WINDOW_REFERENCE;
+		}
+		if (resourceName.compare("Command Pool") == 0) {
+			return SharedResources::COMMAND_POOL;
+		}
+		if (resourceName.compare("Graphics Queue") == 0) {
+			return SharedResources::GRAPHICS_QUEUE;
 		}
 		return INVALID_RESOURCE;
 	}
@@ -478,7 +503,7 @@ namespace StarryRender
 		EXTERN_ERROR(bufferRef);
 		uniformBuffer = bufferRef;
 		if (auto ub = uniformBuffer.lock()) {
-			ub->attachBuffer(physicalDevice);
+			ub->attachBuffer();
 			EXTERN_ERROR(ub);
 		} else {
 			registerAlert("Uniform buffer reference is expired!", FATAL);
@@ -794,7 +819,7 @@ namespace StarryRender
 		};
 
 		vertexBuffer->loadData(vertices, indices);
-		vertexBuffer->loadBufferToMemory(physicalDevice, commandPool, graphicsQueue);
+		vertexBuffer->loadBufferToMemory();
 	}
 
 	void RenderDevice::LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef) 
@@ -810,7 +835,7 @@ namespace StarryRender
 		vertexBuffer.reset();
 		vertexBuffer = bufferRef;
 
-		vertexBuffer->loadBufferToMemory(physicalDevice, commandPool, graphicsQueue);
+		vertexBuffer->loadBufferToMemory();
 	}
 
 	void RenderDevice::WaitIdle() 

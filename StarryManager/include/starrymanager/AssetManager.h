@@ -2,124 +2,15 @@
 
 #include "StarryAsset.h"
 #include "Logger.h"
+#include "Resource.h"
 
 #include <optional>
 #include <unordered_map>
-#include <typeindex>
 
 #include <iostream>
 
-namespace StarryAssets
+namespace StarryManager
 {
-    class AssetManager;
-    
-    // Sender side API
-    struct ResourceRequest
-    {
-        friend class AssetManager;
-        
-        enum ResourceState
-        {
-            YES, // success
-            NO, // waiting
-            DEAD, // termination for sender
-            STALE // termination for caller
-        };
-
-        const uint64_t resourceID; 
-
-        std::mutex mutex;
-        ResourceState resourceState = NO;
-        void* resource = nullptr;
-
-        const uint64_t callerUUID; // Might not need
-        const uint64_t senderUUID;
-        
-        private:
-            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID);
-
-            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id);
-    };
-
-    // Caller side API
-    template<typename T>
-    class ResourceHandle
-    {
-        friend class AssetManager;
-    public:
-        ResourceHandle() = default; // empty handle
-        ~ResourceHandle()
-        {
-            if (requestPointer && requestPointer.use_count() == 1) {
-                std::scoped_lock lock(requestPointer->mutex);
-                requestPointer->resourceState = ResourceRequest::STALE;
-            }
-        }
-
-        ResourceHandle(const ResourceHandle& handle) noexcept
-        {
-            requestPointer = handle.requestPointer;
-            resourcePointer = handle.resourcePointer;
-        }
-
-        ResourceHandle& operator=(const ResourceHandle& handle) noexcept
-        {
-            requestPointer = handle.requestPointer;
-            resourcePointer = handle.resourcePointer;
-
-            return *this;
-        }
-
-        std::optional<T*> get()
-        {
-            std::scoped_lock lock(requestPointer->mutex);
-            if (requestPointer->resourceState == ResourceRequest::YES) return resourcePointer;
-            return {};
-        }
-
-        ResourceRequest::ResourceState request()
-        {
-            std::scoped_lock lock(requestPointer->mutex);
-            auto state = requestPointer->resourceState;
-            if (state == ResourceRequest::YES && resourcePointer == nullptr) {
-                resourcePointer = static_cast<T*>(requestPointer->resource); // Need type checking
-
-                if (resourcePointer == nullptr) {
-                    requestPointer->resourceState = ResourceRequest::STALE;
-                    return ResourceRequest::STALE;
-                }
-            }
-            return state;
-        }
-
-        bool hasRequest()
-        {
-            return request() == ResourceRequest::ResourceState::YES;
-        }
-
-        volatile void wait() {
-            bool isReady = false;
-            while (!isReady) isReady = hasRequest();
-
-            return;
-        }
-
-        T& operator*()
-        {
-            return *(get().value());
-        }
-
-        explicit operator bool() {
-            return hasRequest();
-        }
-
-    private:
-        ResourceHandle(std::shared_ptr<ResourceRequest> reference) : requestPointer(reference) {}
-
-        std::shared_ptr<ResourceRequest> requestPointer = {};
-        T* resourcePointer = nullptr;
-    };
-
     class AssetManager : public StarryAsset
     {
         public:
@@ -137,6 +28,7 @@ namespace StarryAssets
             bool isFatal() { return hasFatal.load(); }
 
             void setFileLogging(bool value) { logger->setFileLogging(value); }
+            void setExitRights(bool value) { hasExitRights.store(value); }
 
             template <typename T>
             ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, size_t resourceID)
@@ -173,6 +65,7 @@ namespace StarryAssets
                 if (asset == registeredAssets.end()) size_t resourceID = asset->second->getResourceIDFromString(resourceName);
                 registeryMutex.unlock();
                 resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
+                if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }
@@ -188,6 +81,8 @@ namespace StarryAssets
                         size_t resourceID = it.second->getResourceIDFromString(resourceName);
                         registeryMutex.unlock();
                         resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID));
+                        if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
+
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }
@@ -203,6 +98,8 @@ namespace StarryAssets
 
             void findResources(std::shared_ptr<ResourceRequest>& request);
 
+            std::atomic<bool> hasExitRights = false;
+
             Logger* logger;
 
             std::mutex registeryMutex;
@@ -217,6 +114,8 @@ namespace StarryAssets
 
             std::atomic<bool> hasFatal = false;
             static std::atomic<bool> isDead;
+
+            Logger::AssetCall getFatalAlert();
     };
 
     template <typename T>

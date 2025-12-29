@@ -18,7 +18,10 @@ namespace StarryRender
 			return;
 		}
 
-		swapChainImageFormat.wait(), uniformBuffer.wait();
+		if (swapChainImageFormat.wait() != ResourceState::YES || uniformBuffer.wait() != ResourceState::YES) {
+			registerAlert("Resources died before they were ready to be used.", FATAL);
+			return;
+		}
 		constructPipeline(*swapChainImageFormat, *uniformBuffer);
 	}
 
@@ -89,7 +92,11 @@ namespace StarryRender
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
+
 		if (vkCreateRenderPass(*device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 			registerAlert("Failed to create render pass!", FATAL);
 			return;
@@ -191,7 +198,11 @@ namespace StarryRender
 			pipelineLayoutInfo.setLayoutCount = 1;
 			pipelineLayoutInfo.pSetLayouts = &(ub->getDescriptorSetLayout());
 
-			device.wait();
+			if (device.wait() != ResourceState::YES) {
+				registerAlert("Device died before it was ready to be used.", FATAL);
+				return;
+			}
+
 			if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 				registerAlert("Failed to create pipeline layout!", FATAL);
 				return;
@@ -224,7 +235,10 @@ namespace StarryRender
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
-		device.wait();
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
 		if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 			registerAlert("Failed to create graphics pipeline!", FATAL);
 			return;
