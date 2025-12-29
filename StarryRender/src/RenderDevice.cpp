@@ -80,6 +80,7 @@ namespace StarryRender
 	{
 		pipeline.reset();
 		swapChain.reset();
+		descriptor.reset();
 
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
@@ -123,9 +124,9 @@ namespace StarryRender
 			swapChain != nullptr) {
 			return (void*)&(swapChain->getImageFormat());
 		}
-		if (resourceID == SharedResources::UNIFORM_BUFFER &&
-			!uniformBuffer.expired()) {
-			return (void*)&uniformBuffer;
+		if (resourceID == SharedResources::DESCRIPTOR &&
+			descriptor != nullptr) {
+			return (void*)&descriptor;
 		}
 		if (resourceID == SharedResources::WINDOW_REFERENCE &&
 			!windowReference.expired()) {
@@ -139,6 +140,7 @@ namespace StarryRender
 			graphicsQueue != VK_NULL_HANDLE) {
 			return (void*)&graphicsQueue;
 		}
+
 		registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
 		return {};
 	}
@@ -154,8 +156,8 @@ namespace StarryRender
 		if (resourceName.compare("Swapchain Image Format") == 0) {
 			return SharedResources::SWAP_CHAIN_IMAGE_FORMAT;
 		}
-		if (resourceName.compare("Uniform Buffer") == 0) {
-			return SharedResources::UNIFORM_BUFFER;
+		if (resourceName.compare("Descriptor") == 0) {
+			return SharedResources::DESCRIPTOR;
 		}
 		if (resourceName.compare("Window") == 0) {
 			return SharedResources::WINDOW_REFERENCE;
@@ -184,6 +186,8 @@ namespace StarryRender
 		ERROR_VOLATILE(createLogicalDevice());
 	
 		ERROR_VOLATILE(createSwapChain());
+
+		descriptor = std::make_shared<Descriptor>();
 	}
 
 	void RenderDevice::setupDebugMessenger() 
@@ -502,8 +506,8 @@ namespace StarryRender
 		EXTERN_ERROR(bufferRef);
 		uniformBuffer = bufferRef;
 		if (auto ub = uniformBuffer.lock()) {
-			ub->attachBuffer();
 			EXTERN_ERROR(ub);
+			descriptor->createSets(ub->getUUID());
 		} else {
 			registerAlert("Uniform buffer reference is expired!", FATAL);
 			return;
@@ -695,8 +699,8 @@ namespace StarryRender
 
 		if (auto ub = uniformBuffer.lock()) {
 			ub->updateUniformBuffer(currentFrame);
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getPipelineLayout(), 0, 1, &(ub->getDescriptorSet(currentFrame)), 0, nullptr);
 		}
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getPipelineLayout(), 0, 1, &(descriptor->getDescriptorSet(currentFrame)), 0, nullptr);
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;

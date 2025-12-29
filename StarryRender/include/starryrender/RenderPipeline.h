@@ -11,7 +11,7 @@
 
 #include "VertexBuffer.h"
 #include "Shader.h"
-#include "UniformBuffer.h"
+#include "Descriptor.h"
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
@@ -34,9 +34,9 @@ namespace StarryRender
 		const std::string getAssetName() override { return "Pipeline"; }
 
 	private:
-		void constructPipeline(VkFormat& swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer);
+		void constructPipeline(VkFormat& swapChainImageFormat, std::shared_ptr<Descriptor>& descriptor);
 		void createRenderPass(VkFormat swapChainImageFormat);
-		void constructPipelineLayout(std::weak_ptr<UniformBuffer>& uniformBuffer);
+		void constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor);
 
 		VkPipelineVertexInputStateCreateInfo createVertexInputInfo();
 

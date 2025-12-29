@@ -14,6 +14,7 @@
 #include "SwapChain.h"
 #include "VertexBuffer.h"
 #include "UniformBuffer.h"
+#include "Descriptor.h"
 
 #define DEFAULT_NAME "My Starry App"
 
@@ -65,9 +66,9 @@ namespace StarryRender
 		enum SharedResources {
 			VK_DEVICE = 0,
 			VK_PHYSICAL_DEVICE = 1,
-			SWAP_CHAIN_IMAGE_FORMAT = 2,
-			UNIFORM_BUFFER = 3,
-			WINDOW_REFERENCE = 4,
+			SWAP_CHAIN_IMAGE_FORMAT = 2, // Maybe change
+			DESCRIPTOR = 3,
+			WINDOW_REFERENCE = 4, // Maybe change
 			COMMAND_POOL = 5,
 			GRAPHICS_QUEUE = 6
 		};
@@ -163,6 +164,8 @@ namespace StarryRender
 		// Dyno resolution
 		VkExtent2D drawExtent = {};
 		float renderScale = 1.0f;
+
+		std::shared_ptr<Descriptor> descriptor = nullptr;
 
 		std::weak_ptr<VertexBuffer> vertexBuffer = {};
 		std::weak_ptr<UniformBuffer> uniformBuffer = {};
