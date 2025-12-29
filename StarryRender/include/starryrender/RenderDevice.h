@@ -112,8 +112,6 @@ namespace StarryRender
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
-		void constructDefaultTriangle();
-
 		const char* name;
 		
 		std::vector<VkExtensionProperties> vkExtensions;
@@ -166,7 +164,7 @@ namespace StarryRender
 		VkExtent2D drawExtent = {};
 		float renderScale = 1.0f;
 
-		std::shared_ptr<VertexBuffer> vertexBuffer = nullptr;
+		std::weak_ptr<VertexBuffer> vertexBuffer = {};
 		std::weak_ptr<UniformBuffer> uniformBuffer = {};
 
 		VkPhysicalDeviceMemoryProperties memProperties = {};

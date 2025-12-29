@@ -1,7 +1,7 @@
 #pragma once
 #include "Buffer.h"
 
-#include <stb_image.h>
+#include "../../external/STB_Image/stb_image.h" // FIX INCLUDE
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -10,11 +10,11 @@
 
 namespace StarryRender
 {
-	class ImageTexture : public Buffer
+	class ImageBuffer : public Buffer
 	{
 	public:
-		ImageTexture();
-		~ImageTexture();
+		ImageBuffer();
+		~ImageBuffer();
 
 		void loadImageFromFile(std::string filePath);
 
@@ -25,7 +25,8 @@ namespace StarryRender
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
         VkImage& image, VkDeviceMemory& imageMemory);
 
-		void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+		void transitionImageLayout(VkImage& image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+		void copyBufferToImage(VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height);
 
 		int texWidth = 0;
 		int texHeight = 0;
@@ -36,5 +37,8 @@ namespace StarryRender
 
 		VkImage textureImage;
 		VkDeviceMemory textureImageMemory;
+
+		VkBuffer stagingBuffer;
+        VkDeviceMemory stagingBufferMemory;
 	};
 }

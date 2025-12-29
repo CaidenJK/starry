@@ -114,35 +114,9 @@ namespace StarryRender {
 		m_window = std::make_shared<Window>("Starry Dev"); ERROR_CHECK;
 	}
 
-	std::shared_ptr<UniformBuffer> RenderContext::createUniformBuffer() 
-	{
-		if (m_renderDevice == nullptr) {
-			registerAlert("Render device not initialized before creating uniform buffer!", CRITICAL);
-			return nullptr;
-		}
-		auto uniformBuffer = std::make_shared<UniformBuffer>();
-		if (uniformBuffer->getAlertSeverity() == StarryAsset::FATAL) {
-			return nullptr;
-		}
-		return uniformBuffer;
-	}
-
 	void RenderContext::updateUniformBuffer(UniformBufferData& buffer) 
 	{
 		m_uniformBuffer->setBuffer(buffer);
-	}
-
-	std::shared_ptr<VertexBuffer> RenderContext::createVertexBuffer() 
-	{
-		if (m_renderDevice == nullptr) {
-			registerAlert("Render device not initialized before creating vertex buffer!", CRITICAL);
-			return nullptr;
-		}
-		auto vertexBuffer = std::make_shared<VertexBuffer>();
-		if (vertexBuffer->getAlertSeverity() == StarryAsset::FATAL) {
-			return nullptr;
-		}
-		return vertexBuffer;
 	}
 
 	void RenderContext::initRenderDevice() 
@@ -160,7 +134,7 @@ namespace StarryRender {
 		}
 
 		if (m_uniformBuffer == nullptr) {
-			m_uniformBuffer = createUniformBuffer();
+			m_uniformBuffer = std::make_shared<UniformBuffer>();
 		}
 		m_renderDevice->loadUniformBuffer(m_uniformBuffer);
 		

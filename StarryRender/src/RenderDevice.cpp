@@ -80,7 +80,6 @@ namespace StarryRender
 	{
 		pipeline.reset();
 		swapChain.reset();
-		vertexBuffer.reset();
 
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
@@ -678,13 +677,21 @@ namespace StarryRender
 
 		// Start of recording
 		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->getGraphicsPipeline());
+		
+		size_t numberOfIndices = 0;
+		if (auto vb = vertexBuffer.lock()) {
+			VkBuffer vertexBuffers[] = { vb->getVertexBuffer() };
+			VkDeviceSize offsets[] = { 0 };
+			vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-		if (vertexBuffer == nullptr) { constructDefaultTriangle(); }
-		VkBuffer vertexBuffers[] = { vertexBuffer->getVertexBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+			vkCmdBindIndexBuffer(commandBuffer, vb->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
-		vkCmdBindIndexBuffer(commandBuffer, vertexBuffer->getIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			numberOfIndices = vb->getNumIndices();
+		}
+		else {
+			registerAlert("Draw was called before loading a valid/alive Vertex Buffer.", CRITICAL);
+			return;
+		}
 
 		if (auto ub = uniformBuffer.lock()) {
 			ub->updateUniformBuffer(currentFrame);
@@ -705,7 +712,7 @@ namespace StarryRender
 		scissor.extent = swapChain->getExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(vertexBuffer->getNumIndices()), 1, 0, 0, 0);
+		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(numberOfIndices), 1, 0, 0, 0);
 		// End
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -800,29 +807,7 @@ namespace StarryRender
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
-	void RenderDevice::constructDefaultTriangle() 
-	{
-		if (physicalDevice == VK_NULL_HANDLE || commandPool == VK_NULL_HANDLE || graphicsQueue == VK_NULL_HANDLE) {
-			registerAlert("Render device not fully initialized! Can't create default triangle.", FATAL);
-			return;
-		}
-		vertexBuffer.reset();
-		vertexBuffer = std::make_shared<VertexBuffer>();
-
-		std::vector<Vertex> vertices = {
-			{{0.0f, -0.5f, 0.0f}, RED_COLOR},
-			{{-0.5f, 0.5f, 0.0f}, BLUE_COLOR},
-			{{ 0.5f, 0.5f, 0.0f}, GREEN_COLOR}
-		};
-		std::vector<uint32_t> indices = {
-			0, 1, 2
-		};
-
-		vertexBuffer->loadData(vertices, indices);
-		vertexBuffer->loadBufferToMemory();
-	}
-
-	void RenderDevice::LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef) 
+	void RenderDevice::LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef)
 	{
 		if (bufferRef == nullptr) {
 			registerAlert("Vertex buffer reference was null and was not set!", CRITICAL);
@@ -832,10 +817,9 @@ namespace StarryRender
 			registerAlert("Render device not fully initialized! Can't load buffer to memory.", FATAL);
 			return;
 		}
-		vertexBuffer.reset();
-		vertexBuffer = bufferRef;
+		bufferRef->loadBufferToMemory();
 
-		vertexBuffer->loadBufferToMemory();
+		vertexBuffer = bufferRef;
 	}
 
 	void RenderDevice::WaitIdle() 
@@ -864,7 +848,7 @@ namespace StarryRender
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-		void* pUserData) 
+		void* pUserData)
 	{
 		if (debugger == nullptr) return VK_FALSE;
 
