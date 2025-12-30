@@ -9,8 +9,7 @@
 #include "glm/glm.hpp"
 
 #include "Buffer.h"
-
-#define MAX_FRAMES_IN_FLIGHT 2
+#include "Descriptor.h"
 
 namespace StarryRender 
 {
@@ -33,25 +32,22 @@ namespace StarryRender
 
 		void updateUniformBuffer(uint32_t currentFrame);
 
-		VkDescriptorSetLayout& getDescriptorSetLayout() { return descriptorSetLayout; }
-		VkDescriptorSet& getDescriptorSet(uint32_t index) { return descriptorSets[index]; }
+		enum SharedResources 
+		{
+			VK_BUFFERS = 0
+		};
+
+		std::optional<void*> getResource(size_t resourceID) override;
+		size_t getResourceIDFromString(std::string resourceName) override;
 
 		const std::string getAssetName() override { return "Uniform Buffer"; }
 	private:
-		void createDescriptorSetLayout();
 		void createUniformBuffers();
-		void createDescriptorPool();
-		void createDescriptorSets();
 
 		UniformBufferData buffer;
 
 		std::vector<VkBuffer> uniformBuffers;
 		std::vector<VkDeviceMemory> uniformBuffersMemory;
 		std::vector<void*> uniformBuffersMapped;
-
-		VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-
-		VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> descriptorSets;
 	};
 }

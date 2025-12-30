@@ -29,11 +29,8 @@ namespace Starry
 			registerAlert("Cannot register empty mesh buffer!", FATAL);
 			return;
 		}
-		vertexBuffer = renderContext->createVertexBuffer();
-		if (vertexBuffer == nullptr) {
-			registerAlert("Vertex Buffer NULL! Render Context is uninitilized.", FATAL);
-			return;
-		}
+		vertexBuffer = std::make_shared<VertexBuffer>();
+
 		vertexBuffer->loadData(vertices, indices);
 		renderContext->loadVertexBuffer(vertexBuffer);
 	}
@@ -44,11 +41,8 @@ namespace Starry
 			registerAlert("Cannot register empty mesh buffer!", FATAL);
 			return;
 		}
-		vertexBuffer = renderContext->createVertexBuffer();
-		if (vertexBuffer == nullptr) {
-			registerAlert("Vertex Buffer NULL! Render Context is uninitilized.", FATAL);
-			return;
-		}
+		vertexBuffer = std::make_shared<VertexBuffer>();
+
 		vertexBuffer->loadData(vertices, indices);
 		renderContext->loadVertexBuffer(vertexBuffer);
 	}

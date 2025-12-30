@@ -7,5 +7,6 @@ using Vertex = StarryRender::Vertex;
 using VertexBuffer = StarryRender::VertexBuffer;
 using UniformBufferData = StarryRender::UniformBufferData;
 using UniformBuffer = StarryRender::UniformBuffer;
+using ImageBuffer = StarryRender::ImageBuffer;
 
 using RenderContext = StarryRender::RenderContext;

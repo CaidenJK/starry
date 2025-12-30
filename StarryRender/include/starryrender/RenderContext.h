@@ -6,6 +6,7 @@
 #include "RenderDevice.h"
 #include "UniformBuffer.h"
 #include "VertexBuffer.h"
+#include "ImageBuffer.h"
 
 #define DEFAULT_SHADER_PATHS {}
 
@@ -34,12 +35,12 @@ namespace StarryRender
 		void loadShaders(const std::string& vertShaderPath, const std::string& fragShaderPath);
 		void loadShaders(std::array<std::string, 2>& shaders);
 		
-		std::shared_ptr<VertexBuffer> createVertexBuffer();
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer);
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index);
 		void clearVertexBuffers() { m_vertexBuffers.clear(); }
-		
-		std::shared_ptr<UniformBuffer> createUniformBuffer();
+
+		void loadImageBuffer(std::shared_ptr<ImageBuffer>& imageBuffer);
+
 		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer);
 		void updateUniformBuffer(UniformBufferData& buffer);
 

@@ -187,7 +187,7 @@ namespace StarryManager
 		
 		registerAlert("Logger: Asset Dump - Total = " + std::to_string(registeredAssetsSize) + "\n", INFO);
 		for (int i = 0; i < pointerArray.size(); i++) {
-			registerAlert("  Id = " + idArray[i] + ", Address = " + pointerArray[i] + ", Name = " + nameArray[i] + "\n", INFO);
+			registerAlert(std::string("  Id = ") + idArray[i] + ", Address = " + pointerArray[i] + ", Name = " + nameArray[i] + "\n", INFO);
 		}
 		logger->toFlushCalls();
 	}

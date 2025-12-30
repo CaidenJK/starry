@@ -5,8 +5,8 @@ namespace StarryRender
 	RenderPipeline::RenderPipeline(std::shared_ptr<Shader>& shaderValue)
 	{
 		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
-		ResourceHandle<VkFormat> swapChainImageFormat = requestResource<VkFormat>("RenderDevice", "Swapchain Image Format");
-		ResourceHandle<std::weak_ptr<UniformBuffer>> uniformBuffer = requestResource<std::weak_ptr<UniformBuffer>>("RenderDevice", "Uniform Buffer");
+		auto swapChainImageFormat = requestResource<VkFormat>("RenderDevice", "Swapchain Image Format");
+		auto descriptor = requestResource<std::shared_ptr<Descriptor>>("RenderDevice", "Descriptor");
 
 		shader = shaderValue;
 		if (shader == nullptr) {
@@ -18,11 +18,11 @@ namespace StarryRender
 			return;
 		}
 
-		if (swapChainImageFormat.wait() != ResourceState::YES || uniformBuffer.wait() != ResourceState::YES) {
+		if (swapChainImageFormat.wait() != ResourceState::YES || descriptor.wait() != ResourceState::YES) {
 			registerAlert("Resources died before they were ready to be used.", FATAL);
 			return;
 		}
-		constructPipeline(*swapChainImageFormat, *uniformBuffer);
+		constructPipeline(*swapChainImageFormat, *descriptor);
 	}
 
 	RenderPipeline::~RenderPipeline() 
@@ -39,7 +39,7 @@ namespace StarryRender
 		}
 	}
 
-	void RenderPipeline::constructPipeline(VkFormat& swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer)
+	void RenderPipeline::constructPipeline(VkFormat& swapChainImageFormat, std::shared_ptr<Descriptor>& descriptor)
 	{
 		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
 			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
@@ -47,7 +47,7 @@ namespace StarryRender
 		}
 
 		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
-		ERROR_VOLATILE(constructPipelineLayout(uniformBuffer));
+		ERROR_VOLATILE(constructPipelineLayout(descriptor));
 
 		registerAlert("Successful Pipeline Creation!", INFO);
 	}
@@ -103,7 +103,7 @@ namespace StarryRender
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout(std::weak_ptr<UniformBuffer>& uniformBuffer)
+	void RenderPipeline::constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor)
 	{
 		// Verts
 		auto bindingDescription = Vertex::getBindingDescriptions();
@@ -190,26 +190,20 @@ namespace StarryRender
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-		if (auto ub = uniformBuffer.lock()) {
-			if (ub->getDescriptorSetLayout() == VK_NULL_HANDLE) {
-				registerAlert("Uniform buffer has error before pipeline construction!", FATAL);
-				return;
-			}
-			pipelineLayoutInfo.setLayoutCount = 1;
-			pipelineLayoutInfo.pSetLayouts = &(ub->getDescriptorSetLayout());
-
-			if (device.wait() != ResourceState::YES) {
-				registerAlert("Device died before it was ready to be used.", FATAL);
-				return;
-			}
-
-			if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-				registerAlert("Failed to create pipeline layout!", FATAL);
-				return;
-			}
+		if (descriptor->getDescriptorSetLayout() == VK_NULL_HANDLE) {
+			registerAlert("Descriptor has error before pipeline construction!", FATAL);
+			return;
 		}
-		else {
-			registerAlert("No or NULL Uniform Buffer Passed!", FATAL);
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = &(descriptor->getDescriptorSetLayout());
+
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
+
+		if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+			registerAlert("Failed to create pipeline layout!", FATAL);
 			return;
 		}
 
