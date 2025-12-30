@@ -6,6 +6,7 @@
 
 #include <optional>
 #include <unordered_map>
+#include <condition_variable>
 
 #include <iostream>
 
@@ -82,6 +83,7 @@ namespace StarryManager
                         registeryMutex.unlock();
                         resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID));
                         if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
+						resourceCV.notify_all();
 
                         return ResourceHandle<T>(resourceRequests.back());
                     }
@@ -92,6 +94,7 @@ namespace StarryManager
             }
 
             const std::string getAssetName() override {return "Asset Manager";}
+
         private:
             AssetManager();
             static std::shared_ptr<AssetManager> globalPointer;
@@ -109,6 +112,7 @@ namespace StarryManager
             std::queue<std::shared_ptr<ResourceRequest>> resourceRequests;
             std::vector<std::shared_ptr<ResourceRequest>> closedRequests;
 
+			std::condition_variable resourceCV;
             std::thread assetThread;
             void worker();
 

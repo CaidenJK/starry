@@ -128,18 +128,16 @@ namespace StarryManager
     void AssetManager::worker() 
     {
         while (!hasFatal.load()) {
-            std::scoped_lock resourceLock(resourceMutex);
-
-            if (!resourceRequests.empty()) {
-                {
-                    std::scoped_lock requestLock(resourceRequests.front()->mutex);
-                    findResources(resourceRequests.front());
-                }
-                if (resourceRequests.front()->resourceState == ResourceRequest::YES) {
-                    closedRequests.push_back(resourceRequests.front());
-                }
-                resourceRequests.pop();
+            std::unique_lock resourceLock(resourceMutex);
+			resourceCV.wait(resourceLock, [this]() { return !resourceRequests.empty() && !hasFatal.load(); });
+            {
+                std::scoped_lock requestLock(resourceRequests.front()->mutex);
+                findResources(resourceRequests.front());
             }
+            if (resourceRequests.front()->resourceState == ResourceRequest::YES) {
+                closedRequests.push_back(resourceRequests.front());
+            }
+            resourceRequests.pop();
         }
     }
 

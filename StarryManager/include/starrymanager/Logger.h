@@ -3,6 +3,7 @@
 #include "StarryAsset.h"
 
 #include <queue>
+#include <condition_variable>
 
 #define STARRY_OUT "starry_out"
 #define LOG_PATH STARRY_OUT "/log"
@@ -51,28 +52,28 @@ namespace StarryManager
 
 		void registerAlert(const std::string& message, CallSeverity severity) override;
 
-		void checkQueue();
-		void worker();
-
 		static std::string severityToString(StarryAsset::CallSeverity severity);
 
 		const char* LOG_FILE = LOG_PATH "/log_out.txt";
 		bool didLogToFile = false;
 		static const int BUFFER_FLUSH_LIMIT = 5;
 
-        //std::mutex alertMutex;
 
 		std::atomic<bool> shouldFlush = false; // Bit flags soon
 		std::atomic<bool> hasFatal = false;
 		
-        std::atomic<std::queue<AssetCall>*> alertQueue;
+		std::mutex queueMutex;
+        std::queue<AssetCall>* alertQueue;
 
 		std::atomic<bool> logToFile = false;
 		
 		std::vector<AssetCall> toFlushBuffer = {};
 		std::vector<AssetCall> callHistory = {};
 
+		std::condition_variable queueCV;
 		std::thread loggingThread;
+		void checkQueue();
+		void worker();
 
 		static bool isDead;
 	};

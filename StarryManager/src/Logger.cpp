@@ -13,7 +13,7 @@ namespace StarryManager
 
 	Logger::Logger() : StarryAsset(false)
 	{
-		alertQueue.store(new std::queue<AssetCall>());
+		alertQueue = new std::queue<AssetCall>();
 		loggingThread = std::thread(&Logger::worker, this);
 	}
 
@@ -22,8 +22,9 @@ namespace StarryManager
 		hasFatal.store(true);
 		loggingThread.join();
 		
-		delete alertQueue.load();
-		alertQueue.store(nullptr);
+		std::scoped_lock lock(queueMutex);
+		delete alertQueue;
+		alertQueue = nullptr;
 		isDead = true;
 	}
 
@@ -35,21 +36,26 @@ namespace StarryManager
 		call.message = message;
 		call.severity = severity;
 		call.callTime = std::chrono::system_clock::now();
-		alertQueue.load()->push(call);
+		std::scoped_lock lock(queueMutex);
+		alertQueue->push(call);
+		queueCV.notify_all();
 	}
 
 	void Logger::enqueueAlert(AssetCall& call)
 	{
-		alertQueue.load()->push(call);
+		std::scoped_lock lock(queueMutex);
+		alertQueue->push(call);
+		queueCV.notify_all();
 	}
 
 	void Logger::checkQueue()
 	{
-		if (!alertQueue.load()->empty()) {
-			logAlert(alertQueue.load()->front());
-			alertQueue.load()->pop();
-		}
-		else if (shouldFlush.load()) flushCalls();
+		std::unique_lock lock(queueMutex);
+		queueCV.wait(lock, [this]() { return !alertQueue->empty() && !hasFatal.load(); });
+		logAlert(alertQueue->front());
+		alertQueue->pop();
+
+		if (shouldFlush.load()) flushCalls();
 	}
 
 	void Logger::worker() 
@@ -57,7 +63,9 @@ namespace StarryManager
 		while (!hasFatal.load()) {
 			checkQueue();
 		}
-		checkQueue();
+		if (shouldFlush.load()) {
+			flushCalls();
+		}
 	}
 
 	void Logger::logAlert(AssetCall& call) {
@@ -155,9 +163,10 @@ namespace StarryManager
 
 	void Logger::flushQueueBlock()
 	{
-		if (alertQueue.load() == nullptr) {
+		std::scoped_lock lock(queueMutex);
+		if (alertQueue == nullptr) {
 			return;
 		}
-		while (!alertQueue.load()->empty()) {}
+		while (!alertQueue->empty()) {}
 	}
 }

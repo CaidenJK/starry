@@ -140,8 +140,8 @@ namespace Starry
 				renderRunning.store(false);
 				continue;
 			}
-			// Simple frame cap
-			std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
+			// Simple frame cap - Off for benchmarking
+			//std::this_thread::sleep_for(std::chrono::milliseconds(RENDER_LOOP_DELAY_MS));
 		}
 	}
 }
