@@ -36,6 +36,7 @@ namespace StarryManager
             {
                 std::scoped_lock lock(resourceMutex);
                 resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
+                resourceCV.notify_all();
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }
@@ -49,6 +50,8 @@ namespace StarryManager
                     if (it.second->getAssetName().compare(senderName) == 0) {
                         registeryMutex.unlock();
                         resourceRequests.emplace(ResourceRequest::create(callerID, it.second->getUUID(), resourceID));
+                        resourceCV.notify_all();
+
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }
@@ -67,6 +70,7 @@ namespace StarryManager
                 registeryMutex.unlock();
                 resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
                 if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
+                resourceCV.notify_all();
                 
                 return ResourceHandle<T>(resourceRequests.back());
             }

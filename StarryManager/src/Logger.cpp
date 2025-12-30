@@ -63,9 +63,7 @@ namespace StarryManager
 		while (!hasFatal.load()) {
 			checkQueue();
 		}
-		if (shouldFlush.load()) {
-			flushCalls();
-		}
+		if (shouldFlush.load()) flushCalls();
 	}
 
 	void Logger::logAlert(AssetCall& call) {
@@ -163,7 +161,6 @@ namespace StarryManager
 
 	void Logger::flushQueueBlock()
 	{
-		std::scoped_lock lock(queueMutex);
 		if (alertQueue == nullptr) {
 			return;
 		}

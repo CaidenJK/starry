@@ -6,8 +6,6 @@ namespace StarryRender
     {
         device = requestResource<VkDevice>("RenderDevice", "VkDevice");
         physicalDevice = requestResource<VkPhysicalDevice>("RenderDevice", "Physical Device");
-		commandPool = requestResource<VkCommandPool>("RenderDevice", "Command Pool");
-    	graphicsQueue = requestResource<VkQueue>("RenderDevice", "Graphics Queue");
     }
 
     void Buffer::createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -88,6 +86,9 @@ namespace StarryRender
 	}
 
 	VkCommandBuffer Buffer::beginSingleTimeCommands() {
+		commandPool = requestResource<VkCommandPool>("RenderDevice", "Command Pool");
+		graphicsQueue = requestResource<VkQueue>("RenderDevice", "Graphics Queue");
+
 		if (commandPool.wait() != ResourceState::YES) {
 			registerAlert("Command Pool died before it was ready to be used.", FATAL);
 			return VK_NULL_HANDLE;
