@@ -92,10 +92,10 @@ namespace Starry
 
 	void MeshObject::primitiveQuad(MeshObject& obj, float width, float height) {
 		std::vector<Vertex> vertices = {
-			{{-0.5f * width, -0.5f * height, 0.0f}, CYAN_COLOR, {0, 0}},
-			{{-0.5f * width, 0.5f * height, 0.0f}, BLUE_COLOR, { 0, 1}},
-			{{0.5f * width, 0.5f * height, 0.0f}, GREEN_COLOR, {1, 1}},
-			{{0.5f * width, -0.5f * height, 0.0f}, BLACK_COLOR, {1, 0}},
+			{{-0.5f * width, -0.5f * height, 0.0f}, CYAN_COLOR, {0, 1}},
+			{{-0.5f * width, 0.5f * height, 0.0f}, BLUE_COLOR, { 0, 0}},
+			{{0.5f * width, 0.5f * height, 0.0f}, GREEN_COLOR, {1, 0}},
+			{{0.5f * width, -0.5f * height, 0.0f}, BLACK_COLOR, {1, 1}},
 		};
 		const std::vector<uint32_t> indices = {
 			0, 1, 2, 0, 2, 3,
