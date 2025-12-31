@@ -4,6 +4,8 @@
 
 #include "UniformBuffer.h"
 
+#include <array>
+
 namespace StarryRender
 {
     Descriptor::Descriptor()
