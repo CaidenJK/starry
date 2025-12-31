@@ -3,6 +3,8 @@
 #include <vector>
 #include <format>
 
+#include <iostream>
+
 namespace StarryManager
 {
     std::atomic<bool> AssetManager::isDead = false;
@@ -131,6 +133,7 @@ namespace StarryManager
         while (!hasFatal.load()) {
             std::unique_lock resourceLock(resourceMutex);
 			resourceCV.wait(resourceLock, [this]() { return !resourceRequests.empty() || hasFatal.load(); });
+            if (hasFatal.load()) return;
             while (!resourceRequests.empty()) {
                 {
                     std::scoped_lock requestLock(resourceRequests.front()->mutex);
@@ -146,6 +149,7 @@ namespace StarryManager
 
     void AssetManager::findResources(std::shared_ptr<ResourceRequest>& request)
     {
+        std::scoped_lock lock(registeryMutex);
         auto asset = registeredAssets.find(request->senderUUID);
         if (!asset->second) { // should be redundant
             request->resourceState = ResourceRequest::DEAD;

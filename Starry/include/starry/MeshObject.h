@@ -29,6 +29,7 @@ namespace Starry
 
 		static void primitiveCube(MeshObject& obj, float size);
 		static void primitiveQuad(MeshObject& obj, float width, float height);
+		static void twoQuadTest(MeshObject& obj);
 
 		const std::string getAssetName() override { return const_cast<std::string&>(name); }
 	private:
@@ -43,6 +44,6 @@ namespace Starry
 		std::string filePath;
 
 		std::shared_ptr<VertexBuffer> vertexBuffer;
-		std::shared_ptr<ImageBuffer> imageBuffer;
+		std::shared_ptr<TextureImage> imageBuffer;
 	};
 }

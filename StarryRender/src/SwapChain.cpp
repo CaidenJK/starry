@@ -37,7 +37,6 @@ namespace StarryRender
 			return;
 		}
 		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, *windowReference, surface));
-		createImageViews();
 	}
 
 	void SwapChain::createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) 
@@ -82,8 +81,8 @@ namespace StarryRender
 
 		createInfo.presentMode = presentMode;
 		createInfo.clipped = VK_TRUE;
-		// Needed for resizing. No resizing
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+		createInfo.oldSwapchain = swapChain;
 
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
@@ -95,48 +94,57 @@ namespace StarryRender
 		}
 
 		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, nullptr);
-		swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, swapChainImages.data());
+		swapChainImageBuffers.resize(imageCount);
 
+		std::vector<VkImage> swapChainImages; swapChainImages.resize(imageCount);
+		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, swapChainImages.data());
 
 		swapChainImageFormat = surfaceFormat.format;
 		swapChainExtent = extent;
-	}
 
-	void SwapChain::createImageViews() 
-	{
-		swapChainImageViews.resize(swapChainImages.size());
-
-		for (size_t i = 0; i < swapChainImages.size(); i++) {
-			VkImageViewCreateInfo createInfo{};
-			createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			createInfo.image = swapChainImages[i];
-			createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			createInfo.format = swapChainImageFormat;
-
-			createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-			createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			createInfo.subresourceRange.baseMipLevel = 0;
-			createInfo.subresourceRange.levelCount = 1;
-			createInfo.subresourceRange.baseArrayLayer = 0;
-			createInfo.subresourceRange.layerCount = 1;
-			
-			if (device.wait() != ResourceState::YES) {
-				registerAlert("Device died before it was ready to be used.", FATAL);
-				return;
-			}
-			if (vkCreateImageView(*device, &createInfo, nullptr, &swapChainImageViews[i]) != VK_SUCCESS) {
-				registerAlert("Failed to create image views!", FATAL);
-				return;
-			}
+		for (int i = 0; i < swapChainImages.size(); i++) {
+			swapChainImageBuffers[i].setImage(swapChainImages[i], false);
+			swapChainImageBuffers[i].createImageView(swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 		}
 	}
 
-	void SwapChain::generateFramebuffers(VkRenderPass& renderPass) 
+	VkFormat SwapChain::findSupportedFormat(VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
+	{
+		for (VkFormat format : candidates) {
+    		VkFormatProperties props;
+    		vkGetPhysicalDeviceFormatProperties(device, format, &props);
+
+			if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+				return format;
+			} else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features) {
+				return format;
+			}
+		}
+
+		return VK_FORMAT_UNDEFINED;
+	}
+
+	bool SwapChain::hasStencilComponent(VkFormat format) {
+		return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
+	}
+
+	VkFormat SwapChain::findDepthFormat(VkPhysicalDevice& device) {
+		return findSupportedFormat(device,
+			{VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+			VK_IMAGE_TILING_OPTIMAL,
+			VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT
+		);
+	}
+
+	void SwapChain::createDepthResources(VkFormat depthFormat)
+	{
+		depthBuffer = std::make_shared<ImageBuffer>();
+		depthBuffer->createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		depthBuffer->createImageView(depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+	}
+
+	void SwapChain::generateFramebuffers(VkRenderPass& renderPass)
 	{
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);
@@ -146,11 +154,11 @@ namespace StarryRender
 			vkDestroyFramebuffer(*device, framebuffer, nullptr);
 		}
 
-		swapChainFramebuffers.resize(swapChainImageViews.size());
+		swapChainFramebuffers.resize(swapChainImageBuffers.size());
 
-		for (size_t i = 0; i < swapChainImageViews.size(); i++) {
+		for (size_t i = 0; i < swapChainImageBuffers.size(); i++) {
 			VkImageView attachments[] = {
-				swapChainImageViews[i]
+				swapChainImageBuffers[i].getImageView()
 			};
 
 			VkFramebufferCreateInfo framebufferInfo{};
@@ -169,14 +177,16 @@ namespace StarryRender
 		}
 	}
 
-	void SwapChain::cleanupSwapChain() 
+	void SwapChain::cleanupSwapChain()
 	{
 		if (device) {
-			for (auto imageView : swapChainImageViews) {
-				vkDestroyImageView(*device, imageView, nullptr);
+			for (auto& ib : swapChainImageBuffers) {
+				vkDestroyImageView(*device, ib.getImageView(), nullptr);
+				ib.getImageView() = VK_NULL_HANDLE;
 			}
 		}
-		swapChainImageViews.clear();
+		depthBuffer.reset();
+		
 		if (device) {
 			for (auto framebuffer : swapChainFramebuffers) {
 				vkDestroyFramebuffer(*device, framebuffer, nullptr);
@@ -209,6 +219,8 @@ namespace StarryRender
 			details.presentModes.resize(presentModeCount);
 			vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, &presentModeCount, details.presentModes.data());
 		}
+
+		details.depthBufferFormat = findDepthFormat(device);
 
 		return details;
 	}

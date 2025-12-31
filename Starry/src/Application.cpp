@@ -36,9 +36,9 @@ namespace Starry
 		camera->setFOV(60.0f);
 
 		std::shared_ptr<MeshObject> quad = std::make_shared<MeshObject>("Simple Quad");
-		MeshObject::primitiveQuad(*quad, 1.0f, 1.0f);
+		MeshObject::twoQuadTest(*quad);
 #ifdef IMAGE_PATH
-		quad->loadDiffuseTextureFromFile( IMAGE_PATH "cassini.jpg");
+		quad->loadDiffuseTextureFromFile( IMAGE_PATH "face.jpg");
 #else
 		#error "IMAGE_PATH not defined!"
 #endif

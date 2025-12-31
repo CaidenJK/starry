@@ -448,6 +448,7 @@ namespace StarryRender
 		return info;
 	}
 
+
 	void RenderDevice::createLogicalDevice() 
 	{
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
@@ -496,7 +497,6 @@ namespace StarryRender
 		vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 		vkGetDeviceQueue(device, indices.presentFamily.value(), 0, &presentQueue);
 	}
-
 	void RenderDevice::createSwapChain() 
 	{
 		if (!device) {
@@ -517,15 +517,15 @@ namespace StarryRender
 		uniformBuffer = bufferRef;
 	}
 
-	void RenderDevice::loadImageBuffer(std::shared_ptr<ImageBuffer>& bufferRef) 
+	void RenderDevice::loadImageBuffer(std::shared_ptr<TextureImage>& bufferRef) 
 	{
-		imageBuffer = bufferRef;
+		textureImage = bufferRef;
 	}
 
 	void RenderDevice::setDescriptors()
 	{
 		auto ub = uniformBuffer.lock();
-		auto ib = imageBuffer.lock();
+		auto ib = textureImage.lock();
 
 		if (ub && ib) {
 			descriptor->createSets(ub->getUUID(), ib->getUUID());

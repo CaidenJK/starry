@@ -7,6 +7,7 @@
 #include "UniformBuffer.h"
 #include "VertexBuffer.h"
 #include "ImageBuffer.h"
+#include "TextureImage.h"
 
 #define DEFAULT_SHADER_PATHS {}
 
@@ -41,7 +42,7 @@ namespace StarryRender
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index);
 		void clearVertexBuffers() { m_vertexBuffers.clear(); }
 
-		void loadImageBuffer(std::shared_ptr<ImageBuffer>& imageBuffer);
+		void loadTextureImage(std::shared_ptr<TextureImage>& imageBuffer);
 
 		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer);
 		void updateUniformBuffer(UniformBufferData& buffer);
@@ -64,7 +65,7 @@ namespace StarryRender
 		std::shared_ptr<Window> m_window = nullptr;
 
 		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
-		std::shared_ptr<ImageBuffer> m_imageBuffer = nullptr;
+		std::shared_ptr<TextureImage> m_textureImage = nullptr;
 		std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
 
 		std::array<std::string, 2> m_shaderPaths = DEFAULT_SHADER_PATHS;

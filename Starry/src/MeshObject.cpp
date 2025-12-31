@@ -47,8 +47,8 @@ namespace Starry
 		vertexBuffer->loadData(vertices, indices);
 		renderContext->loadVertexBuffer(vertexBuffer);
 
-		imageBuffer->loadImageFromFile(filePath);
-		renderContext->loadImageBuffer(imageBuffer);
+		imageBuffer->loadFromFile(filePath);
+		renderContext->loadTextureImage(imageBuffer);
 	}
 
 	void MeshObject::rotateMesh(float angleRadians, const glm::vec3& axis) {
@@ -58,7 +58,7 @@ namespace Starry
 	void MeshObject::loadDiffuseTextureFromFile(const std::string filePath)
 	{
 		this->filePath = filePath;
-		imageBuffer = std::make_shared<ImageBuffer>();
+		imageBuffer = std::make_shared<TextureImage>();
 	}
 
 	// Fix colors later
@@ -99,6 +99,27 @@ namespace Starry
 		};
 		const std::vector<uint32_t> indices = {
 			0, 1, 2, 0, 2, 3,
+		};
+
+		obj.addVertexData(vertices, indices);
+	}
+
+	void MeshObject::twoQuadTest(MeshObject& obj) {
+		std::vector<Vertex> vertices = {
+			{{-0.5f, -0.5f, 0.0f}, CYAN_COLOR, {0, 1}},
+			{{-0.5f, 0.5f, 0.0f}, BLUE_COLOR, { 0, 0}},
+			{{0.5f, 0.5f, 0.0f}, GREEN_COLOR, {1, 0}},
+			{{0.5f, -0.5f, 0.0f}, BLACK_COLOR, {1, 1}},
+
+			{{-0.5f, -0.5f, -0.5f}, CYAN_COLOR, {0, 1}},
+			{{-0.5f, 0.5f, -0.5f}, BLUE_COLOR, { 0, 0}},
+			{{0.5f, 0.5f, -0.5f}, GREEN_COLOR, {1, 0}},
+			{{0.5f, -0.5f, -0.5f}, BLACK_COLOR, {1, 1}},
+		};
+
+		const std::vector<uint32_t> indices = {
+			0, 1, 2, 0, 2, 3,
+			4, 5, 6, 4, 6, 7
 		};
 
 		obj.addVertexData(vertices, indices);

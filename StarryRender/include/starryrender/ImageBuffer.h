@@ -1,8 +1,6 @@
 #pragma once
 #include "Buffer.h"
 
-#include "stb_image.h"
-
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
@@ -16,44 +14,27 @@ namespace StarryRender
 		ImageBuffer();
 		~ImageBuffer();
 
-		void loadImageFromFile(const std::string filePath);
+		void createImage(uint32_t width, uint32_t height, VkFormat format, 
+        VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
 
-		enum SharedResources {
-			IMAGE_VIEW = 0,
-			SAMPLER = 1
-		};
+		void setImage(VkImage& image, bool isOwning);
+		void createImageView(VkFormat imageViewFormat, VkImageAspectFlags aspectFlags);
 
-		std::optional<void*> getResource(size_t resourceID) override;
-		size_t getResourceIDFromString(std::string resourceName) override;
+		VkImage& getImage() { return image; }
+		VkImageView& getImageView() { return imageView; }
 
-		const std::string getAssetName() override { return "ImageBuffer"; }
-	private:
-		void loadFromFile(const char* filePath);
-		void loadImageToMemory(VkDeviceSize imageSize);
-		void createImageObject(uint32_t width, uint32_t height, VkFormat format, 
-        VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, 
-        VkImage& image, VkDeviceMemory& imageMemory);
+		virtual std::optional<void*> getResource(size_t resourceID) override { return {}; };
+        virtual size_t getResourceIDFromString(std::string resourceName) override { return INVALID_RESOURCE; };
 
-		void transitionImageLayout(VkImage& image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-		void copyBufferToImage(VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height);
-
-		void createTextureImageView();
-		void createTextureSampler();
-
-		int texWidth = 0;
-		int texHeight = 0;
-		int texChannels = 0;
-
-		stbi_uc* pixels = nullptr;
+		virtual const std::string getAssetName() override { return "ImageBuffer"; }
+	protected:
 		VkDeviceSize imageSize = 0;
 
-		VkImage textureImage = VK_NULL_HANDLE;
-		VkDeviceMemory textureImageMemory = VK_NULL_HANDLE;
+		VkImage image = VK_NULL_HANDLE;
+		VkDeviceMemory imageMemory = VK_NULL_HANDLE;
 
-		VkBuffer stagingBuffer = VK_NULL_HANDLE;
-        VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
+		VkImageView imageView = VK_NULL_HANDLE;
 
-		VkImageView textureImageView = VK_NULL_HANDLE;
-		VkSampler textureSampler = VK_NULL_HANDLE;
+		bool isOwning = true;
 	};
 }

@@ -14,7 +14,7 @@
 #include "SwapChain.h"
 #include "VertexBuffer.h"
 #include "UniformBuffer.h"
-#include "ImageBuffer.h"
+#include "TextureImage.h"
 #include "Descriptor.h"
 
 #define DEFAULT_NAME "My Starry App"
@@ -46,7 +46,7 @@ namespace StarryRender
 		VkInstance getInstance() { return instance; }
 
 		void loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef);
-		void loadImageBuffer(std::shared_ptr<ImageBuffer>& bufferRef);
+		void loadImageBuffer(std::shared_ptr<TextureImage>& bufferRef);
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
 		
 		void setDescriptors();
@@ -170,7 +170,7 @@ namespace StarryRender
 
 		std::weak_ptr<VertexBuffer> vertexBuffer = {};
 		std::weak_ptr<UniformBuffer> uniformBuffer = {};
-		std::weak_ptr<ImageBuffer> imageBuffer = {};
+		std::weak_ptr<TextureImage> textureImage = {};
 
 		VkPhysicalDeviceMemoryProperties memProperties = {};
 

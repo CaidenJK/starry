@@ -19,7 +19,7 @@ namespace StarryRender
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].offset = offsetof(Vertex, position);
 
         attributeDescriptions[1].binding = 0;
@@ -141,7 +141,7 @@ namespace StarryRender
 		stagingBufferMemoryIndex = VK_NULL_HANDLE;
 	}
 
-	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory) 
+	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory)
 	{
 		if (bufferMemory == VK_NULL_HANDLE) {
 			registerAlert("Vertex buffer not created before filling data!", FATAL);

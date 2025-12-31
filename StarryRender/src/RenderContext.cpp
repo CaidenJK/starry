@@ -50,7 +50,7 @@ namespace StarryRender {
 		}
 
 		m_uniformBuffer.reset();
-		m_imageBuffer.reset();
+		m_textureImage.reset();
 		m_renderDevice.reset();
 	}
 
@@ -117,9 +117,9 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderContext::loadImageBuffer(std::shared_ptr<ImageBuffer>& imageBuffer)
+	void RenderContext::loadTextureImage(std::shared_ptr<TextureImage>& imageBuffer)
 	{
-		m_imageBuffer = imageBuffer;
+		m_textureImage = imageBuffer;
 		if (m_renderDevice == nullptr) {
 			registerAlert("Render Device is NULL, cannot load buffer.", FATAL);
 			return;
@@ -173,7 +173,7 @@ namespace StarryRender {
 			m_uniformBuffer = std::make_shared<UniformBuffer>();
 		}
 		m_renderDevice->loadUniformBuffer(m_uniformBuffer);
-		m_renderDevice->loadImageBuffer(m_imageBuffer);
+		m_renderDevice->loadImageBuffer(m_textureImage);
 		m_renderDevice->setDescriptors();
 
 		for (auto buffer : m_vertexBuffers) {
