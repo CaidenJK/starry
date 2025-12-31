@@ -23,6 +23,8 @@ namespace StarryRender
 
 		void Init();
 		void Init(std::shared_ptr<Window>& window);
+
+		void LoadBuffers();
 		
 		void Draw();
 
@@ -62,7 +64,7 @@ namespace StarryRender
 		std::shared_ptr<Window> m_window = nullptr;
 
 		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
-
+		std::shared_ptr<ImageBuffer> m_imageBuffer = nullptr;
 		std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
 
 		std::array<std::string, 2> m_shaderPaths = DEFAULT_SHADER_PATHS;

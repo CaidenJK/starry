@@ -50,6 +50,7 @@ namespace StarryRender {
 		}
 
 		m_uniformBuffer.reset();
+		m_imageBuffer.reset();
 		m_renderDevice.reset();
 	}
 
@@ -59,11 +60,16 @@ namespace StarryRender {
 			registerAlert("Render device not initialized before getting extent!", CRITICAL);
 			return { -1, -1 };
 		}
-		auto extent = m_renderDevice->getExtent();
+		auto extent = requestResource<VkExtent2D>("RenderDevice", "Extent");
 		if (m_renderDevice->getAlertSeverity() == StarryAsset::FATAL) {
 			return { -1, -1 };
 		}
-		return { static_cast<int>(extent.width), static_cast<int>(extent.height) };
+
+		if (extent.wait() != ResourceState::YES) {
+			registerAlert("Render Device is null or has errors when requesting an extent.", CRITICAL);
+			return { -1, -1 };
+		}
+		return { static_cast<int>((*extent).width), static_cast<int>((*extent).height) };
 	}
 
 	void RenderContext::loadShaders(const std::string& vertShaderPath, const std::string& fragShaderPath) 
@@ -90,7 +96,10 @@ namespace StarryRender {
 			registerAlert("No vertex or index data to attatch to mesh object!", CRITICAL);
 			return;
 		}
-		m_renderDevice->LoadVertexBuffer(m_vertexBuffers.back()); EXTERN_ERROR(m_renderDevice); EXTERN_ERROR(vertexBuffer);
+		if (m_renderDevice == nullptr) {
+			registerAlert("Render Device is NULL, cannot load buffer.", FATAL);
+			return;
+		}
 	}
 
 	void RenderContext::loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index)
@@ -101,7 +110,20 @@ namespace StarryRender {
 		}
 
 		m_vertexBuffers[index] = vertexBuffer;
-		m_renderDevice->LoadVertexBuffer(m_vertexBuffers[index]); EXTERN_ERROR(m_renderDevice); EXTERN_ERROR(vertexBuffer);
+
+		if (m_renderDevice == nullptr) {
+			registerAlert("Render Device is NULL, cannot load buffer.", FATAL);
+			return;
+		}
+	}
+
+	void RenderContext::loadImageBuffer(std::shared_ptr<ImageBuffer>& imageBuffer)
+	{
+		m_imageBuffer = imageBuffer;
+		if (m_renderDevice == nullptr) {
+			registerAlert("Render Device is NULL, cannot load buffer.", FATAL);
+			return;
+		}
 	}
 
 	void RenderContext::loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer) 
@@ -132,11 +154,6 @@ namespace StarryRender {
 			registerAlert("Shader paths not set before creating device!", FATAL);
 			return;
 		}
-
-		if (m_uniformBuffer == nullptr) {
-			m_uniformBuffer = std::make_shared<UniformBuffer>();
-		}
-		m_renderDevice->loadUniformBuffer(m_uniformBuffer);
 		
 		m_renderDevice->LoadShader(m_shaderPaths[0], m_shaderPaths[1]); EXTERN_ERROR(m_renderDevice);
 		m_renderDevice->InitDraw(); EXTERN_ERROR(m_renderDevice);
@@ -144,6 +161,23 @@ namespace StarryRender {
 		if (!getRenderErrorState()) {
 			m_isInitialized = true;
 			registerAlert(STARRY_RENDER_INITIALIZE_SUCCESS, BANNER);
+		}
+	}
+
+	void RenderContext::LoadBuffers()
+	{
+		if (m_renderDevice == nullptr) {
+			registerAlert("LoadBuffers was called before Init.", CRITICAL);
+		}
+		if (m_uniformBuffer == nullptr) {
+			m_uniformBuffer = std::make_shared<UniformBuffer>();
+		}
+		m_renderDevice->loadUniformBuffer(m_uniformBuffer);
+		m_renderDevice->loadImageBuffer(m_imageBuffer);
+		m_renderDevice->setDescriptors();
+
+		for (auto buffer : m_vertexBuffers) {
+			m_renderDevice->loadVertexBuffer(buffer);
 		}
 	}
 }

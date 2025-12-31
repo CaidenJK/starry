@@ -48,7 +48,7 @@ namespace StarryManager
 		void resetAlert();
 
 		virtual std::optional<void*> getResource(size_t resourceID) { return {}; }
-		virtual size_t getResourceIDFromString(std::string resourceName) { return -1; }
+		virtual size_t getResourceIDFromString(std::string resourceName) { return INVALID_RESOURCE; }
 		
 		template <typename T>
     	ResourceHandle<T> requestResource(uint64_t senderID, size_t resourceID);

@@ -37,10 +37,15 @@ namespace Starry
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
 
-		std::shared_ptr<MeshObject> cube = std::make_shared<MeshObject>("Unit Cube");
-		MeshObject::primitiveCube(*cube, 1.0f);
+		std::shared_ptr<MeshObject> quad = std::make_shared<MeshObject>("Simple Quad");
+		MeshObject::primitiveQuad(*quad, 1.0f, 1.0f);
+#ifdef IMAGE_PATH
+		quad->loadDiffuseTextureFromFile( IMAGE_PATH "cassini.jpg");
+#else
+		#error "IMAGE_PATH not defined!"
+#endif
 
-		m_scene->pushPrefab(cube); ERROR_HANDLER_CHECK;
+		m_scene->pushPrefab(quad); ERROR_HANDLER_CHECK;
 		m_scene->addCamera(camera); ERROR_HANDLER_CHECK;
 
 		ERROR_HANDLER_CHECK;

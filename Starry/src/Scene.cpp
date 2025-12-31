@@ -20,6 +20,7 @@ namespace Starry
 		}
 		prefabs.reset();
 		camera.reset();
+		renderer.reset();
 	}
 
 	void Scene::makeRenderContext()
@@ -91,6 +92,8 @@ namespace Starry
 		}
 
 		prefabs->registerMeshBuffer(renderer);
+
+		renderer->LoadBuffers(); EXTERN_ERROR(renderer);
 
 		renderRunning.store(true);
 		renderThread = std::thread(&Scene::renderLoop, this);

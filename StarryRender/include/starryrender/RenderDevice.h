@@ -14,6 +14,7 @@
 #include "SwapChain.h"
 #include "VertexBuffer.h"
 #include "UniformBuffer.h"
+#include "ImageBuffer.h"
 #include "Descriptor.h"
 
 #define DEFAULT_NAME "My Starry App"
@@ -45,9 +46,10 @@ namespace StarryRender
 		VkInstance getInstance() { return instance; }
 
 		void loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef);
-		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& bufferRef);
-
-		void LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
+		void loadImageBuffer(std::shared_ptr<ImageBuffer>& bufferRef);
+		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
+		
+		void setDescriptors();
 
 		void LoadShader(const std::string& vertShader, const std::string& fragShader);
 		void LoadShader(std::shared_ptr<Shader>& shaderRef);
@@ -57,11 +59,7 @@ namespace StarryRender
 
 		void WaitIdle();
 
-		VkDevice& getDevice() { return device; }
-		VkPhysicalDevice& getPhysicalDevice() { return physicalDevice; }
-		VkExtent2D getExtent() { return swapChain->getExtent(); }
-
-		const std::string getAssetName() override { return "RenderDevice"; }
+		VkExtent2D& getExtent() { return swapChain->getExtent(); }
 
 		enum SharedResources {
 			VK_DEVICE = 0,
@@ -70,8 +68,11 @@ namespace StarryRender
 			DESCRIPTOR = 3,
 			WINDOW_REFERENCE = 4, // Maybe change
 			COMMAND_POOL = 5,
-			GRAPHICS_QUEUE = 6
+			GRAPHICS_QUEUE = 6,
+			SWAP_CHAIN_EXTENT = 7
 		};
+
+		const std::string getAssetName() override {return "RenderDevice";}
 
 		std::optional<void*> getResource(size_t resourceID) override;
 		size_t getResourceIDFromString(std::string resourceName) override;
@@ -169,6 +170,7 @@ namespace StarryRender
 
 		std::weak_ptr<VertexBuffer> vertexBuffer = {};
 		std::weak_ptr<UniformBuffer> uniformBuffer = {};
+		std::weak_ptr<ImageBuffer> imageBuffer = {};
 
 		VkPhysicalDeviceMemoryProperties memProperties = {};
 

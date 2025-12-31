@@ -24,6 +24,7 @@ namespace StarryManager
         isDead = true;
         
         hasFatal = true;
+        resourceCV.notify_all();
         assetThread.join();
     }
 
@@ -129,7 +130,7 @@ namespace StarryManager
     {
         while (!hasFatal.load()) {
             std::unique_lock resourceLock(resourceMutex);
-			resourceCV.wait(resourceLock, [this]() { return !resourceRequests.empty() && !hasFatal.load(); });
+			resourceCV.wait(resourceLock, [this]() { return !resourceRequests.empty() || hasFatal.load(); });
             while (!resourceRequests.empty()) {
                 {
                     std::scoped_lock requestLock(resourceRequests.front()->mutex);

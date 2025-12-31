@@ -25,9 +25,10 @@ namespace StarryRender
 	struct Vertex {
 		glm::vec3 position;
 		glm::vec3 color;
+		glm::vec2 texCoord;
 
 		static VkVertexInputBindingDescription getBindingDescriptions();
-		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
+		static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions();
 	};
 
 	class VertexBuffer : public Buffer {

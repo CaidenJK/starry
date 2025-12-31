@@ -20,6 +20,8 @@ namespace Starry
 		void registerMeshBuffer(std::unique_ptr<RenderContext>& renderContext);
 		void registerMeshBuffer(std::shared_ptr<RenderContext>& renderContext);
 
+		void loadDiffuseTextureFromFile(const std::string filePath);
+
 		void rotateMesh(float angleRadians, const glm::vec3& axis);
 
 		glm::mat4& getModelMatrix() { return localToGlobalSpace; }
@@ -38,6 +40,9 @@ namespace Starry
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		std::string filePath;
+
 		std::shared_ptr<VertexBuffer> vertexBuffer;
+		std::shared_ptr<ImageBuffer> imageBuffer;
 	};
 }

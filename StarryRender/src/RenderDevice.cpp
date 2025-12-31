@@ -138,6 +138,10 @@ namespace StarryRender
 			graphicsQueue != VK_NULL_HANDLE) {
 			return (void*)&graphicsQueue;
 		}
+		if (resourceID == SharedResources::SWAP_CHAIN_EXTENT &&
+			swapChain != nullptr) {
+			return (void*)&swapChain->getExtent();
+		}
 
 		registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
 		return {};
@@ -165,6 +169,9 @@ namespace StarryRender
 		}
 		if (resourceName.compare("Graphics Queue") == 0) {
 			return SharedResources::GRAPHICS_QUEUE;
+		}
+		if (resourceName.compare("Extent") == 0) {
+			return SharedResources::SWAP_CHAIN_EXTENT;
 		}
 		return INVALID_RESOURCE;
 	}
@@ -433,7 +440,11 @@ namespace StarryRender
 			swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
 		}
 
-		info.isSuitible = indices.isComplete() && extensionsSupported && swapChainAdequate && info.score > 0;
+		VkPhysicalDeviceFeatures supportedFeatures;
+    	vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+
+		info.isSuitible = indices.isComplete() && extensionsSupported && swapChainAdequate && info.score > 0 &&
+		supportedFeatures.samplerAnisotropy;
 		return info;
 	}
 
@@ -455,6 +466,7 @@ namespace StarryRender
 		}
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
+		deviceFeatures.samplerAnisotropy = VK_TRUE;
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -500,14 +512,25 @@ namespace StarryRender
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef) {
-		EXTERN_ERROR(bufferRef);
+	void RenderDevice::loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef) 
+	{
 		uniformBuffer = bufferRef;
-		if (auto ub = uniformBuffer.lock()) {
-			EXTERN_ERROR(ub);
-			descriptor->createSets(ub->getUUID());
+	}
+
+	void RenderDevice::loadImageBuffer(std::shared_ptr<ImageBuffer>& bufferRef) 
+	{
+		imageBuffer = bufferRef;
+	}
+
+	void RenderDevice::setDescriptors()
+	{
+		auto ub = uniformBuffer.lock();
+		auto ib = imageBuffer.lock();
+
+		if (ub && ib) {
+			descriptor->createSets(ub->getUUID(), ib->getUUID());
 		} else {
-			registerAlert("Uniform buffer reference is expired!", FATAL);
+			registerAlert("Buffer references are expired!", FATAL);
 			return;
 		}
 	}
@@ -552,7 +575,7 @@ namespace StarryRender
 		EXTERN_ERROR(swapChain);
 	}
 
-	void RenderDevice::InitDraw() 
+	void RenderDevice::InitDraw()
 	{
 		ERROR_VOLATILE();
 		if (pipeline == nullptr) {
@@ -809,7 +832,7 @@ namespace StarryRender
 		currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
 
-	void RenderDevice::LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef)
+	void RenderDevice::loadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef)
 	{
 		if (bufferRef == nullptr) {
 			registerAlert("Vertex buffer reference was null and was not set!", CRITICAL);

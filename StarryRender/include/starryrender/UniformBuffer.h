@@ -25,8 +25,6 @@ namespace StarryRender
 		UniformBuffer();
 		~UniformBuffer();
 
-		void attachBuffer(); // TODO: fix this whole mess
-
 		UniformBufferData& getBuffer() { return buffer; }
 		void setBuffer(const UniformBufferData& ubo) { buffer = ubo; }
 

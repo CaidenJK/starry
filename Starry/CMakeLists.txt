@@ -32,7 +32,6 @@ endif()
 # Compile Shaders
 
 set(SHADER_DIR "${SOURCE_DIR}/shaders")
-
 get_filename_component(SHADER_DIR_ABS "${SHADER_DIR}" ABSOLUTE)
 file(TO_CMAKE_PATH "${SHADER_DIR_ABS}" SHADER_DIR_UNIX)
 
@@ -49,6 +48,12 @@ else()
   message(FATAL_ERROR "Unsupported OS")
 endif()
 message("Compiled Shaders")
+
+# Image Directory
+
+set(IMAGE_DIR "${SOURCE_DIR}/images")
+get_filename_component(IMAGE_DIR_ABS "${IMAGE_DIR}" ABSOLUTE)
+file(TO_CMAKE_PATH "${IMAGE_DIR_ABS}" IMAGE_DIR_UNIX)
 
 # DEPENDENCIES
 # ---------------------------------------
@@ -101,7 +106,9 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryManager" "${CMAKE_CURRENT
 # Create Library
 add_library(Starry SHARED ${SOURCES})
 target_compile_definitions(Starry PRIVATE STARRY_BUILD_DLL)
+
 target_compile_definitions(Starry PRIVATE "SHADERS_PATH=\"${SHADER_DIR_UNIX}/\"")
+target_compile_definitions(Starry PRIVATE "IMAGE_PATH=\"${IMAGE_DIR_UNIX}/\"")
 
 set_target_properties(Starry PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"

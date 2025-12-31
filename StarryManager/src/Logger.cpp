@@ -20,6 +20,7 @@ namespace StarryManager
 	Logger::~Logger()
 	{
 		hasFatal.store(true);
+		queueCV.notify_all();
 		loggingThread.join();
 		
 		std::scoped_lock lock(queueMutex);
@@ -51,14 +52,16 @@ namespace StarryManager
 	void Logger::checkQueue()
 	{
 		std::unique_lock lock(queueMutex);
-		queueCV.wait(lock, [this]() { return !alertQueue->empty() && !hasFatal.load(); });
-		logAlert(alertQueue->front());
-		alertQueue->pop();
+		queueCV.wait(lock, [this]() { return !alertQueue->empty() || hasFatal.load(); });
+		if (!alertQueue->empty()) {
+			logAlert(alertQueue->front());
+			alertQueue->pop();
+		}
 
 		if (shouldFlush.load()) flushCalls();
 	}
 
-	void Logger::worker() 
+	void Logger::worker() // TODO: Fix exit flush
 	{
 		while (!hasFatal.load()) {
 			checkQueue();

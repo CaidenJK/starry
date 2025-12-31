@@ -1,4 +1,6 @@
 #define STB_IMAGE_IMPLEMENTATION
+#define STBI_FAILURE_USERMSG
+
 #include "ImageBuffer.h"
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
@@ -7,19 +9,50 @@ namespace StarryRender
 {
     ImageBuffer::ImageBuffer()
     {
+
     }
 
     ImageBuffer::~ImageBuffer()
     {
-        if (pixels != nullptr) stbi_image_free(pixels);
+        if (pixels) stbi_image_free(pixels);
 
-        if (device.hasRequest() == ResourceState::YES) {
+        if (device) {
+            vkDestroySampler(*device, textureSampler, nullptr);
+            vkDestroyImageView(*device, textureImageView, nullptr);
             vkDestroyImage(*device, textureImage, nullptr);
             vkFreeMemory(*device, textureImageMemory, nullptr);
         }
     }
 
-    void ImageBuffer::loadImageFromFile(std::string filePath)
+    std::optional<void*> ImageBuffer::getResource(size_t resourceID)
+    {
+        if (resourceID == SharedResources::IMAGE_VIEW &&
+            textureImageView != VK_NULL_HANDLE) {
+            return (void*)&textureImageView;
+        }
+
+        if (resourceID == SharedResources::SAMPLER &&
+            textureSampler != VK_NULL_HANDLE) {
+            return (void*)&textureSampler;
+        }
+
+        registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
+		return {};
+    }
+
+	size_t ImageBuffer::getResourceIDFromString(std::string resourceName)
+    {
+        if (resourceName.compare("Image View") == 0) {
+            return SharedResources::IMAGE_VIEW;
+        }
+        if (resourceName.compare("Sampler") == 0) {
+            return SharedResources::SAMPLER;
+        }
+
+        return INVALID_RESOURCE;
+    }
+
+    void ImageBuffer::loadImageFromFile(const std::string filePath)
     {
         ERROR_VOLATILE(loadFromFile(filePath.c_str()));
     }
@@ -45,7 +78,10 @@ namespace StarryRender
 
         vkDestroyBuffer(*device, stagingBuffer, nullptr);
         vkFreeMemory(*device, stagingBufferMemory, nullptr);
-        stagingBuffer, stagingBufferMemory = VK_NULL_HANDLE;
+        stagingBuffer = VK_NULL_HANDLE, stagingBufferMemory = VK_NULL_HANDLE;
+
+        createTextureImageView();
+        createTextureSampler();
     }
 
     void ImageBuffer::loadImageToMemory(VkDeviceSize imageSize)
@@ -188,5 +224,67 @@ namespace StarryRender
 
 
         endSingleTimeCommands(commandBuffer);
+    }
+
+    void ImageBuffer::createTextureImageView()
+    {
+        VkImageViewCreateInfo viewInfo{};
+        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+        viewInfo.image = textureImage;
+        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        viewInfo.subresourceRange.baseMipLevel = 0;
+        viewInfo.subresourceRange.levelCount = 1;
+        viewInfo.subresourceRange.baseArrayLayer = 0;
+        viewInfo.subresourceRange.layerCount = 1;
+
+        if (device.wait() != ResourceState::YES) {
+            registerAlert("Device died before it was ready to be used.", FATAL);
+            return;
+        }
+
+        if (vkCreateImageView(*device, &viewInfo, nullptr, &textureImageView) != VK_SUCCESS) {
+            registerAlert("Failed to create texture image view!", FATAL);
+            return;
+        }
+    }
+
+    void ImageBuffer::createTextureSampler()
+    {
+        VkSamplerCreateInfo samplerInfo{};
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = VK_FILTER_LINEAR;
+        samplerInfo.minFilter = VK_FILTER_LINEAR;
+
+        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+        if (physicalDevice.wait() != ResourceState::YES) {
+            registerAlert("Physical Device died before it was ready to be used.", FATAL);
+            return;
+        }
+        VkPhysicalDeviceProperties properties{};
+        vkGetPhysicalDeviceProperties(*physicalDevice, &properties);
+
+        samplerInfo.anisotropyEnable = VK_TRUE;
+        samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+
+        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+        samplerInfo.unnormalizedCoordinates = VK_FALSE;
+
+        samplerInfo.compareEnable = VK_FALSE;
+        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.mipLodBias = 0.0f;
+        samplerInfo.minLod = 0.0f;
+        samplerInfo.maxLod = 0.0f;
+
+        if (vkCreateSampler(*device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+            registerAlert("Failed to create texture sampler!", FATAL);
+            return;
+        }
     }
 }

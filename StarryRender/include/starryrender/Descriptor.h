@@ -20,13 +20,13 @@ namespace StarryRender
             VkDescriptorSetLayout& getDescriptorSetLayout() { return descriptorSetLayout; }
 		    VkDescriptorSet& getDescriptorSet(uint32_t index) { return descriptorSets[index]; }
 
-            void createSets(uint64_t uniformBufferUUID);
+            void createSets(uint64_t uniformBufferUUID, uint64_t imageTextureID); // Scale later
 
             const std::string getAssetName() override { return "Descriptor"; }
         private:
             void createDescriptorSetLayout();
             void createDescriptorPool();
-		    void createDescriptorSets(std::vector<VkBuffer>& uniformBuffers);
+		    void createDescriptorSets(std::vector<VkBuffer>& uniformBuffers, VkImageView& textureImageView, VkSampler& textureImageSampler);
 
             VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 		    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;

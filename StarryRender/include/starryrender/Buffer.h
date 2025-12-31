@@ -12,6 +12,9 @@ namespace StarryRender
         public:
             Buffer();
             virtual const std::string getAssetName() override { return "Buffer"; }
+
+            virtual std::optional<void*> getResource(size_t resourceID) override { return {}; }
+		    virtual size_t getResourceIDFromString(std::string resourceName) override { return INVALID_RESOURCE; }
         protected:
 
             void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
