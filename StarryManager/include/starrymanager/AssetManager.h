@@ -8,8 +8,6 @@
 #include <unordered_map>
 #include <condition_variable>
 
-#include <iostream>
-
 namespace StarryManager
 {
     class AssetManager : public StarryAsset

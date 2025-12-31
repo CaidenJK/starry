@@ -22,6 +22,7 @@ namespace StarryManager
 		hasFatal.store(true);
 		queueCV.notify_all();
 		loggingThread.join();
+		checkQueue();
 		
 		std::scoped_lock lock(queueMutex);
 		delete alertQueue;
@@ -53,7 +54,7 @@ namespace StarryManager
 	{
 		std::unique_lock lock(queueMutex);
 		queueCV.wait(lock, [this]() { return !alertQueue->empty() || hasFatal.load(); });
-		if (!alertQueue->empty()) {
+		while (!alertQueue->empty()) {
 			logAlert(alertQueue->front());
 			alertQueue->pop();
 		}
@@ -66,7 +67,6 @@ namespace StarryManager
 		while (!hasFatal.load()) {
 			checkQueue();
 		}
-		if (shouldFlush.load()) flushCalls();
 	}
 
 	void Logger::logAlert(AssetCall& call) {

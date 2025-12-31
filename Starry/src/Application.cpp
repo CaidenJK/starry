@@ -2,8 +2,6 @@
 
 #include "MeshObject.h"
 
-#include <iostream>
-
 #define STARRY_INITIALIZE_SUCCESS \
 	"----------------------------------------\n" \
 	"Starry initialized successfully!\n" \

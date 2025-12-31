@@ -73,6 +73,7 @@ namespace StarryManager
 
         ResourceRequest::ResourceState request()
         {
+            if (!requestPointer) return ResourceRequest::STALE;
             std::scoped_lock lock(requestPointer->mutex);
             auto state = requestPointer->resourceState;
             if (state == ResourceRequest::YES && resourcePointer == nullptr) {
