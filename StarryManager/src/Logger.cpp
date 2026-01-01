@@ -23,6 +23,7 @@ namespace StarryManager
 		queueCV.notify_all();
 		loggingThread.join();
 		checkQueue();
+		checkFlush();
 		
 		std::scoped_lock lock(queueMutex);
 		delete alertQueue;
@@ -50,6 +51,13 @@ namespace StarryManager
 		queueCV.notify_all();
 	}
 
+	void Logger::checkFlush()
+	{
+		if (shouldFlush.load() || (toFlushBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
+			flushCalls();
+		}
+	}
+
 	void Logger::checkQueue()
 	{
 		std::unique_lock lock(queueMutex);
@@ -58,14 +66,13 @@ namespace StarryManager
 			logAlert(alertQueue->front());
 			alertQueue->pop();
 		}
-
-		if (shouldFlush.load()) flushCalls();
 	}
 
 	void Logger::worker() // TODO: Fix exit flush
 	{
 		while (!hasFatal.load()) {
 			checkQueue();
+			checkFlush();
 		}
 	}
 
@@ -86,9 +93,6 @@ namespace StarryManager
 				call.severity == FATAL) {
 				shouldFlush.store(true);
 			}
-		}
-		if (shouldFlush.load() || (toFlushBuffer.size() >= BUFFER_FLUSH_LIMIT)) {
-			flushCalls();
 		}
 	}
 

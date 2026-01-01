@@ -95,7 +95,7 @@ namespace StarryManager
             Logger* logger;
             FileHandler* fileHandler;
 
-            std::mutex registeryMutex;
+            std::recursive_mutex registeryMutex;
             std::unordered_map<uint64_t, StarryAsset*> registeredAssets;
             
             std::mutex resourceMutex;

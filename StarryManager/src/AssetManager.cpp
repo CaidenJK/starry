@@ -105,7 +105,7 @@ namespace StarryManager
     {
         Logger::AssetCall call;
         {
-            std::scoped_lock lock(registeryMutex);
+            registeryMutex.lock();
         
             auto asset = registeredAssets.find(uuid);
             if (asset == registeredAssets.end()) return;
@@ -120,6 +120,7 @@ namespace StarryManager
                 asset->second->resetAlert();
             }
         }
+        registeryMutex.unlock();
 
         logger->enqueueAlert(call);
 

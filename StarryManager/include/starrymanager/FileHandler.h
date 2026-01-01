@@ -5,17 +5,33 @@
 #include <fstream>
 #include <string>
 
+#include "stb_image.h"
+
 #define FILE_REQUEST 1
-#define FILETYPE std::shared_ptr<File>
+#define FILETYPE RawFile*
 
 namespace StarryManager
 {
-    struct File
+    struct RawFile
     {
-        std::fstream file = {};
-        std::string path = {};
+            RawFile(std::string& path) : path(path) {}
+            ~RawFile() { close(); }
+            virtual bool open(size_t args);
+            virtual void close();
 
-        File(std::string path);
+            std::fstream file = {};
+            std::string path = {};
+    };
+
+    struct ImageFile : RawFile
+    {
+            ImageFile(std::string& path) : RawFile(path) {}
+            ~ImageFile() { close(); }
+            bool open(size_t args) override;
+            void close() override;
+
+            stbi_uc* pixels;
+            int height, width, channels;
     };
 
     class FileHandler : public StarryAsset
@@ -31,10 +47,11 @@ namespace StarryManager
                 WRITE = std::ios::out,
                 BINARY = std::ios::binary,
                 CHAR = 0,
+                IMAGE = 256U,
                 APPEND_START = std::ios::ate,
                 APPEND_EACH = std::ios::app,
                 OVERRITE = std::ios::trunc,
-                CREATE_DIR = 300U
+                CREATE_DIR = 128U
             };
 
             GET_RESOURCE;
@@ -44,6 +61,9 @@ namespace StarryManager
         private:
             void removeStale();
 
-            std::unordered_map<size_t, std::shared_ptr<File>> openFiles;
+            RawFile* createFile(std::string path);
+            bool openFile(RawFile* file, std::vector<size_t> args);
+
+            std::unordered_map<size_t, RawFile*> openFiles;
     };
 }

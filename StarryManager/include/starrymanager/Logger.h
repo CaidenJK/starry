@@ -48,6 +48,8 @@ namespace StarryManager
 	private:
 		void logAlert(AssetCall& call);
 		void dumpToFile(const AssetCall& call);
+		
+		void checkFlush();
 		void flushCalls();
 
 		void registerAlert(const std::string& message, CallSeverity severity) override;

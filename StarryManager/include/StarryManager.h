@@ -8,7 +8,8 @@ using CallSeverity = StarryManager::StarryAsset::CallSeverity;
 using AssetManager = StarryManager::AssetManager;
 using ResourceState = StarryManager::ResourceRequest::ResourceState;
 using Flags = StarryManager::FileHandler::Flags;
-using File = StarryManager::File;
+using RawFile = StarryManager::RawFile;
+using ImageFile = StarryManager::ImageFile;
 
 template<typename T>
 using ResourceHandle = StarryManager::ResourceHandle<T>;

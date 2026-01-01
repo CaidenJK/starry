@@ -24,7 +24,7 @@ namespace StarryManager
         const uint64_t resourceID;
         const std::vector<size_t> resourceArgs = {};
 
-        std::mutex mutex;
+        std::recursive_mutex mutex;
         ResourceState resourceState = NO;
         void* resource = nullptr;
 

@@ -1,6 +1,3 @@
-#define STB_IMAGE_IMPLEMENTATION
-#define STBI_FAILURE_USERMSG
-
 #include "TextureImage.h"
 
 namespace StarryRender
@@ -47,21 +44,22 @@ namespace StarryRender
     
     void TextureImage::loadFromFile(const std::string filePath)
     {
-        auto pixels = stbi_load(filePath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        imageSize = texWidth * texHeight * 4;
+        file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::IMAGE, Flags::READ});
 
-        if (!pixels) {
+        if (file.wait() != ResourceState::YES) {
             registerAlert("Failed to load image from file!", CRITICAL);
+            return;
         }
+        auto imageFile = dynamic_cast<ImageFile*>(*file);
 
-        loadImageToMemory(imageSize, pixels);
+        loadImageToMemory(imageSize, imageFile);
 
-        createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, 
-            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
+        createImage(imageFile->width, imageFile->height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
+            VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
         transitionImageLayout(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-        copyBufferToImage(stagingBuffer, image, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
+        copyBufferToImage(stagingBuffer, image, static_cast<uint32_t>(imageFile->width), static_cast<uint32_t>(imageFile->height));
 
         transitionImageLayout(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -72,10 +70,10 @@ namespace StarryRender
         createImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT);
         createSampler();
 
-        if (pixels) stbi_image_free(pixels);
+        imageFile->close();
     }
 
-    void TextureImage::loadImageToMemory(VkDeviceSize imageSize, stbi_uc* pixels)
+    void TextureImage::loadImageToMemory(VkDeviceSize imageSize, ImageFile* file)
     {
         createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
@@ -86,7 +84,7 @@ namespace StarryRender
 
         void* data;
         vkMapMemory(*device, stagingBufferMemory, 0, imageSize, 0, &data);
-        memcpy(data, pixels, static_cast<size_t>(imageSize));
+        memcpy(data, file->pixels, static_cast<size_t>(imageSize));
         vkUnmapMemory(*device, stagingBufferMemory);
     }
 

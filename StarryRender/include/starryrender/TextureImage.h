@@ -3,8 +3,6 @@
 #include <StarryManager.h>
 #include "ImageBuffer.h"
 
-#include "stb_image.h"
-
 namespace StarryRender
 {
     class TextureImage : public ImageBuffer
@@ -25,13 +23,11 @@ namespace StarryRender
 
             ASSET_NAME("TextureImage")
         private:
-            void loadImageToMemory(VkDeviceSize imageSize, stbi_uc* pixels);
+            void loadImageToMemory(VkDeviceSize imageSize, ImageFile* file);
 
             void createSampler();
 
-            int texWidth = 0;
-            int texHeight = 0;
-            int texChannels = 0;
+            ResourceHandle<FILETYPE> file;
 
             VkBuffer stagingBuffer = VK_NULL_HANDLE;
             VkDeviceMemory stagingBufferMemory = VK_NULL_HANDLE;
