@@ -25,7 +25,7 @@ namespace StarryRender
 		public:
 			void registerDebugAlert(const std::string& message, CallSeverity severity);
 
-			const std::string getAssetName() override {return "Vulkan Debugger";}
+			ASSET_NAME("Vulkan Debugger")
 	};
 
 	class RenderDevice : public StarryAsset {
@@ -72,10 +72,10 @@ namespace StarryRender
 			SWAP_CHAIN_EXTENT = 7
 		};
 
-		const std::string getAssetName() override {return "RenderDevice";}
+		GET_RESOURCE;
+		GET_RESOURCE_FROM_STRING;
 
-		std::optional<void*> getResource(size_t resourceID) override;
-		size_t getResourceIDFromString(std::string resourceName) override;
+		ASSET_NAME("Render Device")
 
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(

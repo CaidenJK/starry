@@ -44,7 +44,7 @@ namespace StarryRender
 			VkBuffer& getVertexBuffer() { return vertexBuffer; }
 			VkBuffer& getIndexBuffer() { return indexBuffer; }
 
-			const std::string getAssetName() override { return "Vertex Buffer"; }
+			ASSET_NAME("Vertex Buffer")
 
 		private:
 			void createVertexBuffer();

@@ -43,7 +43,7 @@ namespace StarryManager
 		
 		static bool isLoggerDead() { return isDead; }
 
-		const std::string getAssetName() override {return "Logger";}
+		ASSET_NAME("Logger")
 
 	private:
 		void logAlert(AssetCall& call);

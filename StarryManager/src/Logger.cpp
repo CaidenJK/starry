@@ -1,8 +1,8 @@
 #include "Logger.h"
 
+#include "AssetManager.h"
+
 #include <iostream>
-#include <fstream>
-#include <filesystem>
 #include <cstdlib>
 #include <string>
 #include <format>
@@ -141,25 +141,25 @@ namespace StarryManager
 	void Logger::dumpToFile(const Logger::AssetCall& call)
 	{
 		if (!didLogToFile) {
-			std::filesystem::create_directories(LOG_PATH);
+			requestResource<FILETYPE>(FILE_REQUEST, LOG_PATH, {FileHandler::CREATE_DIR});
 		}
-		std::fstream f;
-		f.open(LOG_FILE, std::ios::app | std::fstream::out);
+		auto file = requestResource<FILETYPE>(FILE_REQUEST, LOG_FILE, {FileHandler::Flags::WRITE, FileHandler::Flags::APPEND_EACH});
 		
-		if (!f) {
+		if (file.wait() != ResourceRequest::ResourceState::YES) {
 			registerAlert("Couldn't open Log File!", FATAL);
 			return;
 		}
 
 		if (!didLogToFile) {
-			f << LOG_HEADER << "\n" << std::endl;
+			(*file)->file << LOG_HEADER << "\n" << std::endl;
 			didLogToFile = true;
 		}
 		std::time_t tt = std::chrono::system_clock::to_time_t(call.callTime);
 		std::tm* lt = std::localtime(&tt);
-		f << "[" << lt->tm_year + 1900 << "-" << lt->tm_mon + 1 << "-" << lt->tm_mday << " " << lt->tm_hour << ":" << lt->tm_min << ":" << lt->tm_sec
+		(*file)->file << "[" << lt->tm_year + 1900 << "-" << lt->tm_mon + 1 << "-" << lt->tm_mday << " " << lt->tm_hour << ":" << lt->tm_min << ":" << lt->tm_sec
 			<< " | " << severityToString(call.severity) << "] - " << "Clr: " << call.callerName << ", \"" << std::format("{:#016x}", call.callerUUID) << "\" => \n\t" << call.message << "\t<=\n" << std::endl;
-		f.close();
+		
+		//(*file)->file.close();
 	}
 
 	void Logger::flushQueueBlock()

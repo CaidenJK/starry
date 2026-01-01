@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include <optional>
+#include <vector>
 
 namespace StarryManager
 {
@@ -20,7 +21,8 @@ namespace StarryManager
             STALE // termination for caller
         };
 
-        const uint64_t resourceID; 
+        const uint64_t resourceID;
+        const std::vector<size_t> resourceArgs = {};
 
         std::mutex mutex;
         ResourceState resourceState = NO;
@@ -30,9 +32,9 @@ namespace StarryManager
         const uint64_t senderUUID;
         
         private:
-            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID);
+            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID, std::vector<size_t>& resourceArgs);
 
-            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id);
+            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id, std::vector<size_t>& args);
     };
 
     // Caller side API

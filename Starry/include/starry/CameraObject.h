@@ -19,7 +19,7 @@ namespace Starry
 		void setFOV(float fovInput) { FOV = fovInput; calculateProjectionMatrix(); }
 		void setExtent(const std::array<int, 2>& dimensionsInput) { dimensions = dimensionsInput; calculateProjectionMatrix(); }
 
-		const std::string getAssetName() override { return "CameraObject"; }
+		ASSET_NAME("CameraObject")
 	private:
 		void calculateProjectionMatrix();
 

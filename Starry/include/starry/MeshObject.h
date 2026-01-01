@@ -31,7 +31,7 @@ namespace Starry
 		static void primitiveQuad(MeshObject& obj, float width, float height);
 		static void twoQuadTest(MeshObject& obj);
 
-		const std::string getAssetName() override { return const_cast<std::string&>(name); }
+		ASSET_NAME(const_cast<std::string&>(name))
 	private:
 		std::string name;
 

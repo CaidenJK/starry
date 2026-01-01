@@ -3,8 +3,6 @@
 #include <vector>
 #include <format>
 
-#include <iostream>
-
 namespace StarryManager
 {
     std::atomic<bool> AssetManager::isDead = false;
@@ -16,6 +14,9 @@ namespace StarryManager
         logger = new Logger();
         registerAsset(logger);
 
+        fileHandler = new FileHandler();
+        registerAsset(fileHandler);
+
         assetThread = std::thread(&AssetManager::worker, this);
     }
 
@@ -24,6 +25,9 @@ namespace StarryManager
         delete logger;
         logger = nullptr;
         isDead = true;
+
+        delete fileHandler;
+        fileHandler = nullptr;
         
         hasFatal = true;
         resourceCV.notify_all();
@@ -53,8 +57,8 @@ namespace StarryManager
 	{
 		if (logger == nullptr || Logger::isLoggerDead()) return;
 		
+        logger->flushQueueBlock();
         std::scoped_lock lock(registeryMutex);
-		logger->flushQueueBlock();
 		registeredAssets.erase(uuid);
 
         // Mark as dead
@@ -160,15 +164,16 @@ namespace StarryManager
         std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::STALE; });
 
         for (auto it = closedRequests.begin(); it != closedRequests.end(); ++it) {
-            if ((*it)->senderUUID == asset->first && 
-                (*it)->resourceID == request->resourceID) {
+            if ((*it)->senderUUID == request->senderUUID && 
+                (*it)->resourceID == request->resourceID &&
+                (*it)->resourceArgs == request->resourceArgs) {
                 request->resourceState = ResourceRequest::YES;
                 request->resource = (*it)->resource;
                 return;
             }
         }
 
-        std::optional<void*> result = asset->second->getResource(request->resourceID);
+        std::optional<void*> result = asset->second->getResource(request->resourceID, request->resourceArgs);
         if (result.has_value()) {
             request->resource = result.value();
             request->resourceState = ResourceRequest::YES;

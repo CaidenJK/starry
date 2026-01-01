@@ -40,7 +40,7 @@ namespace Starry
 		std::atomic<bool>& isRenderRunning() { return renderRunning; }
 		const std::shared_ptr<RenderContext>& getRenderContext() { return renderer; }
 
-		const std::string getAssetName() override { return "Scene: " + sceneName; }
+		ASSET_NAME("Scene: " + sceneName)
 	private:
 		void renderLoop();
 

@@ -60,7 +60,7 @@ namespace StarryRender {
 			registerAlert("Render device not initialized before getting extent!", CRITICAL);
 			return { -1, -1 };
 		}
-		auto extent = requestResource<VkExtent2D>("RenderDevice", "Extent");
+		auto extent = requestResource<VkExtent2D>("Render Device", "Extent");
 		if (m_renderDevice->getAlertSeverity() == StarryAsset::FATAL) {
 			return { -1, -1 };
 		}

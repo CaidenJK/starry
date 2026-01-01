@@ -3,6 +3,7 @@
 #include "StarryAsset.h"
 #include "Logger.h"
 #include "Resource.h"
+#include "FileHandler.h"
 
 #include <optional>
 #include <unordered_map>
@@ -30,44 +31,27 @@ namespace StarryManager
             void setExitRights(bool value) { hasExitRights.store(value); }
 
             template <typename T>
-            ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, size_t resourceID)
-            {
-                std::scoped_lock lock(resourceMutex);
-                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
-                resourceCV.notify_all();
-                
-                return ResourceHandle<T>(resourceRequests.back());
-            }
-
-            template <typename T>
-            ResourceHandle<T> requestResource(uint64_t callerID, std::string senderName, size_t resourceID)
+            ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
             {
                 std::scoped_lock lock(resourceMutex);
                 registeryMutex.lock();
-                for(auto& it : registeredAssets) {
-                    if (it.second->getAssetName().compare(senderName) == 0) {
-                        registeryMutex.unlock();
-                        resourceRequests.emplace(ResourceRequest::create(callerID, it.second->getUUID(), resourceID));
-                        resourceCV.notify_all();
-
-                        return ResourceHandle<T>(resourceRequests.back());
-                    }
+                size_t resourceID = INVALID_RESOURCE; 
+                StarryAsset* asset;
+                if (senderID == FILE_REQUEST) {
+                    asset = (StarryAsset*)fileHandler;
                 }
-                registeryMutex.unlock();
-                registerAlert(std::string("No sender of resource has given name: ") + senderName, FATAL);
-                return {};
-            }
-
-            template <typename T>
-            ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, std::string resourceName)
-            {
-                std::scoped_lock lock(resourceMutex);
-                registeryMutex.lock();
-                size_t resourceID = INVALID_RESOURCE; auto asset = registeredAssets.find(senderID);
-                if (asset != registeredAssets.end()) resourceID = asset->second->getResourceIDFromString(resourceName);
+                else {
+                    auto iter = registeredAssets.find(senderID);
+                    if (iter == registeredAssets.end()) {
+                        registerAlert("No asset has given UUID.", CRITICAL); 
+                        return {};
+                    }
+                    asset = iter->second;
+                }
+                resourceID = asset->getResourceIDFromString(resourceName);
                 registeryMutex.unlock();
 
-                resourceRequests.emplace(ResourceRequest::create(callerID, senderID, resourceID));
+                resourceRequests.emplace(ResourceRequest::create(callerID, asset->getUUID(), resourceID, resourceArgs));
                 if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
                 resourceCV.notify_all();
                 
@@ -75,7 +59,7 @@ namespace StarryManager
             }
 
             template <typename T>
-            ResourceHandle<T> requestResource(uint64_t callerID, std::string senderName, std::string resourceName)
+            ResourceHandle<T> requestResource(uint64_t callerID, std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
             {
                 std::scoped_lock lock(resourceMutex);
                 registeryMutex.lock();
@@ -85,19 +69,20 @@ namespace StarryManager
                         size_t resourceID = it.second->getResourceIDFromString(resourceName);
                         registeryMutex.unlock();
 
-                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID));
+                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID, resourceArgs));
                         if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
 						resourceCV.notify_all();
 
                         return ResourceHandle<T>(resourceRequests.back());
                     }
                 }
+
                 registeryMutex.unlock();
                 registerAlert(std::string("No sender of resource has given name: ") + senderName, WARNING);
                 return {};
             }
 
-            const std::string getAssetName() override {return "Asset Manager";}
+            ASSET_NAME("Asset Manager")
 
         private:
             AssetManager();
@@ -108,6 +93,7 @@ namespace StarryManager
             std::atomic<bool> hasExitRights = false;
 
             Logger* logger;
+            FileHandler* fileHandler;
 
             std::mutex registeryMutex;
             std::unordered_map<uint64_t, StarryAsset*> registeredAssets;
@@ -126,33 +112,19 @@ namespace StarryManager
             Logger::AssetCall getFatalAlert();
     };
 
-    template <typename T>
-	ResourceHandle<T> StarryAsset::requestResource(uint64_t senderID, size_t resourceID)
-	{
-		if (auto ptr = AssetManager::get().lock()) return std::move(ptr->requestResource<T>(uuid, senderID, resourceID));
-		return {};
-	}
+    template <typename T> 
+	ResourceHandle<T> StarryAsset::requestResource(uint64_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
+    {
+        if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderID, resourceName, resourceArgs);
+        return {};
+    }
 
-    template <typename T>
-	ResourceHandle<T> StarryAsset::requestResource(uint64_t senderID, std::string resourceName)
-	{
-		if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderID, resourceName);
-		return {};
-	}
-
-    template <typename T>
-    ResourceHandle<T> StarryAsset::requestResource(std::string senderName, size_t resourceID)
-	{
-		if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderName, resourceID);
-		return {};
-	}
-
-    template <typename T>
-    ResourceHandle<T> StarryAsset::requestResource(std::string senderName, std::string resourceName)
-	{
-		if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderName, resourceName);
-		return {};
-	}
+	template <typename T> 
+	ResourceHandle<T> StarryAsset::requestResource(std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
+    {
+        if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderName, resourceName, resourceArgs);
+        return {};
+    }
 }
 // manage shared resources
 // logger is enclosed class

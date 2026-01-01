@@ -19,7 +19,7 @@ namespace StarryRender
 		}
 	}
 
-	std::optional<void*> UniformBuffer::getResource(size_t resourceID)
+	std::optional<void*> UniformBuffer::getResource(size_t resourceID, std::vector<size_t> resourceArgs)
 	{
 		if (resourceID == SharedResources::VK_BUFFERS) {
 			return (void*)&uniformBuffers;

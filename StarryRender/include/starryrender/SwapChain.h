@@ -57,7 +57,7 @@ namespace StarryRender
 			VkExtent2D& getExtent() { return swapChainExtent; }
 			size_t getImageCount() { return swapChainImageBuffers.size(); }
 
-			const std::string getAssetName() override { return "Swapchain"; }
+			ASSET_NAME("Swapchain")
 
 			static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface);
 		private:

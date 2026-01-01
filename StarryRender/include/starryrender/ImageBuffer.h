@@ -25,10 +25,10 @@ namespace StarryRender
 		VkImage& getImage() { return image; }
 		VkImageView& getImageView() { return imageView; }
 
-		virtual std::optional<void*> getResource(size_t resourceID) override { return {}; };
-        virtual size_t getResourceIDFromString(std::string resourceName) override { return INVALID_RESOURCE; };
+		virtual GET_RESOURCE { return {}; };
+        virtual GET_RESOURCE_FROM_STRING { return INVALID_RESOURCE; };
 
-		virtual const std::string getAssetName() override { return "ImageBuffer"; }
+		virtual ASSET_NAME("ImageBuffer")
 	protected:
 		void copyBufferToImage(VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height);
 

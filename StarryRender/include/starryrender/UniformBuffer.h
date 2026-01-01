@@ -30,10 +30,10 @@ namespace StarryRender
 			VK_BUFFERS = 0
 		};
 
-		std::optional<void*> getResource(size_t resourceID) override;
-		size_t getResourceIDFromString(std::string resourceName) override;
+		GET_RESOURCE;
+		GET_RESOURCE_FROM_STRING;
 
-		const std::string getAssetName() override { return "Uniform Buffer"; }
+		ASSET_NAME("Uniform Buffer")
 	private:
 		void createUniformBuffers();
 

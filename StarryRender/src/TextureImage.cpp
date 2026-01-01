@@ -7,7 +7,7 @@ namespace StarryRender
 {
     TextureImage::TextureImage()
     {
-        device = requestResource<VkDevice>("RenderDevice", "VkDevice");
+        device = requestResource<VkDevice>("Render Device", "VkDevice");
     }
 
     TextureImage::~TextureImage()
@@ -17,7 +17,7 @@ namespace StarryRender
         }
     }
 
-    std::optional<void*> TextureImage::getResource(size_t resourceID)
+    std::optional<void*> TextureImage::getResource(size_t resourceID, std::vector<size_t> resourceArgs)
     {
         if (resourceID == SharedResources::IMAGE_VIEW &&
             imageView != VK_NULL_HANDLE) {
@@ -33,7 +33,7 @@ namespace StarryRender
 		return {};
     }
 
-	size_t TextureImage::getResourceIDFromString(std::string resourceName)
+	size_t TextureImage::getResourceIDFromString(const std::string resourceName)
     {
         if (resourceName.compare("Image View") == 0) {
             return SharedResources::IMAGE_VIEW;

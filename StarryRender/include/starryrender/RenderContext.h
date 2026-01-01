@@ -53,7 +53,7 @@ namespace StarryRender
 		void windowPollEvents() const { m_window->pollEvents(); }
 		bool windowShouldClose() const { return m_window->shouldClose(); }
 
-		const std::string getAssetName() override { return "RenderContext"; }
+		ASSET_NAME("RenderContext")
 	private:
 		const static int MAX_VERTEX_BUFFERS = 1;
 		void initInternalWindow();

@@ -34,7 +34,7 @@ namespace Starry
 				return static_cast<float>(deltaTime) / static_cast<float>(FrameMetric::NANOS_IN_SECOND);
 			}
 
-			const std::string getAssetName() override { return "Timer"; };
+			ASSET_NAME("Timer")
 		private:
 			void logFPS();
 			int getFPS();

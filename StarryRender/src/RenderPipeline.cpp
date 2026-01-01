@@ -4,9 +4,9 @@ namespace StarryRender
 {
 	RenderPipeline::RenderPipeline(std::shared_ptr<Shader>& shaderValue)
 	{
-		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
-		auto imageFormats = requestResource<std::array<VkFormat, 2>>("RenderDevice", "Swapchain Image Formats");
-		auto descriptor = requestResource<std::shared_ptr<Descriptor>>("RenderDevice", "Descriptor");
+		device = requestResource<VkDevice>("Render Device", "VkDevice");
+		auto imageFormats = requestResource<std::array<VkFormat, 2>>("Render Device", "Swapchain Image Formats");
+		auto descriptor = requestResource<std::shared_ptr<Descriptor>>("Render Device", "Descriptor");
 
 		shader = shaderValue;
 		if (shader == nullptr) {

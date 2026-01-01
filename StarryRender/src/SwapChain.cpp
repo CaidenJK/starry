@@ -18,7 +18,7 @@
 namespace StarryRender 
 {
 	SwapChain::SwapChain() {
-		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
+		device = requestResource<VkDevice>("Render Device", "VkDevice");
 	}
 
 	SwapChain::~SwapChain() 
@@ -28,7 +28,7 @@ namespace StarryRender
 	
 	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, VkSurfaceKHR& surface) 
 	{
-		auto windowReference = requestResource<std::weak_ptr<Window>>("RenderDevice", "Window");
+		auto windowReference = requestResource<std::weak_ptr<Window>>("Render Device", "Window");
 
 		cleanupSwapChain();
 

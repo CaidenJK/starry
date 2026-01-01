@@ -10,7 +10,7 @@ namespace StarryRender
 {
     Descriptor::Descriptor()
     {
-        device = requestResource<VkDevice>("RenderDevice", "VkDevice");
+        device = requestResource<VkDevice>("Render Device", "VkDevice");
 
         ERROR_VOLATILE(createDescriptorSetLayout());
         createDescriptorPool();

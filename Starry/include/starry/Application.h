@@ -28,7 +28,7 @@ namespace Starry
         static void enableFileLogging(bool value) { AssetManager::get().lock()->setFileLogging(value); }
         static void setManagerExitRights(bool value) { AssetManager::get().lock()->setExitRights(value); }
 
-		const std::string getAssetName() override { return "Application"; }
+		ASSET_NAME("Application")
 
     private:
         void printVersion() {

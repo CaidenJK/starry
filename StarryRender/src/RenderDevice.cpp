@@ -108,7 +108,7 @@ namespace StarryRender
 		delete debugger;
 	}
 
-	std::optional<void*> RenderDevice::getResource(size_t resourceID)
+	std::optional<void*> RenderDevice::getResource(size_t resourceID, std::vector<size_t> resourceArgs)
 	{
 		if (resourceID == SharedResources::VK_DEVICE &&
 			device != VK_NULL_HANDLE) {
@@ -147,7 +147,7 @@ namespace StarryRender
 		return {};
 	}
 
-	size_t RenderDevice::getResourceIDFromString(std::string resourceName)
+	size_t RenderDevice::getResourceIDFromString(const std::string resourceName)
 	{
 		if (resourceName.compare("VkDevice") == 0) {
 			return SharedResources::VK_DEVICE;

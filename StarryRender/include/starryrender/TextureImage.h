@@ -20,10 +20,10 @@ namespace StarryRender
                 SAMPLER = 1
             };
 
-            std::optional<void*> getResource(size_t resourceID) override;
-            size_t getResourceIDFromString(std::string resourceName) override;
+            GET_RESOURCE;
+            GET_RESOURCE_FROM_STRING;
 
-            const std::string getAssetName() override { return "TextureImage"; }
+            ASSET_NAME("TextureImage")
         private:
             void loadImageToMemory(VkDeviceSize imageSize, stbi_uc* pixels);
 

@@ -13,6 +13,11 @@
 
 #define INVALID_RESOURCE 400
 
+#define ASSET_NAME(x) const std::string getAssetName() override { return x; }
+
+#define GET_RESOURCE std::optional<void*> getResource(const size_t resourceID, const std::vector<size_t> resourceArgs) override
+#define GET_RESOURCE_FROM_STRING size_t getResourceIDFromString(const std::string resourceName) override
+
 namespace StarryManager
 {
 	template <typename T>
@@ -38,7 +43,6 @@ namespace StarryManager
 			CRITICAL,
 			FATAL
 		};
-		// TODO: File and Not File
 		// TODO: Add proper debug, release, distribution builds.
 
 		bool getAlert() { return hasAlert; }
@@ -47,20 +51,25 @@ namespace StarryManager
 
 		void resetAlert();
 
-		virtual std::optional<void*> getResource(size_t resourceID) { return {}; }
-		virtual size_t getResourceIDFromString(std::string resourceName) { return INVALID_RESOURCE; }
+		virtual std::optional<void*> getResource(const size_t resourceID, const std::vector<size_t> resourceArgs) { return {}; }
+		virtual size_t getResourceIDFromString(const std::string resourceName) { return INVALID_RESOURCE; }
 		
-		template <typename T>
-    	ResourceHandle<T> requestResource(uint64_t senderID, size_t resourceID);
+		template <typename T> 
+		ResourceHandle<T> requestResource(uint64_t senderID, std::string resourceName, std::vector<size_t> resourceArgs);
+		template <typename T> 
+		ResourceHandle<T> requestResource(std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs);
 
-		template <typename T>
-    	ResourceHandle<T> requestResource(uint64_t senderID, std::string resourceName);
+		template <typename T> 
+		ResourceHandle<T> requestResource(uint64_t senderID, std::string resourceName)
+		{
+			return requestResource<T>(senderID, resourceName, {});
+		}
 
-		template <typename T>
-    	ResourceHandle<T> requestResource(std::string senderName, size_t resourceID);
-
-		template <typename T>
-    	ResourceHandle<T> requestResource(std::string senderName, std::string resourceName);
+		template <typename T> 
+		ResourceHandle<T> requestResource(std::string senderName, std::string resourceName)
+		{
+			return requestResource<T>(senderName, resourceName, {});
+		}
 
 		virtual const std::string getAssetName() = 0;
 
@@ -71,8 +80,9 @@ namespace StarryManager
 		StarryAsset(bool autoRegister);
 		virtual void registerAlert(const std::string& message, CallSeverity severity);
 
-	private:
 		static uint64_t generateUUID();
+
+	private:
 		static std::mt19937_64 randomGen;
 
 		bool hasAlert = false;

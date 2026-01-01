@@ -31,7 +31,7 @@ namespace StarryRender
 
 		VkPipelineLayout& getPipelineLayout() { return pipelineLayout; }
 
-		const std::string getAssetName() override { return "Pipeline"; }
+		ASSET_NAME("Pipeline")
 
 	private:
 		void constructPipeline(std::array<VkFormat, 2>& imageFormats, std::shared_ptr<Descriptor>& descriptor);

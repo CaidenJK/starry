@@ -22,7 +22,7 @@ namespace StarryRender
 
             void createSets(uint64_t uniformBufferUUID, uint64_t imageTextureID); // Scale later
 
-            const std::string getAssetName() override { return "Descriptor"; }
+            ASSET_NAME("Descriptor")
         private:
             void createDescriptorSetLayout();
             void createDescriptorPool();

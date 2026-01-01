@@ -33,7 +33,7 @@ namespace StarryRender
 
 		bool isWindowMinimized();
 
-		const std::string getAssetName() override { return "Window"; }
+		ASSET_NAME("Window")
 
 		static void framebufferResizeCallback(GLFWwindow* window, int width, int height);
 	private:
