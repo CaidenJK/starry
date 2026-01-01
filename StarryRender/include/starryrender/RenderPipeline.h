@@ -34,8 +34,8 @@ namespace StarryRender
 		const std::string getAssetName() override { return "Pipeline"; }
 
 	private:
-		void constructPipeline(VkFormat& swapChainImageFormat, std::shared_ptr<Descriptor>& descriptor);
-		void createRenderPass(VkFormat swapChainImageFormat);
+		void constructPipeline(std::array<VkFormat, 2>& imageFormats, std::shared_ptr<Descriptor>& descriptor);
+		void createRenderPass(std::array<VkFormat, 2>& imageFormats);
 		void constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor);
 
 		VkPipelineVertexInputStateCreateInfo createVertexInputInfo();

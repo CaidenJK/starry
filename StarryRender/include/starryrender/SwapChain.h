@@ -53,7 +53,7 @@ namespace StarryRender
 			VkSwapchainKHR& getSwapChain() { return swapChain; }
 
 
-			VkFormat& getImageFormat() { return swapChainImageFormat; }
+			std::array<VkFormat, 2>& getImageFormats() { return imageFormats; }
 			VkExtent2D& getExtent() { return swapChainExtent; }
 			size_t getImageCount() { return swapChainImageBuffers.size(); }
 
@@ -68,7 +68,7 @@ namespace StarryRender
             static VkFormat findDepthFormat(VkPhysicalDevice& device);
 			bool hasStencilComponent(VkFormat format);
 
-			void createDepthResources(VkFormat format);
+			void createDepthResources();
 			
 			void cleanupSwapChain();
 
@@ -80,7 +80,7 @@ namespace StarryRender
 
 			std::vector<ImageBuffer> swapChainImageBuffers;
 
-			VkFormat swapChainImageFormat;
+			std::array<VkFormat, 2> imageFormats;
 			VkExtent2D swapChainExtent = {0, 0};
 
 			std::shared_ptr<ImageBuffer> depthBuffer;

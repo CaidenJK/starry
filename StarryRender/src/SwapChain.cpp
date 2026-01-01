@@ -99,13 +99,16 @@ namespace StarryRender
 		std::vector<VkImage> swapChainImages; swapChainImages.resize(imageCount);
 		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, swapChainImages.data());
 
-		swapChainImageFormat = surfaceFormat.format;
+		imageFormats[0] = surfaceFormat.format;
 		swapChainExtent = extent;
 
 		for (int i = 0; i < swapChainImages.size(); i++) {
 			swapChainImageBuffers[i].setImage(swapChainImages[i], false);
-			swapChainImageBuffers[i].createImageView(swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+			swapChainImageBuffers[i].createImageView(imageFormats[0], VK_IMAGE_ASPECT_COLOR_BIT);
 		}
+
+		imageFormats[1] = swapChainSupport.depthBufferFormat;
+		createDepthResources();
 	}
 
 	VkFormat SwapChain::findSupportedFormat(VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) 
@@ -136,12 +139,12 @@ namespace StarryRender
 		);
 	}
 
-	void SwapChain::createDepthResources(VkFormat depthFormat)
+	void SwapChain::createDepthResources()
 	{
 		depthBuffer = std::make_shared<ImageBuffer>();
-		depthBuffer->createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+		depthBuffer->createImage(swapChainExtent.width, swapChainExtent.height, imageFormats[1], VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		depthBuffer->createImageView(depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+		depthBuffer->createImageView(imageFormats[1], VK_IMAGE_ASPECT_DEPTH_BIT);
 	}
 
 	void SwapChain::generateFramebuffers(VkRenderPass& renderPass)
@@ -157,15 +160,16 @@ namespace StarryRender
 		swapChainFramebuffers.resize(swapChainImageBuffers.size());
 
 		for (size_t i = 0; i < swapChainImageBuffers.size(); i++) {
-			VkImageView attachments[] = {
-				swapChainImageBuffers[i].getImageView()
+			std::array<VkImageView, 2> attachments = {
+				swapChainImageBuffers[i].getImageView(),
+				depthBuffer->getImageView()
 			};
 
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			framebufferInfo.renderPass = renderPass;
-			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = attachments;
+			framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+			framebufferInfo.pAttachments = attachments.data();
 			framebufferInfo.width = swapChainExtent.width;
 			framebufferInfo.height = swapChainExtent.height;
 			framebufferInfo.layers = 1;

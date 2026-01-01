@@ -20,6 +20,8 @@ namespace StarryRender
 		void setImage(VkImage& image, bool isOwning);
 		void createImageView(VkFormat imageViewFormat, VkImageAspectFlags aspectFlags);
 
+		void transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+
 		VkImage& getImage() { return image; }
 		VkImageView& getImageView() { return imageView; }
 
@@ -28,6 +30,8 @@ namespace StarryRender
 
 		virtual const std::string getAssetName() override { return "ImageBuffer"; }
 	protected:
+		void copyBufferToImage(VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height);
+
 		VkDeviceSize imageSize = 0;
 
 		VkImage image = VK_NULL_HANDLE;
