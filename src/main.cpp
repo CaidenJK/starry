@@ -2,7 +2,7 @@
 
 int main() {
     Starry::Application::setManagerExitRights(true);
-    //Starry::Application::enableFileLogging(true);
+    Starry::Application::enableFileLogging(true);
 
     Starry::Application app;
     app.run();

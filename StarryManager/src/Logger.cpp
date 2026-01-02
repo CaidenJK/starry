@@ -74,6 +74,7 @@ namespace StarryManager
 			checkQueue();
 			checkFlush();
 		}
+		checkQueue();
 	}
 
 	void Logger::logAlert(AssetCall& call) {
@@ -147,7 +148,7 @@ namespace StarryManager
 		if (!didLogToFile) {
 			requestResource<FILETYPE>(FILE_REQUEST, LOG_PATH, {FileHandler::CREATE_DIR});
 		}
-		auto file = requestResource<FILETYPE>(FILE_REQUEST, LOG_FILE, {FileHandler::Flags::WRITE, FileHandler::Flags::APPEND_EACH});
+		auto file = requestResource<FILETYPE>(FILE_REQUEST, LOG_FILE, {FileHandler::Flags::WRITE | FileHandler::Flags::APPEND_EACH});
 		
 		if (file.wait() != ResourceRequest::ResourceState::YES) {
 			registerAlert("Couldn't open Log File!", FATAL);

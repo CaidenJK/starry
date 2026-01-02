@@ -48,8 +48,11 @@ namespace StarryManager
 
     bool FileHandler::openFile(RawFile*& file, std::vector<size_t> args)
     {
-        size_t flags = CHAR;
-        for (auto arg : args) flags |= arg;
+        if (args.size() < 1) {
+            registerAlert("No arguments passed to file.", WARNING);
+            return false;
+        }
+        size_t flags = args[0];
 
         if (flags & CREATE_DIR) {
             std::filesystem::create_directories(file->path);
@@ -59,12 +62,12 @@ namespace StarryManager
             auto path = file->path;
             delete file;
             file = new ImageFile(path);
+            flags = args[1];
         }
-        else {
-            if (!file->open(flags)) {
-                registerAlert(std::string("Could not open file: ") + file->path, WARNING);
-                return false;
-            }
+
+        if (!file->open(flags)) {
+            registerAlert(std::string("Could not open file: ") + file->path, WARNING);
+            return false;
         }
 
         return true;

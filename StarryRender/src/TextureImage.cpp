@@ -44,17 +44,17 @@ namespace StarryRender
     
     void TextureImage::loadFromFile(const std::string filePath)
     {
-        file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::IMAGE, Flags::READ});
+        file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::IMAGE | Flags::READ, 4});
 
         if (file.wait() != ResourceState::YES) {
             registerAlert("Failed to load image from file!", CRITICAL);
             return;
         }
         auto imageFile = dynamic_cast<ImageFile*>(*file);
-        if (!imageFile->open(4)) {
-            registerAlert("Failed to open image file: " + filePath, CRITICAL);
-            return;
-		}
+
+        imageSize = static_cast<VkDeviceSize>(imageFile->width) *
+                    static_cast<VkDeviceSize>(imageFile->height) *
+                    4;
 
         loadImageToMemory(imageSize, imageFile);
 
