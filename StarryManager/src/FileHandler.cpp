@@ -1,6 +1,8 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_FAILURE_USERMSG
 
+#define TINYOBJLOADER_IMPLEMENTATION
+
 #include "FileHandler.h"
 
 #include <filesystem>
@@ -28,9 +30,13 @@ namespace StarryManager
         if (pixels) stbi_image_free(pixels);
     }
 
+    bool ModelFile::open(size_t args)
+    {
+        return tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, path.c_str());
+    }
+
     FileHandler::FileHandler() : StarryAsset(false)
     {
-        
     }
 
     FileHandler::~FileHandler()
@@ -63,6 +69,11 @@ namespace StarryManager
             delete file;
             file = new ImageFile(path);
             flags = args[1];
+        }
+        if (flags & MODEL && flags & READ) {
+            auto path = file->path;
+            delete file;
+            file = new ModelFile(path);
         }
 
         if (!file->open(flags)) {

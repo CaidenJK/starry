@@ -1,6 +1,7 @@
 #include "Application.h"
 
 #include "MeshObject.h"
+#include "CameraObject.h"
 
 #define STARRY_INITIALIZE_SUCCESS \
 	"----------------------------------------\n" \
@@ -35,16 +36,22 @@ namespace Starry
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
 
-		std::shared_ptr<MeshObject> quad = std::make_shared<MeshObject>("Simple Quad");
-		MeshObject::twoQuadTest(*quad);
-#ifdef IMAGE_PATH
-		quad->loadDiffuseTextureFromFile( IMAGE_PATH "cassini.jpg");
+		std::shared_ptr<MeshObject> radio = std::make_shared<MeshObject>("Radio");
+#ifdef MODEL_PATH
+		radio->loadMeshFromFile(MODEL_PATH "PortalRadio.obj");
 #else
-		#error "IMAGE_PATH not defined!"
+#error "MODEL_PATH not defined!"
+#endif
+		
+#ifdef IMAGE_PATH
+		radio->loadTextureFromFile( IMAGE_PATH "Bake.png");
+#else
+#error "IMAGE_PATH not defined!"
 #endif
 
-		m_scene->pushPrefab(quad); ERROR_HANDLER_CHECK;
-		m_scene->addCamera(camera); ERROR_HANDLER_CHECK;
+		std::vector<std::shared_ptr<SceneObject>> objects = { static_cast<std::shared_ptr<SceneObject>>(radio),  static_cast<std::shared_ptr<SceneObject>>(camera) };
+
+		m_scene->pushObjects(objects); ERROR_HANDLER_CHECK;
 
 		ERROR_HANDLER_CHECK;
 		registerAlert(STARRY_INITIALIZE_SUCCESS, BANNER);

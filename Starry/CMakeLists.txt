@@ -55,6 +55,11 @@ set(IMAGE_DIR "${SOURCE_DIR}/images")
 get_filename_component(IMAGE_DIR_ABS "${IMAGE_DIR}" ABSOLUTE)
 file(TO_CMAKE_PATH "${IMAGE_DIR_ABS}" IMAGE_DIR_UNIX)
 
+# Models Directory
+set(MODEL_DIR "${SOURCE_DIR}/models")
+get_filename_component(MODEL_DIR_ABS "${MODEL_DIR}" ABSOLUTE)
+file(TO_CMAKE_PATH "${MODEL_DIR_ABS}" MODEL_DIR_UNIX)
+
 # DEPENDENCIES
 # ---------------------------------------
 
@@ -109,6 +114,7 @@ target_compile_definitions(Starry PRIVATE STARRY_BUILD_DLL)
 
 target_compile_definitions(Starry PRIVATE "SHADERS_PATH=\"${SHADER_DIR_UNIX}/\"")
 target_compile_definitions(Starry PRIVATE "IMAGE_PATH=\"${IMAGE_DIR_UNIX}/\"")
+target_compile_definitions(Starry PRIVATE "MODEL_PATH=\"${MODEL_DIR_UNIX}/\"")
 
 set_target_properties(Starry PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"

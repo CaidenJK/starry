@@ -42,7 +42,7 @@ namespace StarryRender
         return INVALID_RESOURCE;
     }
     
-    void TextureImage::loadFromFile(const std::string filePath)
+    void TextureImage::loadFromFile()
     {
         file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::IMAGE | Flags::READ, 4});
 

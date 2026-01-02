@@ -18,8 +18,10 @@ namespace Starry
 		if (renderRunning.load()) {
 			joinRenderer();
 		}
-		prefabs.reset();
-		camera.reset();
+		for (auto& obj : sceneObjects) {
+			obj.second->Destroy();
+			obj.second.reset();
+		}
 		renderer.reset();
 	}
 
@@ -54,13 +56,18 @@ namespace Starry
 		renderer = renderContext;
 	}
 
-	void Scene::pushPrefab(std::shared_ptr<MeshObject>& prefab)
+	void Scene::pushObject(std::shared_ptr<SceneObject>& obj)
 	{
-		if (prefab->isEmptyMesh() == true) {
-			registerAlert("Prefab pointer is null!", CRITICAL);
-			return;
+		obj->Init(); EXTERN_ERROR(obj);
+		sceneObjects.emplace(obj->getName(), obj);
+	}
+
+	void Scene::pushObjects(std::vector<std::shared_ptr<SceneObject>>& objs)
+	{
+		for (auto& obj : objs) {
+			obj->Init();
+			sceneObjects.emplace(obj->getName(), obj);
 		}
-		prefabs = prefab;
 	}
 
 	void Scene::setShaderPaths(const std::array<std::string, 2>& paths) 
@@ -69,11 +76,6 @@ namespace Starry
 		if (renderer != nullptr) {
 			renderer->loadShaders(shaderPaths);
 		}
-	}
-
-	void Scene::addCamera(std::shared_ptr<CameraObject>& cameraRef)
-	{
-		camera = cameraRef;
 	}
 
 	void Scene::disbatchRenderer() 
@@ -86,12 +88,14 @@ namespace Starry
 			registerAlert("Render Context experienced a fatal error, could not disbatch renderer", FATAL);
 			return;
 		}
-		if (prefabs->isEmptyMesh() == true) {
-			registerAlert("No prefabs in scene to render!", FATAL);
+		if (sceneObjects.size() == 0) {
+			registerAlert("No objects in scene to render!", FATAL);
 			return;
 		}
 
-		prefabs->registerMeshBuffer(renderer);
+		for (auto& obj : sceneObjects) {
+			obj.second->Register(renderer); EXTERN_ERROR(obj.second);
+		}
 
 		renderer->LoadBuffers(); EXTERN_ERROR(renderer);
 
@@ -114,9 +118,16 @@ namespace Starry
 		frameTimer.setLogging();
 		while (renderRunning.load()) {
 			frameTimer.time();
-			prefabs->rotateMesh(frameTimer.getDeltaTimeSeconds() * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 1.0f));
+			for (auto& obj : sceneObjects) {
+				obj.second->Update(renderer);
+			}
 
-			UniformBufferData mvpBuffer{prefabs->getModelMatrix(),  camera->getViewMatrix(), camera->getProjectionMatrix()};
+			sceneObjects.find("Mesh, Radio")->second->rotate(frameTimer.getDeltaTimeSeconds() * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
+
+			UniformBufferData mvpBuffer{ sceneObjects.find("Mesh, Radio")->second->getBufferData().model,  
+				sceneObjects.find("Camera, Default")->second->getBufferData().view, 
+				sceneObjects.find("Camera, Default")->second->getBufferData().proj };
 			renderer->updateUniformBuffer(mvpBuffer);
 
 			// Error checks
@@ -131,7 +142,6 @@ namespace Starry
 			}
 
 			renderer->Draw();
-			camera->setExtent(renderer->getExtent());
 			
 			// Error checks
 			if (renderer->getRenderErrorState()) {

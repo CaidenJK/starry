@@ -1,49 +1,33 @@
 #pragma once
 
-#include <StarryRender.h>
-#include <StarryManager.h>
-
-#include <string>
-
-#define DEFAULT_NAME_MESH "MeshObject"
+#include "SceneObject.h"
 
 namespace Starry
 {
-	class MeshObject : public StarryAsset {
+	class MeshObject : public SceneObject {
 	public:
-		MeshObject(std::string nameInput = DEFAULT_NAME_MESH);
+		MeshObject(std::string nameInput = "Default");
 		~MeshObject();
+
+		void Init() override {}
+		void Register(std::shared_ptr<RenderContext>& renderContext) override;
+		void Destroy() override;
 
 		bool isEmptyMesh() const { return isEmpty; }
 
 		void addVertexData(std::vector<Vertex>& verticesInput, std::vector<uint32_t> indicesInput);
-		void registerMeshBuffer(std::unique_ptr<RenderContext>& renderContext);
-		void registerMeshBuffer(std::shared_ptr<RenderContext>& renderContext);
-
-		void loadDiffuseTextureFromFile(const std::string filePath);
-
-		void rotateMesh(float angleRadians, const glm::vec3& axis);
-
-		glm::mat4& getModelMatrix() { return localToGlobalSpace; }
 		std::shared_ptr<VertexBuffer>& getRawVertexBuffer() { return vertexBuffer; }
 
-		static void primitiveCube(MeshObject& obj, float size);
-		static void primitiveQuad(MeshObject& obj, float width, float height);
-		static void twoQuadTest(MeshObject& obj);
+		void loadTextureFromFile(const std::string filePath);
+		void loadMeshFromFile(const std::string filePath);
 
-		ASSET_NAME(const_cast<std::string&>(name))
 	private:
-		std::string name;
-
 		bool isEmpty = true;
-
-		glm::mat4 localToGlobalSpace = 1.0f;
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
-		std::string filePath;
 
 		std::shared_ptr<VertexBuffer> vertexBuffer;
-		std::shared_ptr<TextureImage> imageBuffer;
+		std::shared_ptr<TextureImage> textureImage;
 	};
 }

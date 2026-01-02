@@ -12,6 +12,7 @@ using ResourceState = StarryManager::ResourceRequest::ResourceState;
 using Flags = StarryManager::FileHandler::Flags;
 using RawFile = StarryManager::RawFile;
 using ImageFile = StarryManager::ImageFile;
+using ModelFile = StarryManager::ModelFile;
 
 template<typename T>
 using ResourceHandle = StarryManager::ResourceHandle<T>;

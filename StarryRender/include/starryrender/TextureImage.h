@@ -10,8 +10,9 @@ namespace StarryRender
         public:
             TextureImage();
             ~TextureImage();
-    
-            void loadFromFile(const std::string filePath);
+			void storeFilePath(const std::string& path) { filePath = path; }
+
+            void loadFromFile();
 
             enum SharedResources {
                 IMAGE_VIEW = 0,
@@ -27,6 +28,7 @@ namespace StarryRender
 
             void createSampler();
 
+            std::string filePath;
             ResourceHandle<FILETYPE> file;
 
             VkBuffer stagingBuffer = VK_NULL_HANDLE;

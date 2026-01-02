@@ -36,6 +36,20 @@ namespace StarryManager
             int height, width, channels;
     };
 
+    struct ModelFile : RawFile
+    {
+            ModelFile(std::string& path) : RawFile(path) {}
+            ~ModelFile() { close(); }
+            bool open(size_t args) override;
+            void close() override {}
+
+            tinyobj::attrib_t attrib;
+            std::vector<tinyobj::shape_t> shapes;
+            std::vector<tinyobj::material_t> materials;
+
+            std::string warn, err;
+	};
+
     class FileHandler : public StarryAsset
     {
         public:
@@ -50,6 +64,7 @@ namespace StarryManager
                 BINARY = std::ios::binary,
                 CHAR = 0,
                 IMAGE = 256U,
+                MODEL = 512U,
                 APPEND_START = std::ios::ate,
                 APPEND_EACH = std::ios::app,
                 OVERRITE = std::ios::trunc,

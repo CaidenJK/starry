@@ -1,30 +1,27 @@
 #pragma once
 
-#include <StarryRender.h>
-#include <StarryManager.h>
+#include "SceneObject.h"
 
 #include <array>
 
 namespace Starry
 {
-	class CameraObject : public StarryAsset {
+	class CameraObject : public SceneObject {
 	public:
-		CameraObject();
+		CameraObject(std::string name = "Default");
 		~CameraObject();
 
-		glm::mat4& getViewMatrix() { return localToGlobalSpace; }
-		glm::mat4& getProjectionMatrix() { return projectionMatrix; }
+		void Init() override;
+		void Register(std::shared_ptr<RenderContext>& renderContext) override;
+		void Update(std::shared_ptr<RenderContext>& renderContext) override;
 
 		void setClippingPlanes(float nearInput, float farInput) { nearPlane = nearInput; farPlane = farInput; calculateProjectionMatrix(); }
 		void setFOV(float fovInput) { FOV = fovInput; calculateProjectionMatrix(); }
 		void setExtent(const std::array<int, 2>& dimensionsInput) { dimensions = dimensionsInput; calculateProjectionMatrix(); }
 
-		ASSET_NAME("CameraObject")
 	private:
 		void calculateProjectionMatrix();
 
-		// Inverse view matrix
-		glm::mat4 localToGlobalSpace = 1.0f;
 		glm::mat4 projectionMatrix;
 
 		float nearPlane = 0.1f;
