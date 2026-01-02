@@ -46,7 +46,7 @@ namespace StarryManager
         return file;
     }
 
-    bool FileHandler::openFile(RawFile* file, std::vector<size_t> args)
+    bool FileHandler::openFile(RawFile*& file, std::vector<size_t> args)
     {
         size_t flags = CHAR;
         for (auto arg : args) flags |= arg;
@@ -55,15 +55,16 @@ namespace StarryManager
             std::filesystem::create_directories(file->path);
             return true;
         }
-        if (flags & IMAGE & READ) {
+        if (flags & IMAGE && flags & READ) {
             auto path = file->path;
             delete file;
             file = new ImageFile(path);
         }
-        
-        if (!file->open(flags)) {
-            registerAlert(std::string("Could not open file: ") + file->path, WARNING);
-            return false;
+        else {
+            if (!file->open(flags)) {
+                registerAlert(std::string("Could not open file: ") + file->path, WARNING);
+                return false;
+            }
         }
 
         return true;

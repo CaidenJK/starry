@@ -4,6 +4,7 @@
 
 #include <fstream>
 #include <string>
+#include <unordered_map>
 
 #include "stb_image.h"
 
@@ -62,7 +63,7 @@ namespace StarryManager
             void removeStale();
 
             RawFile* createFile(std::string path);
-            bool openFile(RawFile* file, std::vector<size_t> args);
+            bool openFile(RawFile*& file, std::vector<size_t> args);
 
             std::unordered_map<size_t, RawFile*> openFiles;
     };

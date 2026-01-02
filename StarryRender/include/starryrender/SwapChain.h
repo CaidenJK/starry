@@ -13,6 +13,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
+#include <array>
 
 #include <StarryManager.h>
 

@@ -43,7 +43,9 @@ namespace StarryRender
 		}
 		allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-		if (vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) {
+		auto state = vkAllocateMemory(*device, &allocInfo, nullptr, &bufferMemory);
+
+		if (state != VK_SUCCESS) {
 			registerAlert("Failed to allocate buffer memory!", FATAL);
 			return;
 		}

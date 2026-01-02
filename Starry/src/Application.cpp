@@ -38,7 +38,7 @@ namespace Starry
 		std::shared_ptr<MeshObject> quad = std::make_shared<MeshObject>("Simple Quad");
 		MeshObject::twoQuadTest(*quad);
 #ifdef IMAGE_PATH
-		quad->loadDiffuseTextureFromFile( IMAGE_PATH "face.jpg");
+		quad->loadDiffuseTextureFromFile( IMAGE_PATH "cassini.jpg");
 #else
 		#error "IMAGE_PATH not defined!"
 #endif

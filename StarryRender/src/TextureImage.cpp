@@ -51,6 +51,10 @@ namespace StarryRender
             return;
         }
         auto imageFile = dynamic_cast<ImageFile*>(*file);
+        if (!imageFile->open(4)) {
+            registerAlert("Failed to open image file: " + filePath, CRITICAL);
+            return;
+		}
 
         loadImageToMemory(imageSize, imageFile);
 
