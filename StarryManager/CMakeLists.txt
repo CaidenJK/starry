@@ -13,6 +13,7 @@ FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 # Set Headers
 
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starrymanager")
+set(EXTERN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/external")
 
 # Create Library
 add_library(StarryManager ${SOURCES})
@@ -30,4 +31,5 @@ set_target_properties(StarryManager PROPERTIES
 target_include_directories(StarryManager
   PUBLIC
     ${INCLUDE_DIR}
+    ${EXTERN_DIR}
 )

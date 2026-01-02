@@ -2,6 +2,8 @@
 
 #include <starrymanager/AssetManager.h>
 #include <starrymanager/FileHandler.h>
+#include <external/stb_image.h>
+#include <external/tiny_obj_loader.h>
 
 using StarryAsset = StarryManager::StarryAsset;
 using CallSeverity = StarryManager::StarryAsset::CallSeverity;
