@@ -28,6 +28,8 @@ namespace StarryRender
 
             void createSampler();
 
+            uint32_t mipLevels = 0;
+
             std::string filePath;
             ResourceHandle<FILETYPE> file;
 

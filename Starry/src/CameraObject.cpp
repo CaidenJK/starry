@@ -20,14 +20,14 @@ namespace Starry
 		calculateProjectionMatrix();
 	}
 
-	void CameraObject::Register(std::shared_ptr<RenderContext>& renderContext)
+	void CameraObject::Register(Renderer* renderer)
 	{
 
 	}
 
-	void CameraObject::Update(std::shared_ptr<RenderContext>& renderContext) 
+	void CameraObject::Update(Renderer* renderer)
 	{
-		setExtent(renderContext->getExtent());
+		setExtent(renderer->context().getExtent());
 		//calculateProjectionMatrix();
 	}
 

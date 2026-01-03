@@ -16,14 +16,28 @@ namespace StarryRender
 	/*
 		The Starry Render Engine API class. Manages and interfaces with the Vulkan rendering context.
 	*/
+
+	namespace RenderConfigOptions {
+		enum MSAAOptions {
+			MSAA_DISABLED = VK_SAMPLE_COUNT_1_BIT,
+			MSAA_2X = VK_SAMPLE_COUNT_2_BIT,
+			MSAA_4X = VK_SAMPLE_COUNT_4_BIT,
+			MSAA_8X = VK_SAMPLE_COUNT_8_BIT,
+			MSAA_16X = VK_SAMPLE_COUNT_16_BIT,
+			MSAA_32X = VK_SAMPLE_COUNT_32_BIT,
+			MSAA_64X = VK_SAMPLE_COUNT_64_BIT
+		};
+
+		RenderConfig constructRenderConfig(MSAAOptions msaa);
+	}
+
 	class RenderContext : public StarryAsset
 	{
 	public:
 		RenderContext() = default;
 		~RenderContext();
 
-		void Init();
-		void Init(std::shared_ptr<Window>& window);
+		void Init(std::shared_ptr<Window>& window, RenderConfig config);
 
 		void LoadBuffers();
 		
@@ -50,19 +64,19 @@ namespace StarryRender
 		bool getRenderErrorState() const { return AssetManager::get().lock()->isFatal(); }
 		void dumpAlerts() const { AssetManager::get().lock()->isFatal(); }
 
-		void windowPollEvents() const { m_window->pollEvents(); }
-		bool windowShouldClose() const { return m_window->shouldClose(); }
+		//void windowPollEvents() const { m_window->pollEvents(); }
+		//bool windowShouldClose() const { return m_window->shouldClose(); }
 
 		ASSET_NAME("RenderContext")
 	private:
 		const static int MAX_VERTEX_BUFFERS = 1;
-		void initInternalWindow();
-		void initRenderDevice();
+		void initRenderDevice(std::shared_ptr<Window>& window);
 
 		bool m_isInitialized = false;
 
+		RenderConfig m_config;
+
 		std::unique_ptr<RenderDevice> m_renderDevice = nullptr;
-		std::shared_ptr<Window> m_window = nullptr;
 
 		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
 		std::shared_ptr<TextureImage> m_textureImage = nullptr;

@@ -15,6 +15,13 @@
 
 namespace StarryRender {
 
+	namespace RenderConfigOptions {
+		RenderConfig constructRenderConfig(MSAAOptions msaa)
+		{
+			return RenderConfig{ (VkSampleCountFlagBits)msaa };
+		}
+	}
+
 	RenderContext::~RenderContext() 
 	{
 		Destroy();
@@ -23,22 +30,17 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderContext::Init()
+	void RenderContext::Init(std::shared_ptr<Window>& window, RenderConfig config)
 	{
-		initInternalWindow();
-		initRenderDevice();
-	}
-
-	void RenderContext::Init(std::shared_ptr<Window>& window)
-	{
-		m_window = window;
-		initRenderDevice();
+		m_config = config;
+		initRenderDevice(window);
 	}
 
 	void RenderContext::Draw() 
 	{
 		if (!m_isInitialized) {
-			initRenderDevice();
+			registerAlert("RenderContext not initialized before drawing!", FATAL);
+			return;
 		}
 		m_renderDevice->Draw();
 	}
@@ -131,24 +133,19 @@ namespace StarryRender {
 		m_uniformBuffer = std::move(uniformBuffer);
 	}
 
-	void RenderContext::initInternalWindow() 
-	{
-		m_window = std::make_shared<Window>("Starry Dev"); ERROR_CHECK;
-	}
-
 	void RenderContext::updateUniformBuffer(UniformBufferData& buffer) 
 	{
 		m_uniformBuffer->setBuffer(buffer);
 	}
 
-	void RenderContext::initRenderDevice() 
+	void RenderContext::initRenderDevice(std::shared_ptr<Window>& window) 
 	{
-		if (m_window == nullptr) {
+		if (window == nullptr) {
 			registerAlert("Window not set before creating device!", FATAL);
 			return;
 		}
 		
-		m_renderDevice = std::make_unique<RenderDevice>(m_window); EXTERN_ERROR(m_renderDevice);
+		m_renderDevice = std::make_unique<RenderDevice>(window, m_config); EXTERN_ERROR(m_renderDevice);
 
 		if (m_shaderPaths[0].empty() || m_shaderPaths[1].empty()) {
 			registerAlert("Shader paths not set before creating device!", FATAL);

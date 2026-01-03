@@ -10,7 +10,7 @@ namespace Starry
 		~MeshObject();
 
 		void Init() override {}
-		void Register(std::shared_ptr<RenderContext>& renderContext) override;
+		void Register(Renderer* renderer) override;
 		void Destroy() override;
 
 		bool isEmptyMesh() const { return isEmpty; }

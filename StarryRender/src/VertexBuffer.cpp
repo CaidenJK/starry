@@ -4,6 +4,11 @@
 
 namespace StarryRender 
 {
+	bool Vertex::operator==(const Vertex& other) const
+	{
+		return position == other.position && color == other.color && texCoord == other.texCoord;
+	}
+
 	VkVertexInputBindingDescription Vertex::getBindingDescriptions()
 	{
 		VkVertexInputBindingDescription bindingDescription{};

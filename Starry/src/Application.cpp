@@ -26,12 +26,16 @@ namespace Starry
 	void Application::init() 
 	{
 		m_scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
+		m_window = std::make_shared<Window>("Starry Window", 800, 600); ERROR_HANDLER_CHECK;
+		RenderConfig config = constructRenderConfig(MSAAOptions::MSAA_8X);
+		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
+
 #ifdef SHADERS_PATH
-		m_scene->setShaderPaths({ SHADERS_PATH "vert.spv", SHADERS_PATH "frag.spv" }); ERROR_HANDLER_CHECK;
+		m_renderer->setShaderPaths({ SHADERS_PATH "vert.spv", SHADERS_PATH "frag.spv" }); ERROR_HANDLER_CHECK;
 #else
 	#error "SHADERS_PATH not defined!"
 #endif
-		m_scene->makeRenderContext(); ERROR_HANDLER_CHECK;
+		m_renderer->setScene(m_scene);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
@@ -58,13 +62,13 @@ namespace Starry
 	}
 	void Application::mainLoop() 
 	{
-		m_scene->disbatchRenderer(); ERROR_HANDLER_CHECK;
+		m_renderer->disbatchRenderer(); ERROR_HANDLER_CHECK;
 
-		while (!m_scene->getRenderContext()->windowShouldClose() && m_scene->isRenderRunning().load()) {
-			m_scene->getRenderContext()->windowPollEvents();
+		while (!m_window->shouldClose() && m_renderer->isRenderRunning().load()) {
+			m_window->pollEvents();
+
 		}
-
-		m_scene->joinRenderer();
+		m_renderer->joinRenderer();
 	}
 
 	// Destroy renderer then window last

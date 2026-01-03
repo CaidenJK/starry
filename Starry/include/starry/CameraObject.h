@@ -12,8 +12,8 @@ namespace Starry
 		~CameraObject();
 
 		void Init() override;
-		void Register(std::shared_ptr<RenderContext>& renderContext) override;
-		void Update(std::shared_ptr<RenderContext>& renderContext) override;
+		void Register(Renderer* renderer) override;
+		void Update(Renderer* renderer) override;
 
 		void setClippingPlanes(float nearInput, float farInput) { nearPlane = nearInput; farPlane = farInput; calculateProjectionMatrix(); }
 		void setFOV(float fovInput) { FOV = fovInput; calculateProjectionMatrix(); }
