@@ -34,9 +34,9 @@ namespace StarryRender
 		ASSET_NAME("Pipeline")
 
 	private:
-		void constructPipeline(std::array<VkFormat, 2>& imageFormats, std::shared_ptr<Descriptor>& descriptor);
-		void createRenderPass(std::array<VkFormat, 2>& imageFormats);
-		void constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor);
+		void constructPipeline(std::array<VkFormat, 2>& imageFormats, VkSampleCountFlagBits& msaaSamples, std::shared_ptr<Descriptor>& descriptor);
+		void createRenderPass(std::array<VkFormat, 2>& imageFormats, VkSampleCountFlagBits& msaaSamples);
+		void constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor, VkSampleCountFlagBits& msaaSamples);
 
 		VkPipelineVertexInputStateCreateInfo createVertexInputInfo();
 

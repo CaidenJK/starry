@@ -28,6 +28,13 @@ namespace StarryRender
 			ASSET_NAME("Vulkan Debugger")
 	};
 
+	struct RenderConfig
+	{
+		std::string vertexShaderPath = {};
+		std::string fragmentShaderPath = {};
+		VkSampleCountFlagBits desiredMSAASamples = VK_SAMPLE_COUNT_1_BIT;
+	};
+
 	class RenderDevice : public StarryAsset {
 		// Helper structs
 		struct DeviceInfo {
@@ -37,7 +44,7 @@ namespace StarryRender
 		};
 
 	public:
-		RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name = DEFAULT_NAME);
+		RenderDevice(std::shared_ptr<Window>& windowPointer, RenderConfig& config, const char* name = DEFAULT_NAME);
 		~RenderDevice();
 
 		RenderDevice operator=(const RenderDevice&) = delete;
@@ -69,7 +76,8 @@ namespace StarryRender
 			WINDOW_REFERENCE = 4, // Maybe change
 			COMMAND_POOL = 5,
 			GRAPHICS_QUEUE = 6,
-			SWAP_CHAIN_EXTENT = 7
+			SWAP_CHAIN_EXTENT = 7,
+			MSAA_SAMPLES = 8
 		};
 
 		GET_RESOURCE;
@@ -110,6 +118,7 @@ namespace StarryRender
 
 		void pickPhysicalDevice();
 		DeviceInfo isDeviceSuitable(VkPhysicalDevice device);
+		VkSampleCountFlagBits getMaxUsableSampleCount();
 
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
@@ -141,6 +150,7 @@ namespace StarryRender
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 #endif
+		RenderConfig config;
 		
 		VkInstance instance = VK_NULL_HANDLE;
 
@@ -154,6 +164,8 @@ namespace StarryRender
 
 		VkCommandPool commandPool = VK_NULL_HANDLE;
 		std::vector<VkCommandBuffer> commandBuffers = {};
+
+		VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 		
 		// Presentation
 		std::vector<VkSemaphore> imageAvailableSemaphores = {};

@@ -33,7 +33,7 @@ namespace Starry
 		isEmpty = vertices.empty() || indices.empty();
 	}
 
-	void MeshObject::Register(std::shared_ptr<RenderContext>& renderContext)
+	void MeshObject::Register(Renderer* renderer)
 	{
 		if (isEmptyMesh()) {
 			registerAlert("Cannot register empty mesh buffer!", FATAL);
@@ -42,10 +42,10 @@ namespace Starry
 		vertexBuffer = std::make_shared<VertexBuffer>();
 
 		vertexBuffer->loadData(vertices, indices);
-		renderContext->loadVertexBuffer(vertexBuffer);
+		renderer->context().loadVertexBuffer(vertexBuffer);
 
 		textureImage->loadFromFile();
-		renderContext->loadTextureImage(textureImage);
+		renderer->context().loadTextureImage(textureImage);
 	}
 
 	void MeshObject::loadTextureFromFile(const std::string filePath)
@@ -65,6 +65,8 @@ namespace Starry
 
 		auto meshFile = dynamic_cast<ModelFile*>(*file);
 
+		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+
 		for (const auto& shape : meshFile->shapes) {
 			for (const auto& index : shape.mesh.indices) {
 				Vertex vertex{};
@@ -79,8 +81,12 @@ namespace Starry
 				};
 				vertex.color = { 1.0f, 1.0f, 1.0f };
 
-				vertices.push_back(vertex);
-				indices.push_back(indices.size());
+				if (uniqueVertices.count(vertex) == 0) {
+					uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
+					vertices.push_back(vertex);
+				}
+
+				indices.push_back(uniqueVertices[vertex]);
 			}
 		}
 

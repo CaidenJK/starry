@@ -104,10 +104,14 @@ namespace StarryRender
 
 		for (int i = 0; i < swapChainImages.size(); i++) {
 			swapChainImageBuffers[i].setImage(swapChainImages[i], false);
-			swapChainImageBuffers[i].createImageView(imageFormats[0], VK_IMAGE_ASPECT_COLOR_BIT);
+			swapChainImageBuffers[i].createImageView(imageFormats[0], VK_IMAGE_ASPECT_COLOR_BIT, 1);
 		}
 
 		imageFormats[1] = swapChainSupport.depthBufferFormat;
+
+		msaaSamples = swapChainSupport.msaaSamples;
+
+		createColorResources();
 		createDepthResources();
 	}
 
@@ -142,9 +146,18 @@ namespace StarryRender
 	void SwapChain::createDepthResources()
 	{
 		depthBuffer = std::make_shared<ImageBuffer>();
-		depthBuffer->createImage(swapChainExtent.width, swapChainExtent.height, imageFormats[1], VK_IMAGE_TILING_OPTIMAL,
+		depthBuffer->createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, imageFormats[1], VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-		depthBuffer->createImageView(imageFormats[1], VK_IMAGE_ASPECT_DEPTH_BIT);
+		depthBuffer->createImageView(imageFormats[1], VK_IMAGE_ASPECT_DEPTH_BIT, 1);
+	}
+
+	void SwapChain::createColorResources()
+	{
+		colorBuffer = std::make_shared<ImageBuffer>();
+
+		colorBuffer->createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, imageFormats[0], VK_IMAGE_TILING_OPTIMAL, 
+			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		colorBuffer->createImageView(imageFormats[0], VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
 
 	void SwapChain::generateFramebuffers(VkRenderPass& renderPass)
@@ -160,9 +173,10 @@ namespace StarryRender
 		swapChainFramebuffers.resize(swapChainImageBuffers.size());
 
 		for (size_t i = 0; i < swapChainImageBuffers.size(); i++) {
-			std::array<VkImageView, 2> attachments = {
-				swapChainImageBuffers[i].getImageView(),
-				depthBuffer->getImageView()
+			std::array<VkImageView, 3> attachments = {
+				colorBuffer->getImageView(),
+				depthBuffer->getImageView(),
+				swapChainImageBuffers[i].getImageView()
 			};
 
 			VkFramebufferCreateInfo framebufferInfo{};
@@ -225,6 +239,7 @@ namespace StarryRender
 		}
 
 		details.depthBufferFormat = findDepthFormat(device);
+		details.msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		return details;
 	}

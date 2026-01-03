@@ -3,6 +3,8 @@
 #include "MeshObject.h"
 #include "CameraObject.h"
 
+#include <string>
+
 #define STARRY_INITIALIZE_SUCCESS \
 	"----------------------------------------\n" \
 	"Starry initialized successfully!\n" \
@@ -26,25 +28,31 @@ namespace Starry
 	void Application::init() 
 	{
 		m_scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
+		m_window = std::make_shared<Window>("Main Window"); ERROR_HANDLER_CHECK;
 #ifdef SHADERS_PATH
-		m_scene->setShaderPaths({ SHADERS_PATH "vert.spv", SHADERS_PATH "frag.spv" }); ERROR_HANDLER_CHECK;
+		RenderConfig config = constructRenderConfig(
+			SHADERS_PATH "vert.spv",
+			SHADERS_PATH "frag.spv",
+			MSAAOptions::MSAA_64X
+		);
 #else
-	#error "SHADERS_PATH not defined!"
+#error "SHADERS_PATH not defined!"
 #endif
-		m_scene->makeRenderContext(); ERROR_HANDLER_CHECK;
+		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
+		m_renderer->setScene(m_scene);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
 
 		std::shared_ptr<MeshObject> radio = std::make_shared<MeshObject>("Radio");
 #ifdef MODEL_PATH
-		radio->loadMeshFromFile(MODEL_PATH "PortalRadio3.obj");
+		radio->loadMeshFromFile(MODEL_PATH "radio.obj");
 #else
 #error "MODEL_PATH not defined!"
 #endif
 		
 #ifdef IMAGE_PATH
-		radio->loadTextureFromFile( IMAGE_PATH "Bake.png");
+		radio->loadTextureFromFile( IMAGE_PATH "radio.png");
 #else
 #error "IMAGE_PATH not defined!"
 #endif
@@ -58,19 +66,21 @@ namespace Starry
 	}
 	void Application::mainLoop() 
 	{
-		m_scene->disbatchRenderer(); ERROR_HANDLER_CHECK;
+		m_renderer->disbatchRenderer(); ERROR_HANDLER_CHECK;
 
-		while (!m_scene->getRenderContext()->windowShouldClose() && m_scene->isRenderRunning().load()) {
-			m_scene->getRenderContext()->windowPollEvents();
+		while (!m_window->shouldClose() && m_renderer->isRenderRunning().load()) {
+			m_window->pollEvents();
+
 		}
-
-		m_scene->joinRenderer();
+		m_renderer->joinRenderer();
 	}
 
 	// Destroy renderer then window last
 	void Application::cleanup() 
 	{
 		m_scene.reset();
+		m_renderer.reset();
+		m_window.reset();
 
 		if (ERROR_HANDLER->isFatal()) {
 			registerAlert("\n----------> Program ended prematurly due to an error.\n", BANNER);

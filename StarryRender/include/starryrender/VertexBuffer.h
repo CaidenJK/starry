@@ -3,6 +3,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/hash.hpp>
 #include <glm/glm.hpp>
 
 #include <vector>
@@ -26,6 +28,8 @@ namespace StarryRender
 		glm::vec3 position;
 		glm::vec3 color;
 		glm::vec2 texCoord;
+
+		bool operator==(const Vertex& other) const;
 
 		static VkVertexInputBindingDescription getBindingDescriptions();
 		static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions();
@@ -71,6 +75,19 @@ namespace StarryRender
 			VkDeviceSize bufferSizeIndex = 0;
 	};
 }
+
+namespace std
+{
+	template<> struct std::hash<StarryRender::Vertex>
+	{
+		size_t operator()(StarryRender::Vertex const& vertex) const {
+			return ((hash<glm::vec3>()(vertex.position) ^
+				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
+				(hash<glm::vec2>()(vertex.texCoord) << 1);
+		}
+	};
+}
+
 /*
 
 	float: VK_FORMAT_R32_SFLOAT

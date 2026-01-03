@@ -10,3 +10,5 @@ using UniformBuffer = StarryRender::UniformBuffer;
 using TextureImage = StarryRender::TextureImage;
 
 using RenderContext = StarryRender::RenderContext;
+using RenderConfig = StarryRender::RenderConfig;
+using namespace StarryRender::RenderConfigOptions;

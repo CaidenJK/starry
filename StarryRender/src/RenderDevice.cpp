@@ -58,7 +58,7 @@ namespace StarryRender
 		createInfo.flags = 0;
 	}
 
-	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, const char* name) : name(name)
+	RenderDevice::RenderDevice(std::shared_ptr<Window>& windowPointer, RenderConfig& config, const char* name) : name(name), config(config)
 	{
 		if (windowPointer == nullptr) {
 			registerAlert("Window pointer is null!", FATAL);
@@ -142,6 +142,9 @@ namespace StarryRender
 			swapChain != nullptr) {
 			return (void*)&swapChain->getExtent();
 		}
+		if (resourceID == SharedResources::MSAA_SAMPLES) {
+			return (void*)&msaaSamples;
+		}
 
 		registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
 		return {};
@@ -172,6 +175,9 @@ namespace StarryRender
 		}
 		if (resourceName.compare("Extent") == 0) {
 			return SharedResources::SWAP_CHAIN_EXTENT;
+		}
+		if (resourceName.compare("MSAA Samples") == 0) {
+			return SharedResources::MSAA_SAMPLES;
 		}
 		return INVALID_RESOURCE;
 	}
@@ -355,6 +361,7 @@ namespace StarryRender
 		}
 		registerAlert(messsage, INFO);
 		physicalDevice = candidates.rbegin()->second;
+		msaaSamples = getMaxUsableSampleCount();
 	}
 
 	QueueFamilyIndices RenderDevice::findQueueFamilies(VkPhysicalDevice device) 
@@ -409,6 +416,24 @@ namespace StarryRender
 			return false;
 		}
 		return true;
+	}
+
+	VkSampleCountFlagBits RenderDevice::getMaxUsableSampleCount() {
+		VkPhysicalDeviceProperties physicalDeviceProperties;
+		vkGetPhysicalDeviceProperties(physicalDevice, &physicalDeviceProperties);
+
+		VkSampleCountFlags counts = physicalDeviceProperties.limits.framebufferColorSampleCounts & physicalDeviceProperties.limits.framebufferDepthSampleCounts;
+		VkSampleCountFlagBits result;
+
+		if (counts & VK_SAMPLE_COUNT_64_BIT) { result = VK_SAMPLE_COUNT_64_BIT; }
+		else if (counts & VK_SAMPLE_COUNT_32_BIT) { result = VK_SAMPLE_COUNT_32_BIT; }
+		else if (counts & VK_SAMPLE_COUNT_16_BIT) { result = VK_SAMPLE_COUNT_16_BIT; }
+		else if (counts & VK_SAMPLE_COUNT_8_BIT) { result = VK_SAMPLE_COUNT_8_BIT; }
+		else if (counts & VK_SAMPLE_COUNT_4_BIT) { result = VK_SAMPLE_COUNT_4_BIT; }
+		else if (counts & VK_SAMPLE_COUNT_2_BIT) { result = VK_SAMPLE_COUNT_2_BIT; }
+		else { result = VK_SAMPLE_COUNT_1_BIT; }
+
+		return std::min(result, config.desiredMSAASamples);
 	}
 
 	RenderDevice::DeviceInfo RenderDevice::isDeviceSuitable(VkPhysicalDevice device) 
@@ -468,6 +493,7 @@ namespace StarryRender
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		deviceFeatures.samplerAnisotropy = VK_TRUE;
+		deviceFeatures.sampleRateShading = VK_TRUE;
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -507,6 +533,8 @@ namespace StarryRender
 		swapChain = std::make_shared<SwapChain>();
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+		swapChainSupport.msaaSamples = msaaSamples;
 
 		swapChain->constructSwapChain(swapChainSupport, indices, surface);
 		EXTERN_ERROR(swapChain);
@@ -865,6 +893,8 @@ namespace StarryRender
 
 		SwapChain::SwapChainSupportDetails swapChainSupport = SwapChain::querySwapChainSupport(physicalDevice, surface);
 		QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+		swapChainSupport.msaaSamples = msaaSamples;
 
 		swapChain->constructSwapChain(swapChainSupport, indices, surface);
 		EXTERN_ERROR(swapChain);

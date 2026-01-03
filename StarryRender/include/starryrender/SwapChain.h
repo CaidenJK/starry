@@ -39,6 +39,7 @@ namespace StarryRender
 				std::vector<VkPresentModeKHR> presentModes;
 
 				VkFormat depthBufferFormat;
+				VkSampleCountFlagBits msaaSamples;
 			};
 		public:
 			SwapChain();
@@ -69,6 +70,7 @@ namespace StarryRender
             static VkFormat findDepthFormat(VkPhysicalDevice& device);
 			bool hasStencilComponent(VkFormat format);
 
+			void createColorResources();
 			void createDepthResources();
 			
 			void cleanupSwapChain();
@@ -80,6 +82,9 @@ namespace StarryRender
 			VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 
 			std::vector<ImageBuffer> swapChainImageBuffers;
+			std::shared_ptr<ImageBuffer> colorBuffer = nullptr;
+
+			VkSampleCountFlagBits msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 			std::array<VkFormat, 2> imageFormats;
 			VkExtent2D swapChainExtent = {0, 0};

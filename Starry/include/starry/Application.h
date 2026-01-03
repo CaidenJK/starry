@@ -6,10 +6,11 @@
 #include <memory>
 
 #include "Scene.h"
+#include "Renderer.h"
 
 #include "CoreDLL.h"
 
-#define STARRY_VERSION "0.0.4 dev"
+#define STARRY_VERSION "0.0.5 dev"
  
 namespace Starry
 {
@@ -38,6 +39,8 @@ namespace Starry
         void mainLoop();
         void cleanup();
 
+		std::shared_ptr<Renderer> m_renderer = nullptr;
+		std::shared_ptr<Window> m_window = nullptr;
         std::shared_ptr<Scene> m_scene = nullptr;
     };
 }

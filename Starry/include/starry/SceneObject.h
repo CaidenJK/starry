@@ -3,6 +3,8 @@
 #include <StarryRender.h>
 #include <StarryManager.h>
 
+#include "Renderer.h"
+
 namespace Starry
 {
 	class SceneObject : public StarryAsset
@@ -12,8 +14,8 @@ namespace Starry
 			~SceneObject() = default;
 
 			virtual void Init() {}
-			virtual void Register(std::shared_ptr<RenderContext>& renderContext) {}
-			virtual void Update(std::shared_ptr<RenderContext>& renderContext) {}
+			virtual void Register(Renderer* renderer) {}
+			virtual void Update(Renderer* renderer) {}
 			virtual void Destroy() {}
 
 			std::string& getName() { return name; }
