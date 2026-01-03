@@ -82,7 +82,7 @@ namespace StarryRender
 		createInfo.presentMode = presentMode;
 		createInfo.clipped = VK_TRUE;
 
-		createInfo.oldSwapchain = swapChain;
+		createInfo.oldSwapchain = nullptr;
 
 		if (device.wait() != ResourceState::YES) {
 			registerAlert("Device died before it was ready to be used.", FATAL);

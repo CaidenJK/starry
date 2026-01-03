@@ -15,7 +15,7 @@ namespace Starry
 
 	void CameraObject::Init() 
 	{
-		mvpBufferData.model = glm::translate(mvpBufferData.model, glm::vec3(0.0, 0.0, -4.0));
+		mvpBufferData.model = glm::translate(mvpBufferData.model, glm::vec3(0.0, 0.0, -3.0));
 		mvpBufferData.view = mvpBufferData.model;
 		calculateProjectionMatrix();
 	}
@@ -35,6 +35,6 @@ namespace Starry
 	{
 		float aspectRatio = static_cast<float>(dimensions[0]) / static_cast<float>(dimensions[1]);
 		mvpBufferData.proj = glm::perspective(glm::radians(FOV), aspectRatio, nearPlane, farPlane);
-		projectionMatrix[1][1] *= -1; // Invert Y for Vulkan
+		mvpBufferData.proj[1][1] *= -1; // Invert Y for Vulkan
 	}
 }

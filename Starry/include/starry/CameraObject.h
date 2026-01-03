@@ -22,8 +22,6 @@ namespace Starry
 	private:
 		void calculateProjectionMatrix();
 
-		glm::mat4 projectionMatrix;
-
 		float nearPlane = 0.1f;
 		float farPlane = 100.0f;
 

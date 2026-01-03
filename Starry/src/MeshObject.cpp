@@ -69,7 +69,7 @@ namespace Starry
 			for (const auto& index : shape.mesh.indices) {
 				Vertex vertex{};
 				vertex.position = {
-					-meshFile->attrib.vertices[3 * index.vertex_index + 0],
+					meshFile->attrib.vertices[3 * index.vertex_index + 0],
 					meshFile->attrib.vertices[3 * index.vertex_index + 1],
 					meshFile->attrib.vertices[3 * index.vertex_index + 2]
 				};
