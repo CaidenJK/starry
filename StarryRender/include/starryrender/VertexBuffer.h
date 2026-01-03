@@ -26,13 +26,14 @@ namespace StarryRender
 {
 	struct Vertex {
 		glm::vec3 position;
+		glm::vec3 normal;
 		glm::vec3 color;
 		glm::vec2 texCoord;
 
 		bool operator==(const Vertex& other) const;
 
 		static VkVertexInputBindingDescription getBindingDescriptions();
-		static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions();
+		static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions();
 	};
 
 	class VertexBuffer : public Buffer {
@@ -81,9 +82,10 @@ namespace std
 	template<> struct std::hash<StarryRender::Vertex>
 	{
 		size_t operator()(StarryRender::Vertex const& vertex) const {
-			return ((hash<glm::vec3>()(vertex.position) ^
+			return ((((hash<glm::vec3>()(vertex.position) ^
 				(hash<glm::vec3>()(vertex.color) << 1)) >> 1) ^
-				(hash<glm::vec2>()(vertex.texCoord) << 1);
+				(hash<glm::vec2>()(vertex.texCoord) << 1)) >> 1) ^
+				(hash<glm::vec2>()(vertex.normal) << 1);
 		}
 	};
 }

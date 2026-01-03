@@ -46,7 +46,7 @@ namespace Starry
 
 		std::shared_ptr<MeshObject> radio = std::make_shared<MeshObject>("Radio");
 #ifdef MODEL_PATH
-		radio->loadMeshFromFile(MODEL_PATH "radio.obj");
+		radio->loadMeshFromFile(MODEL_PATH "sphere.obj");
 #else
 #error "MODEL_PATH not defined!"
 #endif

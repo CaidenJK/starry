@@ -75,6 +75,12 @@ namespace Starry
 					meshFile->attrib.vertices[3 * index.vertex_index + 1],
 					meshFile->attrib.vertices[3 * index.vertex_index + 2]
 				};
+				vertex.normal = {
+					meshFile->attrib.normals[3 * index.normal_index + 0],
+					meshFile->attrib.normals[3 * index.normal_index + 1],
+					meshFile->attrib.normals[3 * index.normal_index + 2]
+				};
+
 				vertex.texCoord = {
 					meshFile->attrib.texcoords[2 * index.texcoord_index + 0],
 					1.0f - meshFile->attrib.texcoords[2 * index.texcoord_index + 1]
