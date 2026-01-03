@@ -127,7 +127,7 @@ namespace StarryRender
 		
 		std::vector<VkExtensionProperties> vkExtensions;
 		const std::vector<const char*> validationLayers = { 
-			"VK_LAYER_KHRONOS_validation"
+			"VK_LAYER_KHRONOS_validation",
 		};
 		bool enableValidationLayers = false;
 
@@ -136,7 +136,8 @@ namespace StarryRender
 #ifdef __APPLE__
 		const std::vector<const char*> instanceExtensions = {
 			VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME,
-			"VK_KHR_get_physical_device_properties2"
+			"VK_KHR_get_physical_device_properties2",
+			"VK_EXT_layer_settings"
 		};
 
 		const std::vector<const char*> deviceExtensions = {

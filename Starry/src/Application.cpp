@@ -33,7 +33,7 @@ namespace Starry
 		RenderConfig config = constructRenderConfig(
 			SHADERS_PATH "vert.spv",
 			SHADERS_PATH "frag.spv",
-			MSAAOptions::MSAA_64X
+			MSAAOptions::MSAA_8X
 		);
 #else
 #error "SHADERS_PATH not defined!"

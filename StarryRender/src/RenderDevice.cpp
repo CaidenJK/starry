@@ -49,6 +49,8 @@ namespace StarryRender
 
 	void RenderDevice::debugMessengerCreateInfoFactory(VkDebugUtilsMessengerCreateInfoEXT& createInfo) 
 	{
+		
+
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -296,8 +298,13 @@ namespace StarryRender
 			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
 			createInfo.ppEnabledLayerNames = validationLayers.data();
 
+			const VkBool32 verbose_value = true;
+			const VkLayerSettingEXT layerSetting = {"VK_LAYER_KHRONOS_validation", "validate_best_practices", VK_LAYER_SETTING_TYPE_BOOL32_EXT, 1, &verbose_value};
+			VkLayerSettingsCreateInfoEXT layerSettingsCreateInfo = {VK_STRUCTURE_TYPE_LAYER_SETTINGS_CREATE_INFO_EXT, nullptr, 1, &layerSetting};
+
 			VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
 			debugMessengerCreateInfoFactory(debugCreateInfo);
+			debugCreateInfo.pNext = &layerSettingsCreateInfo;
 			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
 		}
 		else {
