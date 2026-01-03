@@ -3,6 +3,8 @@
 #include "MeshObject.h"
 #include "CameraObject.h"
 
+#include <string>
+
 #define STARRY_INITIALIZE_SUCCESS \
 	"----------------------------------------\n" \
 	"Starry initialized successfully!\n" \
@@ -26,15 +28,17 @@ namespace Starry
 	void Application::init() 
 	{
 		m_scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
-		m_window = std::make_shared<Window>("Starry Window", 800, 600); ERROR_HANDLER_CHECK;
-		RenderConfig config = constructRenderConfig(MSAAOptions::MSAA_8X);
-		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
-
+		m_window = std::make_shared<Window>("Main Window"); ERROR_HANDLER_CHECK;
 #ifdef SHADERS_PATH
-		m_renderer->setShaderPaths({ SHADERS_PATH "vert.spv", SHADERS_PATH "frag.spv" }); ERROR_HANDLER_CHECK;
+		RenderConfig config = constructRenderConfig(
+			SHADERS_PATH "vert.spv",
+			SHADERS_PATH "frag.spv",
+			MSAAOptions::MSAA_64X
+		);
 #else
-	#error "SHADERS_PATH not defined!"
+#error "SHADERS_PATH not defined!"
 #endif
+		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
 		m_renderer->setScene(m_scene);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
@@ -42,13 +46,13 @@ namespace Starry
 
 		std::shared_ptr<MeshObject> radio = std::make_shared<MeshObject>("Radio");
 #ifdef MODEL_PATH
-		radio->loadMeshFromFile(MODEL_PATH "PortalRadio3.obj");
+		radio->loadMeshFromFile(MODEL_PATH "radio.obj");
 #else
 #error "MODEL_PATH not defined!"
 #endif
 		
 #ifdef IMAGE_PATH
-		radio->loadTextureFromFile( IMAGE_PATH "Bake.png");
+		radio->loadTextureFromFile( IMAGE_PATH "radio.png");
 #else
 #error "IMAGE_PATH not defined!"
 #endif
@@ -75,6 +79,8 @@ namespace Starry
 	void Application::cleanup() 
 	{
 		m_scene.reset();
+		m_renderer.reset();
+		m_window.reset();
 
 		if (ERROR_HANDLER->isFatal()) {
 			registerAlert("\n----------> Program ended prematurly due to an error.\n", BANNER);

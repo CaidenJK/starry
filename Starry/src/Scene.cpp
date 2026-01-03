@@ -57,7 +57,7 @@ namespace Starry
 		for (auto& obj : sceneObjects) {
 			obj.second->Update(renderer); EXTERN_ERROR(obj.second);
 		}
-		sceneObjects.find("Mesh, Radio")->second->rotate(renderer->timer.getDeltaTimeSeconds() * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		sceneObjects.find("Mesh, Radio")->second->rotate(renderer->timer.getDeltaTimeSeconds() * 0.25 * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 		UniformBufferData mvpBuffer{ sceneObjects.find("Mesh, Radio")->second->getBufferData().model,
 				sceneObjects.find("Camera, Default")->second->getBufferData().view,

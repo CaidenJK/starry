@@ -16,9 +16,9 @@
 namespace StarryRender {
 
 	namespace RenderConfigOptions {
-		RenderConfig constructRenderConfig(MSAAOptions msaa)
+		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa)
 		{
-			return RenderConfig{ (VkSampleCountFlagBits)msaa };
+			return RenderConfig{ vertShader, fragShader, (VkSampleCountFlagBits)msaa };
 		}
 	}
 
@@ -72,17 +72,6 @@ namespace StarryRender {
 			return { -1, -1 };
 		}
 		return { static_cast<int>((*extent).width), static_cast<int>((*extent).height) };
-	}
-
-	void RenderContext::loadShaders(const std::string& vertShaderPath, const std::string& fragShaderPath) 
-	{
-		m_shaderPaths[0] = vertShaderPath;
-		m_shaderPaths[1] = fragShaderPath;
-	}
-
-	void RenderContext::loadShaders(std::array<std::string, 2>& shaders) 
-	{
-		m_shaderPaths = shaders;
 	}
 
 	void RenderContext::loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer)
@@ -147,12 +136,12 @@ namespace StarryRender {
 		
 		m_renderDevice = std::make_unique<RenderDevice>(window, m_config); EXTERN_ERROR(m_renderDevice);
 
-		if (m_shaderPaths[0].empty() || m_shaderPaths[1].empty()) {
+		if (m_config.vertexShaderPath.empty() || m_config.fragmentShaderPath.empty()) {
 			registerAlert("Shader paths not set before creating device!", FATAL);
 			return;
 		}
 		
-		m_renderDevice->LoadShader(m_shaderPaths[0], m_shaderPaths[1]); EXTERN_ERROR(m_renderDevice);
+		m_renderDevice->LoadShader(m_config.vertexShaderPath, m_config.fragmentShaderPath); EXTERN_ERROR(m_renderDevice);
 		m_renderDevice->InitDraw(); EXTERN_ERROR(m_renderDevice);
 
 		if (!getRenderErrorState()) {

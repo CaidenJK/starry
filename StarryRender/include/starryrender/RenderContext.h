@@ -28,7 +28,7 @@ namespace StarryRender
 			MSAA_64X = VK_SAMPLE_COUNT_64_BIT
 		};
 
-		RenderConfig constructRenderConfig(MSAAOptions msaa);
+		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa);
 	}
 
 	class RenderContext : public StarryAsset
@@ -48,9 +48,6 @@ namespace StarryRender
 		void Destroy();
 
 		std::array<int, 2> getExtent();
-
-		void loadShaders(const std::string& vertShaderPath, const std::string& fragShaderPath);
-		void loadShaders(std::array<std::string, 2>& shaders);
 		
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer);
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index);
@@ -81,8 +78,6 @@ namespace StarryRender
 		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
 		std::shared_ptr<TextureImage> m_textureImage = nullptr;
 		std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
-
-		std::array<std::string, 2> m_shaderPaths = DEFAULT_SHADER_PATHS;
 	};
 
 	// call init

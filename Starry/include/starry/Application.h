@@ -7,7 +7,6 @@
 
 #include "Scene.h"
 #include "Renderer.h"
-#include "Window.h"
 
 #include "CoreDLL.h"
 

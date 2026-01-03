@@ -105,9 +105,9 @@ namespace StarryRender
         barrier.image = image;
         barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.levelCount = mipLevels;
         barrier.subresourceRange.baseArrayLayer = 0;
-        barrier.subresourceRange.layerCount = mipLevels;
+        barrier.subresourceRange.layerCount = 1;
 
         VkPipelineStageFlags sourceStage;
         VkPipelineStageFlags destinationStage;

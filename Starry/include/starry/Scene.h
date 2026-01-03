@@ -8,13 +8,12 @@
 #include <thread>
 
 #include "SceneObject.h"
+#include "Renderer.h"
 
 #define DEFAULT_SCENE_NAME "New Scene"
 
 namespace Starry
 {
-	class Renderer;
-
 	class Scene : public StarryAsset {
 	public:
 		Scene(const std::string name);

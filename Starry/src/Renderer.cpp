@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include "Scene.h"
+
 #define EXTERN_ERROR(x) if(x.getAlertSeverity() == FATAL) { return; }
 #define EXTERN_ERROR_PTR(x) if(x->getAlertSeverity() == FATAL) { return; }
 
@@ -7,7 +9,6 @@ namespace Starry
 {
 	Renderer::Renderer(std::shared_ptr<Window>& windowRef, RenderConfig config)
 	{
-		renderer.loadShaders(shaderPaths); EXTERN_ERROR(renderer);
 		renderer.Init(windowRef, config); EXTERN_ERROR(renderer);
 	}
 

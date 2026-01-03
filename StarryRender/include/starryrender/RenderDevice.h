@@ -30,6 +30,8 @@ namespace StarryRender
 
 	struct RenderConfig
 	{
+		std::string vertexShaderPath = {};
+		std::string fragmentShaderPath = {};
 		VkSampleCountFlagBits desiredMSAASamples = VK_SAMPLE_COUNT_1_BIT;
 	};
 

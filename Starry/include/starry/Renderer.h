@@ -4,18 +4,21 @@
 #include <StarryRender.h>
 
 #include "Timer.h"
-#include "Scene.h"
 
 namespace Starry
 {
+	class Scene;
+
 	class Renderer : public StarryAsset {
 		public:
 			Renderer(std::shared_ptr<Window>& windowRef, RenderConfig config);
 			~Renderer();
 
-			void setScene(std::shared_ptr<Scene> scene);
+			void setScene(std::shared_ptr<Scene> scene) { activeScene = scene; }
 
 			void setShaderPaths(const std::array<std::string, 2>& paths);
+
+			void Init();
 
 			void disbatchRenderer();
 			void joinRenderer();
