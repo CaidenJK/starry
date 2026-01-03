@@ -3,15 +3,8 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#define GLM_FORCE_RADIANS
-#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
-
-#include "glm/glm.hpp"
-
-#include <StarryAsset.h>
 #include "Buffer.h"
-
-#define MAX_FRAMES_IN_FLIGHT 2
+#include "Descriptor.h"
 
 namespace StarryRender 
 {
@@ -21,38 +14,33 @@ namespace StarryRender
 		glm::mat4 proj;
 	};
 
-	class UniformBuffer : public Buffer 
+	class UniformBuffer : public Buffer
 	{
 	public:
 		UniformBuffer();
 		~UniformBuffer();
-
-		void attatchBuffer(VkPhysicalDevice& physicalDevice); // TODO: fix this whole mess
 
 		UniformBufferData& getBuffer() { return buffer; }
 		void setBuffer(const UniformBufferData& ubo) { buffer = ubo; }
 
 		void updateUniformBuffer(uint32_t currentFrame);
 
-		VkDescriptorSetLayout& getDescriptorSetLayout() { return descriptorSetLayout; }
-		VkDescriptorSet& getDescriptorSet(uint32_t index) { return descriptorSets[index]; }
+		enum SharedResources 
+		{
+			VK_BUFFERS = 0
+		};
 
-		const std::string getAssetName() override { return "Uniform Buffer"; }
+		GET_RESOURCE;
+		GET_RESOURCE_FROM_STRING;
+
+		ASSET_NAME("Uniform Buffer")
 	private:
-		void createDescriptorSetLayout();
-		void createUniformBuffers(VkPhysicalDevice& physicalDevice);	
-		void createDescriptorPool();
-		void createDescriptorSets();
+		void createUniformBuffers();
 
 		UniformBufferData buffer;
 
 		std::vector<VkBuffer> uniformBuffers;
 		std::vector<VkDeviceMemory> uniformBuffersMemory;
 		std::vector<void*> uniformBuffersMapped;
-
-		VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
-
-		VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
-		std::vector<VkDescriptorSet> descriptorSets;
 	};
 }

@@ -7,11 +7,11 @@
 #include <vector>
 #include <memory>
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include "VertexBuffer.h"
 #include "Shader.h"
-#include "UniformBuffer.h"
+#include "Descriptor.h"
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
@@ -31,12 +31,12 @@ namespace StarryRender
 
 		VkPipelineLayout& getPipelineLayout() { return pipelineLayout; }
 
-		const std::string getAssetName() override { return "Pipeline"; }
+		ASSET_NAME("Pipeline")
 
 	private:
-		void constructPipeline(VkFormat& swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer);
-		void createRenderPass(VkFormat swapChainImageFormat);
-		void constructPipelineLayout(std::weak_ptr<UniformBuffer>& uniformBuffer);
+		void constructPipeline(std::array<VkFormat, 2>& imageFormats, std::shared_ptr<Descriptor>& descriptor);
+		void createRenderPass(std::array<VkFormat, 2>& imageFormats);
+		void constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor);
 
 		VkPipelineVertexInputStateCreateInfo createVertexInputInfo();
 
@@ -46,6 +46,6 @@ namespace StarryRender
 		VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
 		VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 
-		ResourceHandle<VkDevice> device;
+		ResourceHandle<VkDevice> device{};
 	};
 }

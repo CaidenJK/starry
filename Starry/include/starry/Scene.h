@@ -1,14 +1,13 @@
 #pragma once
 
 #include <StarryRender.h>
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include <vector>
 #include <memory>
 #include <thread>
 
-#include "MeshObject.h"
-#include "CameraObject.h"
+#include "SceneObject.h"
 
 #define DEFAULT_SCENE_NAME "New Scene"
 
@@ -29,10 +28,8 @@ namespace Starry
 
 		void setShaderPaths(const std::array<std::string, 2>& paths);
 
-		void pushPrefab(std::shared_ptr<MeshObject>& prefab);
-		void addCamera(std::shared_ptr<CameraObject>& cameraRef);
-
-		std::shared_ptr<MeshObject>& getPrefab() { return prefabs; }
+		void pushObject(std::shared_ptr<SceneObject>& obj);
+		void pushObjects(std::vector<std::shared_ptr<SceneObject>>& objs);
 
 		void disbatchRenderer();
 		void joinRenderer();
@@ -40,7 +37,7 @@ namespace Starry
 		std::atomic<bool>& isRenderRunning() { return renderRunning; }
 		const std::shared_ptr<RenderContext>& getRenderContext() { return renderer; }
 
-		const std::string getAssetName() override { return "Scene: " + sceneName; }
+		ASSET_NAME("Scene: " + sceneName)
 	private:
 		void renderLoop();
 
@@ -54,13 +51,10 @@ namespace Starry
 		std::thread renderThread;
 		std::atomic<bool> renderRunning{ false };
 
-		// One for now
-		std::shared_ptr<MeshObject> prefabs;
-		std::shared_ptr<CameraObject> camera;
+		std::map<std::string, std::shared_ptr<SceneObject>> sceneObjects;
 		// TODO: something wrong with stack allocated StarryAssets
 
 		glm::mat4 modelViewProjection;
 	};
-
-	// soon prefab base class
 }
+// TODO: seperate out renderer

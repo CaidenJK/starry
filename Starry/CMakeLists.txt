@@ -1,4 +1,5 @@
 # Add project
+cmake_minimum_required (VERSION 3.10)
 project(Starry VERSION 0.0.3 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -31,7 +32,6 @@ endif()
 # Compile Shaders
 
 set(SHADER_DIR "${SOURCE_DIR}/shaders")
-
 get_filename_component(SHADER_DIR_ABS "${SHADER_DIR}" ABSOLUTE)
 file(TO_CMAKE_PATH "${SHADER_DIR_ABS}" SHADER_DIR_UNIX)
 
@@ -48,6 +48,17 @@ else()
   message(FATAL_ERROR "Unsupported OS")
 endif()
 message("Compiled Shaders")
+
+# Image Directory
+
+set(IMAGE_DIR "${SOURCE_DIR}/images")
+get_filename_component(IMAGE_DIR_ABS "${IMAGE_DIR}" ABSOLUTE)
+file(TO_CMAKE_PATH "${IMAGE_DIR_ABS}" IMAGE_DIR_UNIX)
+
+# Models Directory
+set(MODEL_DIR "${SOURCE_DIR}/models")
+get_filename_component(MODEL_DIR_ABS "${MODEL_DIR}" ABSOLUTE)
+file(TO_CMAKE_PATH "${MODEL_DIR_ABS}" MODEL_DIR_UNIX)
 
 # DEPENDENCIES
 # ---------------------------------------
@@ -95,12 +106,15 @@ add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
 add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender" "${CMAKE_CURRENT_BINARY_DIR}/StarryRender_build")
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryAsset" "${CMAKE_CURRENT_BINARY_DIR}/StarryAsset_build")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../StarryManager" "${CMAKE_CURRENT_BINARY_DIR}/StarryManager_build")
 
 # Create Library
 add_library(Starry SHARED ${SOURCES})
 target_compile_definitions(Starry PRIVATE STARRY_BUILD_DLL)
+
 target_compile_definitions(Starry PRIVATE "SHADERS_PATH=\"${SHADER_DIR_UNIX}/\"")
+target_compile_definitions(Starry PRIVATE "IMAGE_PATH=\"${IMAGE_DIR_UNIX}/\"")
+target_compile_definitions(Starry PRIVATE "MODEL_PATH=\"${MODEL_DIR_UNIX}/\"")
 
 set_target_properties(Starry PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
@@ -127,7 +141,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   target_link_libraries(Starry PRIVATE ${IOSURFACE_FRAMEWORK})
 endif()
 
-target_link_libraries(Starry PRIVATE StarryAsset)
+target_link_libraries(Starry PRIVATE StarryManager)
 target_link_libraries(Starry PRIVATE StarryRender)
 
 # Gather Dependency Include Directories
@@ -140,5 +154,5 @@ target_include_directories(Starry
     ${glm_SOURCE_DIR}
     ${Vulkan_INCLUDE_DIRS}
     ${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/../StarryAsset/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../StarryManager/include
 )

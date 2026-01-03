@@ -1,24 +1,39 @@
 #pragma once
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace StarryRender
 {
-	class Buffer : public StarryAsset
-	{
-		public:
-			virtual const std::string getAssetName() { return "Buffer"; }
-		protected:
-			Buffer();
+    class Buffer : public StarryAsset
+    {
+        public:
+            Buffer();
+            virtual ASSET_NAME("Buffer")
 
-			virtual void createBuffer(VkPhysicalDevice& physicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
-			virtual void copyBuffer(VkCommandPool& commandPool, VkQueue& graphicsQueue, VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
+            virtual GET_RESOURCE { return {}; }
+		    virtual GET_RESOURCE_FROM_STRING { return INVALID_RESOURCE; }
+        protected:
 
-			virtual uint32_t findMemoryType(VkPhysicalDevice& physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties);
+            void createBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);
+			void copyBuffer(VkBuffer& srcBuffer, VkBuffer& dstBuffer, VkDeviceSize size);
+			uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-			ResourceHandle<VkDevice> device;
-	};
+            VkCommandBuffer beginSingleTimeCommands();
+            void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
+			
+            ResourceHandle<VkDevice> device;
+            ResourceHandle<VkPhysicalDevice> physicalDevice;
+            ResourceHandle<VkCommandPool> commandPool;
+            ResourceHandle<VkQueue> graphicsQueue;
+    };
 }

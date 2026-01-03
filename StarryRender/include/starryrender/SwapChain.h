@@ -3,13 +3,22 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <vector>
 #include <memory>
 #include <optional>
+#include <array>
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include "Window.h"
+#include "ImageBuffer.h"
 
 namespace StarryRender 
 {
@@ -28,6 +37,8 @@ namespace StarryRender
 				VkSurfaceCapabilitiesKHR capabilities;
 				std::vector<VkSurfaceFormatKHR> formats;
 				std::vector<VkPresentModeKHR> presentModes;
+
+				VkFormat depthBufferFormat;
 			};
 		public:
 			SwapChain();
@@ -43,16 +54,23 @@ namespace StarryRender
 			VkSwapchainKHR& getSwapChain() { return swapChain; }
 
 
-			VkFormat& getImageFormat() { return swapChainImageFormat; }
+			std::array<VkFormat, 2>& getImageFormats() { return imageFormats; }
 			VkExtent2D& getExtent() { return swapChainExtent; }
-			size_t getImageCount() { return swapChainImages.size(); }
+			size_t getImageCount() { return swapChainImageBuffers.size(); }
 
-			const std::string getAssetName() override { return "Swapchain"; }
+			ASSET_NAME("Swapchain")
 
 			static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface);
 		private:
 			void createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface);
 			void createImageViews();
+
+			static VkFormat findSupportedFormat(VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
+            static VkFormat findDepthFormat(VkPhysicalDevice& device);
+			bool hasStencilComponent(VkFormat format);
+
+			void createDepthResources();
+			
 			void cleanupSwapChain();
 
 			VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
@@ -61,14 +79,15 @@ namespace StarryRender
 
 			VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 
-			std::vector<VkImage> swapChainImages;
-			VkFormat swapChainImageFormat;
+			std::vector<ImageBuffer> swapChainImageBuffers;
+
+			std::array<VkFormat, 2> imageFormats;
 			VkExtent2D swapChainExtent = {0, 0};
 
-			std::vector<VkImageView> swapChainImageViews;
+			std::shared_ptr<ImageBuffer> depthBuffer;
 
 			std::vector<VkFramebuffer> swapChainFramebuffers;
 
-			ResourceHandle<VkDevice> device;
+			ResourceHandle<VkDevice> device{};
 	};
 }

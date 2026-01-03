@@ -4,7 +4,7 @@
 
 namespace StarryRender 
 {
-	VkVertexInputBindingDescription Vertex::getBindingDescriptions() 
+	VkVertexInputBindingDescription Vertex::getBindingDescriptions()
 	{
 		VkVertexInputBindingDescription bindingDescription{};
 		bindingDescription.binding = 0;
@@ -13,22 +13,26 @@ namespace StarryRender
 
 		return bindingDescription;
 	}
-	std::array<VkVertexInputAttributeDescription, 2> Vertex::getAttributeDescriptions()
+	std::array<VkVertexInputAttributeDescription, 3> Vertex::getAttributeDescriptions()
 	{
-		std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions{};
-		// Vert
-		attributeDescriptions[0].binding = 0;
-		attributeDescriptions[0].location = 0;
-		attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[0].offset = offsetof(Vertex, position);
+		std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
-		// Color
-		attributeDescriptions[1].binding = 0;
-		attributeDescriptions[1].location = 1;
-		attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset = offsetof(Vertex, color);
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(Vertex, position);
 
-		return attributeDescriptions;
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Vertex, color);
+
+        attributeDescriptions[2].binding = 0;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].offset = offsetof(Vertex, texCoord);
+
+        return attributeDescriptions;
 	}
 
 	VertexBuffer::VertexBuffer()
@@ -69,7 +73,7 @@ namespace StarryRender
 		indices = indiciesInput;
 	}
 
-	void VertexBuffer::createVertexBuffer(VkPhysicalDevice& physicalDevice) 
+	void VertexBuffer::createVertexBuffer() 
 	{
 		if (vertices.empty()) {
 			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
@@ -77,31 +81,37 @@ namespace StarryRender
 		}
 
 		bufferSizeVertex = sizeof(vertices[0]) * vertices.size();
-		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex));
+
+		ERROR_VOLATILE(createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex));
 		ERROR_VOLATILE(fillVertexBufferData(stagingBufferMemoryVertex));
 		if (vertexBuffer == VK_NULL_HANDLE) {
-			ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory));
+			ERROR_VOLATILE(createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory));
 		}
 	}
 
-	void VertexBuffer::createIndexBuffer(VkPhysicalDevice& physicalDevice) 
+	void VertexBuffer::createIndexBuffer() 
 	{
 		if (indices.empty()) {
 			registerAlert("No index data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 		bufferSizeIndex = sizeof(indices[0]) * indices.size();
-		ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferIndex, stagingBufferMemoryIndex));
+
+		ERROR_VOLATILE(createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferIndex, stagingBufferMemoryIndex));
 		ERROR_VOLATILE(fillIndexBufferData(stagingBufferMemoryIndex));
 		if (indexBuffer == VK_NULL_HANDLE) {
-			ERROR_VOLATILE(createBuffer(physicalDevice, bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory));
+			ERROR_VOLATILE(createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory));
 		}
 	}
 
-	void VertexBuffer::loadBufferToMemory(VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue)
+	void VertexBuffer::loadBufferToMemory()
 	{
-		createVertexBuffer(physicalDevice);
-		createIndexBuffer(physicalDevice);
+		createVertexBuffer();
+		createIndexBuffer();
 
 		if (stagingBufferVertex == VK_NULL_HANDLE ||
 			stagingBufferIndex == VK_NULL_HANDLE ||
@@ -113,10 +123,13 @@ namespace StarryRender
 				return;
 		}
 
-		copyBuffer(commandPool, graphicsQueue, stagingBufferVertex, vertexBuffer, bufferSizeVertex);
-		copyBuffer(commandPool, graphicsQueue, stagingBufferIndex, indexBuffer, bufferSizeIndex);
+		copyBuffer(stagingBufferVertex, vertexBuffer, bufferSizeVertex);
+		copyBuffer(stagingBufferIndex, indexBuffer, bufferSizeIndex);
 		
-		while (!device) {}
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
 		vkDestroyBuffer(*device, stagingBufferVertex, nullptr);
 		vkFreeMemory(*device, stagingBufferMemoryVertex, nullptr);
 		stagingBufferVertex = VK_NULL_HANDLE;
@@ -128,7 +141,7 @@ namespace StarryRender
 		stagingBufferMemoryIndex = VK_NULL_HANDLE;
 	}
 
-	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory) 
+	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory)
 	{
 		if (bufferMemory == VK_NULL_HANDLE) {
 			registerAlert("Vertex buffer not created before filling data!", FATAL);
@@ -141,7 +154,10 @@ namespace StarryRender
 
 		void* data;
 
-		while (!device) {}
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
 		vkMapMemory(*device, bufferMemory, 0, bufferSizeVertex, 0, &data);
 		memcpy(data, vertices.data(), (size_t)bufferSizeVertex);
 		vkUnmapMemory(*device, bufferMemory);
@@ -160,7 +176,10 @@ namespace StarryRender
 
 		void* data;
 
-		while (!device) {}
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
 		vkMapMemory(*device, bufferMemory, 0, bufferSizeIndex, 0, &data);
 		memcpy(data, indices.data(), (size_t)bufferSizeIndex);
 		vkUnmapMemory(*device, bufferMemory);

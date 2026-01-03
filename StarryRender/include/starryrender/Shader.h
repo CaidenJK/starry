@@ -7,7 +7,7 @@
 #include <vector>
 #include <array>
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 namespace StarryRender 
 {
@@ -18,7 +18,7 @@ namespace StarryRender
 
 			std::array<VkPipelineShaderStageCreateInfo, 2>& getShaderStages() { return shaderStages; }
 
-			const std::string getAssetName() override { return "Shader"; }
+			ASSET_NAME("Shader")
 
 		private:
 			static VkShaderModule createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error);
@@ -43,6 +43,6 @@ namespace StarryRender
 
 			std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {};
 
-			ResourceHandle<VkDevice> device;
+			ResourceHandle<VkDevice> device{};
 	};
 }

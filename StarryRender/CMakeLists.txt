@@ -1,4 +1,5 @@
 ﻿# Add project
+cmake_minimum_required (VERSION 3.10)
 project(StarryRender VERSION 0.0.3 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -34,16 +35,13 @@ set_target_properties(StarryRender PROPERTIES
   OUTPUT_NAME "StarryRender"
 )
 
-set(STARRY_ASSET_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/../StarryAsset/include")
-
 # Gather Dependency Include Directories
 target_include_directories(StarryRender
   PUBLIC
     ${INCLUDE_DIR}
-    ${STARRY_ASSET_INCLUDE}
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}
     ${Vulkan_INCLUDE_DIRS}
-    "${CMAKE_SOURCE_DIR}/External/STB_Image"
+    ${CMAKE_CURRENT_SOURCE_DIR}/../StarryManager/include
 )

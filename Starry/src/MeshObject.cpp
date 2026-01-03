@@ -6,14 +6,24 @@
 
 namespace Starry
 {
-	MeshObject::MeshObject(std::string nameInput) : name(nameInput) 
+	MeshObject::MeshObject(std::string nameInput) :  SceneObject(std::string("Mesh, ") + nameInput)
 	{
 
 	}
 
 	MeshObject::~MeshObject() 
 	{
-		vertexBuffer.reset();
+		Destroy();
+	}
+
+	void MeshObject::Destroy()
+	{
+		if (vertexBuffer != nullptr) {
+			vertexBuffer.reset();
+		}
+		if (textureImage != nullptr) {
+			textureImage.reset();
+		}
 	}
 
 	void MeshObject::addVertexData(std::vector<Vertex>& verticesInput, std::vector<uint32_t> indicesInput) 
@@ -23,80 +33,57 @@ namespace Starry
 		isEmpty = vertices.empty() || indices.empty();
 	}
 
-	void MeshObject::registerMeshBuffer(std::unique_ptr<RenderContext>& renderContext)
+	void MeshObject::Register(std::shared_ptr<RenderContext>& renderContext)
 	{
 		if (isEmptyMesh()) {
 			registerAlert("Cannot register empty mesh buffer!", FATAL);
 			return;
 		}
-		vertexBuffer = renderContext->createVertexBuffer();
-		if (vertexBuffer == nullptr) {
-			registerAlert("Vertex Buffer NULL! Render Context is uninitilized.", FATAL);
-			return;
-		}
+		vertexBuffer = std::make_shared<VertexBuffer>();
+
 		vertexBuffer->loadData(vertices, indices);
 		renderContext->loadVertexBuffer(vertexBuffer);
+
+		textureImage->loadFromFile();
+		renderContext->loadTextureImage(textureImage);
 	}
 
-	void MeshObject::registerMeshBuffer(std::shared_ptr<RenderContext>& renderContext)
+	void MeshObject::loadTextureFromFile(const std::string filePath)
 	{
-		if (isEmptyMesh()) {
-			registerAlert("Cannot register empty mesh buffer!", FATAL);
+		textureImage = std::make_shared<TextureImage>();
+		textureImage->storeFilePath(filePath);
+	}
+
+	void MeshObject::loadMeshFromFile(const std::string filePath)
+	{
+		auto file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::READ | Flags::MODEL});
+
+		if (file.wait() != ResourceState::YES) {
+			registerAlert("Could not open mesh file.", CRITICAL);
 			return;
 		}
-		vertexBuffer = renderContext->createVertexBuffer();
-		if (vertexBuffer == nullptr) {
-			registerAlert("Vertex Buffer NULL! Render Context is uninitilized.", FATAL);
-			return;
-		}
-		vertexBuffer->loadData(vertices, indices);
-		renderContext->loadVertexBuffer(vertexBuffer);
-	}
 
-	void MeshObject::rotateMesh(float angleRadians, const glm::vec3& axis) {
-		localToGlobalSpace = glm::rotate(localToGlobalSpace, angleRadians, axis);
-	}
+		auto meshFile = dynamic_cast<ModelFile*>(*file);
 
-	// Fix colors later
+		for (const auto& shape : meshFile->shapes) {
+			for (const auto& index : shape.mesh.indices) {
+				Vertex vertex{};
+				vertex.position = {
+					meshFile->attrib.vertices[3 * index.vertex_index + 0],
+					meshFile->attrib.vertices[3 * index.vertex_index + 1],
+					meshFile->attrib.vertices[3 * index.vertex_index + 2]
+				};
+				vertex.texCoord = {
+					meshFile->attrib.texcoords[2 * index.texcoord_index + 0],
+					1.0f - meshFile->attrib.texcoords[2 * index.texcoord_index + 1]
+				};
+				vertex.color = { 1.0f, 1.0f, 1.0f };
 
-	void MeshObject::primitiveCube(MeshObject& obj, float size) {
-		std::vector<Vertex> vertices = {
-			{{-0.5f, -0.5f, 0.5f}, CYAN_COLOR},
-			{{-0.5f, 0.5f, 0.5f}, BLUE_COLOR},
-			{{0.5f, 0.5f, 0.5f}, GREEN_COLOR},
-			{{0.5f, -0.5f, 0.5f}, BLACK_COLOR},
-			{{ -0.5f, -0.5f, -0.5f }, RED_COLOR},
-			{{-0.5f, 0.5f, -0.5f}, YELLOW_COLOR},
-			{{0.5f, 0.5f, -0.5f}, MAGENTA_COLOR},
-			{{0.5f, -0.5f, -0.5f}, RED_COLOR}
-		};
-		const std::vector<uint32_t> indices = {
-			0, 1, 2, 0, 2, 3,
-			4, 5, 1, 4, 1, 0,
-			7, 4, 0, 7, 0, 3,
-			3, 2, 6, 3, 6, 7,
-			5, 6, 2, 5, 2, 1,
-			7, 6, 5, 7, 5, 4
-		};
-
-		for (auto& vertex : vertices) {
-			vertex.position *= size;
+				vertices.push_back(vertex);
+				indices.push_back(indices.size());
+			}
 		}
 
-		obj.addVertexData(vertices, indices);
-	}
-
-	void MeshObject::primitiveQuad(MeshObject& obj, float width, float height) {
-		std::vector<Vertex> vertices = {
-			{{-0.5f * width, -0.5f * height, 0.0f}, CYAN_COLOR},
-			{{-0.5f * width, 0.5f * height, 0.0f}, BLUE_COLOR},
-			{{0.5f * width, 0.5f * height, 0.0f}, GREEN_COLOR},
-			{{0.5f * width, -0.5f * height, 0.0f}, BLACK_COLOR},
-		};
-		const std::vector<uint32_t> indices = {
-			0, 1, 2, 0, 2, 3,
-		};
-
-		obj.addVertexData(vertices, indices);
+		addVertexData(vertices, indices);
 	}
 }

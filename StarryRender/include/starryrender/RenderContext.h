@@ -1,11 +1,13 @@
 #pragma once
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include "Window.h"
 #include "RenderDevice.h"
 #include "UniformBuffer.h"
 #include "VertexBuffer.h"
+#include "ImageBuffer.h"
+#include "TextureImage.h"
 
 #define DEFAULT_SHADER_PATHS {}
 
@@ -22,6 +24,8 @@ namespace StarryRender
 
 		void Init();
 		void Init(std::shared_ptr<Window>& window);
+
+		void LoadBuffers();
 		
 		void Draw();
 
@@ -34,12 +38,12 @@ namespace StarryRender
 		void loadShaders(const std::string& vertShaderPath, const std::string& fragShaderPath);
 		void loadShaders(std::array<std::string, 2>& shaders);
 		
-		std::shared_ptr<VertexBuffer> createVertexBuffer();
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer);
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index);
 		void clearVertexBuffers() { m_vertexBuffers.clear(); }
-		
-		std::shared_ptr<UniformBuffer> createUniformBuffer();
+
+		void loadTextureImage(std::shared_ptr<TextureImage>& imageBuffer);
+
 		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer);
 		void updateUniformBuffer(UniformBufferData& buffer);
 
@@ -49,7 +53,7 @@ namespace StarryRender
 		void windowPollEvents() const { m_window->pollEvents(); }
 		bool windowShouldClose() const { return m_window->shouldClose(); }
 
-		const std::string getAssetName() override { return "RenderContext"; }
+		ASSET_NAME("RenderContext")
 	private:
 		const static int MAX_VERTEX_BUFFERS = 1;
 		void initInternalWindow();
@@ -61,7 +65,7 @@ namespace StarryRender
 		std::shared_ptr<Window> m_window = nullptr;
 
 		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
-
+		std::shared_ptr<TextureImage> m_textureImage = nullptr;
 		std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
 
 		std::array<std::string, 2> m_shaderPaths = DEFAULT_SHADER_PATHS;

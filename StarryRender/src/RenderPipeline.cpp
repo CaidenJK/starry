@@ -4,9 +4,9 @@ namespace StarryRender
 {
 	RenderPipeline::RenderPipeline(std::shared_ptr<Shader>& shaderValue)
 	{
-		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
-		ResourceHandle<VkFormat> swapChainImageFormat = requestResource<VkFormat>("RenderDevice", "Swapchain Image Format");
-		ResourceHandle<std::weak_ptr<UniformBuffer>> uniformBuffer = requestResource<std::weak_ptr<UniformBuffer>>("RenderDevice", "Uniform Buffer");
+		device = requestResource<VkDevice>("Render Device", "VkDevice");
+		auto imageFormats = requestResource<std::array<VkFormat, 2>>("Render Device", "Swapchain Image Formats");
+		auto descriptor = requestResource<std::shared_ptr<Descriptor>>("Render Device", "Descriptor");
 
 		shader = shaderValue;
 		if (shader == nullptr) {
@@ -18,8 +18,11 @@ namespace StarryRender
 			return;
 		}
 
-		while (!swapChainImageFormat.hasRequest() || !uniformBuffer.hasRequest()) {} //wait
-		constructPipeline(*swapChainImageFormat, *uniformBuffer);
+		if (imageFormats.wait() != ResourceState::YES || descriptor.wait() != ResourceState::YES) {
+			registerAlert("Resources died before they were ready to be used.", FATAL);
+			return;
+		}
+		constructPipeline(*imageFormats, *descriptor);
 	}
 
 	RenderPipeline::~RenderPipeline() 
@@ -36,23 +39,23 @@ namespace StarryRender
 		}
 	}
 
-	void RenderPipeline::constructPipeline(VkFormat& swapChainImageFormat, std::weak_ptr<UniformBuffer>& uniformBuffer)
+	void RenderPipeline::constructPipeline(std::array<VkFormat, 2>& imageFormats, std::shared_ptr<Descriptor>& descriptor)
 	{
 		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
 			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
 			return;
 		}
 
-		ERROR_VOLATILE(createRenderPass(swapChainImageFormat));
-		ERROR_VOLATILE(constructPipelineLayout(uniformBuffer));
+		ERROR_VOLATILE(createRenderPass(imageFormats));
+		ERROR_VOLATILE(constructPipelineLayout(descriptor));
 
 		registerAlert("Successful Pipeline Creation!", INFO);
 	}
 
-	void RenderPipeline::createRenderPass(VkFormat swapChainImageFormat) 
+	void RenderPipeline::createRenderPass(std::array<VkFormat, 2>& imageFormats) 
 	{
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = swapChainImageFormat;
+		colorAttachment.format = imageFormats[0];
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
@@ -67,36 +70,57 @@ namespace StarryRender
 		colorAttachmentRef.attachment = 0;
 		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+		VkAttachmentDescription depthAttachment{};
+		depthAttachment.format = imageFormats[1];
+		depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+		depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+		depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+		depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+		VkAttachmentReference depthAttachmentRef{};
+		depthAttachmentRef.attachment = 1;
+		depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 		VkSubpassDescription subpass{};
 		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
+		subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
 		VkSubpassDependency dependency{};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependency.dstSubpass = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.srcAccessMask = 0;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		dependency.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
+
+		std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
 		VkRenderPassCreateInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-		renderPassInfo.attachmentCount = 1;
-		renderPassInfo.pAttachments = &colorAttachment;
+		renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		renderPassInfo.pAttachments = attachments.data();
 		renderPassInfo.subpassCount = 1;
 		renderPassInfo.pSubpasses = &subpass;
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		while (!device.hasRequest()) {} // TODO, create priority resource, getNOW
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
+
 		if (vkCreateRenderPass(*device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
 			registerAlert("Failed to create render pass!", FATAL);
 			return;
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout(std::weak_ptr<UniformBuffer>& uniformBuffer)
+	void RenderPipeline::constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor)
 	{
 		// Verts
 		auto bindingDescription = Vertex::getBindingDescriptions();
@@ -138,7 +162,7 @@ namespace StarryRender
 		rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
 		rasterizer.lineWidth = 1.0f;
 		rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-		rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE; // Opposite for uniform buffer z flip
+		rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE; // Opposite for uniform buffer z flip
 		rasterizer.depthBiasEnable = VK_FALSE;
 		rasterizer.depthBiasConstantFactor = 0.0f; // Optional
 		rasterizer.depthBiasClamp = 0.0f; // Optional
@@ -183,24 +207,36 @@ namespace StarryRender
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-		if (auto ub = uniformBuffer.lock()) {
-			if (ub->getDescriptorSetLayout() == VK_NULL_HANDLE) {
-				registerAlert("Uniform buffer has error before pipeline construction!", FATAL);
-				return;
-			}
-			pipelineLayoutInfo.setLayoutCount = 1;
-			pipelineLayoutInfo.pSetLayouts = &(ub->getDescriptorSetLayout());
+		if (descriptor->getDescriptorSetLayout() == VK_NULL_HANDLE) {
+			registerAlert("Descriptor has error before pipeline construction!", FATAL);
+			return;
 		}
-		else {
-			registerAlert("No or NULL Uniform Buffer Passed!", FATAL);
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = &(descriptor->getDescriptorSetLayout());
+
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
 
-		while (!device.hasRequest()) {}
 		if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 			registerAlert("Failed to create pipeline layout!", FATAL);
 			return;
 		}
+
+		VkPipelineDepthStencilStateCreateInfo depthStencil{};
+		depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+		depthStencil.depthTestEnable = VK_TRUE;
+		depthStencil.depthWriteEnable = VK_TRUE;
+		depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+
+		depthStencil.depthBoundsTestEnable = VK_FALSE; // Depth bound test
+		depthStencil.minDepthBounds = 0.0f; // Optional
+		depthStencil.maxDepthBounds = 1.0f; // Optional
+
+		depthStencil.stencilTestEnable = VK_FALSE;
+		depthStencil.front = {}; // Optional
+		depthStencil.back = {}; // Optional
 
 		// Creation
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -213,7 +249,9 @@ namespace StarryRender
 		pipelineInfo.pViewportState = &viewportState;
 		pipelineInfo.pRasterizationState = &rasterizer;
 		pipelineInfo.pMultisampleState = &multisampling;
-		pipelineInfo.pDepthStencilState = nullptr; // Optional
+
+		pipelineInfo.pDepthStencilState = &depthStencil;
+
 		pipelineInfo.pColorBlendState = &colorBlending;
 		pipelineInfo.pDynamicState = &dynamicState;
 
@@ -224,7 +262,10 @@ namespace StarryRender
 		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
-		while (!device) {}
+		if (device.wait() != ResourceState::YES) {
+			registerAlert("Device died before it was ready to be used.", FATAL);
+			return;
+		}
 		if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
 			registerAlert("Failed to create graphics pipeline!", FATAL);
 			return;

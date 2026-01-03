@@ -8,7 +8,7 @@ namespace StarryRender
 {
 	Shader::Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) 
 	{
-		device = requestResource<VkDevice>("RenderDevice", "VkDevice");
+		device = requestResource<VkDevice>("Render Device", "VkDevice");
 		initShader();
 	}
 

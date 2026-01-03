@@ -7,13 +7,15 @@
 #include <string>
 #include <memory>
 
-#include <StarryAsset.h>
+#include <StarryManager.h>
 
 #include "Window.h"
 #include "RenderPipeline.h"
 #include "SwapChain.h"
 #include "VertexBuffer.h"
 #include "UniformBuffer.h"
+#include "TextureImage.h"
+#include "Descriptor.h"
 
 #define DEFAULT_NAME "My Starry App"
 
@@ -23,7 +25,7 @@ namespace StarryRender
 		public:
 			void registerDebugAlert(const std::string& message, CallSeverity severity);
 
-			const std::string getAssetName() override {return "Vulkan Debugger";}
+			ASSET_NAME("Vulkan Debugger")
 	};
 
 	class RenderDevice : public StarryAsset {
@@ -44,9 +46,10 @@ namespace StarryRender
 		VkInstance getInstance() { return instance; }
 
 		void loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef);
-		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& bufferRef);
-
-		void LoadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
+		void loadImageBuffer(std::shared_ptr<TextureImage>& bufferRef);
+		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
+		
+		void setDescriptors();
 
 		void LoadShader(const std::string& vertShader, const std::string& fragShader);
 		void LoadShader(std::shared_ptr<Shader>& shaderRef);
@@ -56,21 +59,23 @@ namespace StarryRender
 
 		void WaitIdle();
 
-		VkDevice& getDevice() { return device; }
-		VkPhysicalDevice& getPhysicalDevice() { return physicalDevice; }
-		VkExtent2D getExtent() { return swapChain->getExtent(); }
-
-		const std::string getAssetName() override { return "RenderDevice"; }
+		VkExtent2D& getExtent() { return swapChain->getExtent(); }
 
 		enum SharedResources {
 			VK_DEVICE = 0,
-			SWAP_CHAIN_IMAGE_FORMAT = 1,
-			UNIFORM_BUFFER = 2,
-			WINDOW_REFERENCE = 3
+			VK_PHYSICAL_DEVICE = 1,
+			SWAP_CHAIN_IMAGE_FORMAT = 2, // Maybe change
+			DESCRIPTOR = 3,
+			WINDOW_REFERENCE = 4, // Maybe change
+			COMMAND_POOL = 5,
+			GRAPHICS_QUEUE = 6,
+			SWAP_CHAIN_EXTENT = 7
 		};
 
-		std::optional<void*> getResource(size_t resourceID) override;
-		size_t getResourceIDFromString(std::string resourceName) override;
+		GET_RESOURCE;
+		GET_RESOURCE_FROM_STRING;
+
+		ASSET_NAME("Render Device")
 
 		// Error Handler can use this
 		static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -108,8 +113,6 @@ namespace StarryRender
 
 		QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 		bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-
-		void constructDefaultTriangle();
 
 		const char* name;
 		
@@ -163,8 +166,11 @@ namespace StarryRender
 		VkExtent2D drawExtent = {};
 		float renderScale = 1.0f;
 
-		std::shared_ptr<VertexBuffer> vertexBuffer = nullptr;
+		std::shared_ptr<Descriptor> descriptor = nullptr;
+
+		std::weak_ptr<VertexBuffer> vertexBuffer = {};
 		std::weak_ptr<UniformBuffer> uniformBuffer = {};
+		std::weak_ptr<TextureImage> textureImage = {};
 
 		VkPhysicalDeviceMemoryProperties memProperties = {};
 

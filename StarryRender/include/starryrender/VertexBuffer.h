@@ -8,8 +8,6 @@
 #include <vector>
 #include <array>
 
-#include <StarryAsset.h>
-
 #include "Buffer.h"
 
 // Helpful debug colors
@@ -27,9 +25,10 @@ namespace StarryRender
 	struct Vertex {
 		glm::vec3 position;
 		glm::vec3 color;
+		glm::vec2 texCoord;
 
 		static VkVertexInputBindingDescription getBindingDescriptions();
-		static std::array<VkVertexInputAttributeDescription, 2> getAttributeDescriptions();
+		static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions();
 	};
 
 	class VertexBuffer : public Buffer {
@@ -38,18 +37,18 @@ namespace StarryRender
 			~VertexBuffer();
 
 			void loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
-			void loadBufferToMemory(VkPhysicalDevice& physicalDevice, VkCommandPool& commandPool, VkQueue& graphicsQueue);
+			void loadBufferToMemory();
 
-			size_t getNumVerticies() { return vertices.empty() ? 0 : vertices.size(); }
-			size_t getNumIndicies() { return indices.empty() ? 0 : indices.size(); }
+			size_t getNumVertices() { return vertices.empty() ? 0 : vertices.size(); }
+			size_t getNumIndices() { return indices.empty() ? 0 : indices.size(); }
 			VkBuffer& getVertexBuffer() { return vertexBuffer; }
 			VkBuffer& getIndexBuffer() { return indexBuffer; }
 
-			const std::string getAssetName() override { return "Vertex Buffer"; }
+			ASSET_NAME("Vertex Buffer")
 
 		private:
-			void createVertexBuffer(VkPhysicalDevice& physicalDevice);
-			void createIndexBuffer(VkPhysicalDevice& physicalDevice);
+			void createVertexBuffer();
+			void createIndexBuffer();
 
 			void fillVertexBufferData(VkDeviceMemory& bufferMemory);
 			void fillIndexBufferData(VkDeviceMemory& bufferMemory);
