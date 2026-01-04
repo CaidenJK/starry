@@ -11,6 +11,8 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
+set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
+
 # DEPENDENCIES
 # ---------------------------------------
 
@@ -48,6 +50,8 @@ FetchContent_MakeAvailable(glfw glm)
 add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
 add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
 
+# --------------------------------------------------------------
+
 # Vulkan
 include (FindVulkan)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -55,6 +59,20 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 else()
   find_package(Vulkan REQUIRED)
 endif()
+
+# IMGUI
+set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui")
+FILE(GLOB IMGUI_SOURCES "${IMGUI_DIR}/*.cpp")
+
+add_library(imgui_lib ${IMGUI_SOURCES} "${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp")
+
+target_include_directories(imgui_lib
+    PRIVATE
+    ${Vulkan_INCLUDE_DIRS}
+
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
+)
 
 # ------------------------------
 add_library(${PROJECT_NAME} ${SOURCES})
@@ -69,14 +87,15 @@ target_include_directories( ${PROJECT_NAME}
     ${Vulkan_INCLUDE_DIRS}
 
     ${CMAKE_SOURCE_DIR}/StarryManager
+
+    ${IMGUI_DIR}
+    ${IMGUI_DIR}/backends
 )
 
 target_include_directories( ${PROJECT_NAME}
     INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
-
-set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"

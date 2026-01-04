@@ -11,6 +11,8 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
+set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
+
 set(EXTERN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/external")
 
 # ---------------------------------------
@@ -27,8 +29,6 @@ target_include_directories( ${PROJECT_NAME}
     INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
-
-set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"

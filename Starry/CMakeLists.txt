@@ -81,11 +81,14 @@ find_package(glm)
 # Link Libraries
 target_link_libraries(Starry 
     PUBLIC 
+    StarryManager
+
     glm
     glfw
     Vulkan::Vulkan
-    StarryManager
+
     StarryRender
+    imgui_lib
 )
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   find_library(IOSURFACE_FRAMEWORK IOSurface)

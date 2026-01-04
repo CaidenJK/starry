@@ -71,13 +71,14 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "IMAGE_PATH=\"${IMAGE_DIR_UNI
 target_compile_definitions(${PROJECT_NAME} PRIVATE "MODEL_PATH=\"${MODEL_DIR_UNIX}/\"")
 
 # link Libraries
-target_link_libraries(${PROJECT_NAME} PRIVATE Starry)
+target_link_libraries(${PROJECT_NAME} PRIVATE 
+    Starry
+    imgui_lib
+)
 
 target_include_directories(${PROJECT_NAME} 
     PUBLIC
     ${INCLUDE_DIR}
-    ${glfw_SOURCE_DIR}/include
-    ${glm_SOURCE_DIR}
 )
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
