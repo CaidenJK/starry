@@ -13,14 +13,20 @@ FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
 set(EXTERN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/external")
 
-include_directories(
+# ---------------------------------------
+add_library(${PROJECT_NAME} ${SOURCES})
+# ---------------------------------------
+
+target_include_directories( ${PROJECT_NAME}
+    PUBLIC
     ${INCLUDE_DIR}
     ${EXTERN_DIR}
 )
 
-# ---------------------------------------
-add_library(${PROJECT_NAME} ${SOURCES})
-# ---------------------------------------
+target_include_directories( ${PROJECT_NAME}
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
 

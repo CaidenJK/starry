@@ -1,12 +1,12 @@
 #pragma once 
 
-#include "Scene.h"
-#include "Renderer.h"
-#include "SceneObject.h"
-#include "MeshObject.h"
-#include "CameraObject.h"
+#include "include/Scene.h"
+#include "include/Renderer.h"
+#include "include/SceneObject.h"
+#include "include/MeshObject.h"
+#include "include/CameraObject.h"
 
-#include "Timer.h"
+#include "include/Timer.h"
 
 using Scene = Starry::Scene;
 using Renderer = Starry::Renderer;

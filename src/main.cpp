@@ -1,4 +1,4 @@
-#include "StarryEditor.h"
+#include "Application.h"
 
 int main() {
     Editor::Application::setManagerExitRights(true);

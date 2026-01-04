@@ -32,30 +32,33 @@ else()
   find_package(Vulkan REQUIRED)
 endif()
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/StarryRender" "${CMAKE_CURRENT_BINARY_DIR}/StarryRender_build")
-add_subdirectory("${CMAKE_SOURCE_DIR}/StarryManager" "${CMAKE_CURRENT_BINARY_DIR}/StarryManager_build")
+add_subdirectory("${CMAKE_SOURCE_DIR}/StarryRender" "${CMAKE_CURRENT_SOURCE_DIR}/out/StarryRender")
+add_subdirectory("${CMAKE_SOURCE_DIR}/StarryManager" "${CMAKE_CURRENT_SOURCE_DIR}/out/StarryManager")
+
+set(StarryManager_DIR ${CMAKE_SOURCE_DIR}/StarryManager)
+set(StarryRender_DIR ${CMAKE_SOURCE_DIR}/StarryRender)
 
 find_package(StarryRender)
 find_package(StarryManager)
-include_directories(
-    StarryRender
-    StarryManager
-)
-
-include_directories(
-    ${INCLUDE_DIR}
-    ${glfw_SOURCE_DIR}/include
-    ${glad_SOURCE_DIR}/include
-    ${glm_SOURCE_DIR}
-    ${Vulkan_INCLUDE_DIRS}
-    "${CMAKE_CURRENT_SOURCE_DIR}/../StarryRender/include"
-    "${CMAKE_CURRENT_SOURCE_DIR}/../StarryManager/include"
-)
 
 # -------------------------
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE STARRY_BUILD_DLL)
 # -------------------------
+
+target_include_directories( ${PROJECT_NAME}
+    PUBLIC
+    ${INCLUDE_DIR}
+    ${glm_SOURCE_DIR}
+    ${Vulkan_INCLUDE_DIRS}
+
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_include_directories( ${PROJECT_NAME}
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 set_target_properties(${PROJECT_NAME} PROPERTIES
   RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
@@ -73,9 +76,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   )
 endif()
 
+find_package(glm)
+
 # Link Libraries
 target_link_libraries(Starry 
-    PRIVATE 
+    PUBLIC 
     glm
     glfw
     Vulkan::Vulkan

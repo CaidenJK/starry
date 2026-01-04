@@ -6,8 +6,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "../external/stb_image.h"
-#include "../external/tiny_obj_loader.h"
+#include "external/stb_image.h"
+#include "external/tiny_obj_loader.h"
 
 #define FILE_REQUEST 1
 #define FILETYPE RawFile*

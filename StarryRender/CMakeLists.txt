@@ -6,7 +6,6 @@ set(PROJECT_NAME StarryRender)
 
 project(${PROJECT_NAME} VERSION 0.0.3 LANGUAGES C CXX)
 
-
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
@@ -46,6 +45,9 @@ FetchContent_Populate(glm)
 
 FetchContent_MakeAvailable(glfw glm)
 
+add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
+add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
+
 # Vulkan
 include (FindVulkan)
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -54,22 +56,25 @@ else()
   find_package(Vulkan REQUIRED)
 endif()
 
-find_package(StarryManager)
-include_directories(
-    StarryManager
-)
+# ------------------------------
+add_library(${PROJECT_NAME} ${SOURCES})
+# ------------------------------
 
-include_directories(
+target_include_directories( ${PROJECT_NAME}
+    PUBLIC
     ${INCLUDE_DIR}
     ${glfw_SOURCE_DIR}/include
     ${glad_SOURCE_DIR}/include
     ${glm_SOURCE_DIR}
     ${Vulkan_INCLUDE_DIRS}
+
+    ${CMAKE_SOURCE_DIR}/StarryManager
 )
 
-# ------------------------------
-add_library(${PROJECT_NAME} ${SOURCES})
-# ------------------------------
+target_include_directories( ${PROJECT_NAME}
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
 
