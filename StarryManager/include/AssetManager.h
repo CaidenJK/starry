@@ -110,6 +110,7 @@ namespace StarryManager
             static std::atomic<bool> isDead;
 
             Logger::AssetCall getFatalAlert();
+            Logger::AssetCall getVersionAlert();
     };
 
     template <typename T> 

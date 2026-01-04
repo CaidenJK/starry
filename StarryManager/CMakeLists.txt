@@ -4,7 +4,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(PROJECT_NAME StarryManager)
 
-project(${PROJECT_NAME} VERSION 0.0.1 LANGUAGES C CXX)
+set(VERSION "0.0.6")
+
+project(${PROJECT_NAME} VERSION ${VERSION} LANGUAGES C CXX)
 
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -18,6 +20,8 @@ set(EXTERN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/external")
 # ---------------------------------------
 add_library(${PROJECT_NAME} ${SOURCES})
 # ---------------------------------------
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE "VERSION=\"${VERSION}\"")
 
 target_include_directories( ${PROJECT_NAME}
     PUBLIC

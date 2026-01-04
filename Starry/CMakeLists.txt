@@ -5,7 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(PROJECT_NAME Starry)
 
-project(${PROJECT_NAME} VERSION 0.0.5 LANGUAGES C CXX)
+set(VERSION "0.0.6")
+
+project(${PROJECT_NAME} VERSION ${VERSION} LANGUAGES C CXX)
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
 
@@ -44,6 +46,7 @@ find_package(StarryManager)
 # -------------------------
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE STARRY_BUILD_DLL)
+target_compile_definitions(${PROJECT_NAME} PRIVATE "VERSION=\"${VERSION}\"")
 # -------------------------
 
 target_include_directories( ${PROJECT_NAME}

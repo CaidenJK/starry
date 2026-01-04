@@ -3,8 +3,6 @@
 #include <Starry.h>
 
 #include <memory>
-
-#define STARRY_VERSION "0.0.5 dev"
  
 namespace Editor
 {
@@ -26,9 +24,6 @@ namespace Editor
 		ASSET_NAME("Application")
 
     private:
-        void printVersion() {
-            registerAlert("Hello! Starry Version: " STARRY_VERSION "\n", BANNER);
-        }
         void init();
         void mainLoop();
         void cleanup();

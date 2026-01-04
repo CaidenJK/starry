@@ -8,6 +8,17 @@ namespace StarryManager
     std::atomic<bool> AssetManager::isDead = false;
     std::shared_ptr<AssetManager> AssetManager::globalPointer = nullptr;
 
+    Logger::AssetCall AssetManager::getVersionAlert()
+    {
+        Logger::AssetCall call;
+        call.callerName = "Program";
+        call.callerUUID = 0;
+        call.severity = BANNER;
+        call.message = std::string("Starry Version " VERSION " dev");
+        call.callTime = std::chrono::system_clock::now();
+		return call;
+    }
+
     AssetManager::AssetManager() : StarryAsset(false)
     {
         registerAsset(this);
@@ -18,6 +29,13 @@ namespace StarryManager
         registerAsset(fileHandler);
 
         assetThread = std::thread(&AssetManager::worker, this);
+
+#ifdef VERSION
+		Logger::AssetCall versionCall = getVersionAlert();
+        logger->enqueueAlert(versionCall);
+#else
+#error "VERSION not defined"
+#endif
     }
 
     AssetManager::~AssetManager()

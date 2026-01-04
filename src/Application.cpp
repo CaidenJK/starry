@@ -89,7 +89,6 @@ namespace Editor
 
 	void Application::run() 
 	{
-		printVersion();
 		init();
 		if (!ERROR_HANDLER->isFatal()) {
 			mainLoop();
