@@ -1,20 +1,14 @@
 #pragma once
 
-#include <StarryRender.h>
-#include <StarryManager.h>
+#include <Starry.h>
 
 #include <memory>
 
-#include "Scene.h"
-#include "Renderer.h"
-
-#include "CoreDLL.h"
-
 #define STARRY_VERSION "0.0.5 dev"
  
-namespace Starry
+namespace Editor
 {
-    class STARRY_API Application : public StarryAsset {
+    class Application : public StarryAsset {
     public:
         Application() {};
         ~Application() {};

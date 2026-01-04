@@ -3,10 +3,11 @@
 #include <chrono>
 
 #include <StarryManager.h>
+#include "CoreDLL.h"
 
 namespace Starry
 {
-	class Timer : StarryAsset {
+	class STARRY_API Timer : StarryAsset {
 		struct FrameMetric {
 			uint64_t frameSamples = 0;
 			uint64_t totalTime = 0;

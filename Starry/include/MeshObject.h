@@ -4,7 +4,7 @@
 
 namespace Starry
 {
-	class MeshObject : public SceneObject {
+	class STARRY_API MeshObject : public SceneObject {
 	public:
 		MeshObject(std::string nameInput = "Default");
 		~MeshObject();

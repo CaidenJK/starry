@@ -1,10 +1,10 @@
-#include <Starry.h>
+#include "StarryEditor.h"
 
 int main() {
-    Starry::Application::setManagerExitRights(true);
-    Starry::Application::enableFileLogging(false);
+    Editor::Application::setManagerExitRights(true);
+    Editor::Application::enableFileLogging(false);
 
-    Starry::Application app;
+    Editor::Application app;
     app.run();
 
     if (app.hasFatalError()) {

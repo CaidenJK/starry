@@ -9,7 +9,7 @@ namespace Starry
 {
 	class Scene;
 
-	class Renderer : public StarryAsset {
+	class STARRY_API Renderer : public StarryAsset {
 		public:
 			Renderer(std::shared_ptr<Window>& windowRef, RenderConfig config);
 			~Renderer();

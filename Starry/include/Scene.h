@@ -1,6 +1,5 @@
 #pragma once
 
-#include <StarryRender.h>
 #include <StarryManager.h>
 
 #include <vector>
@@ -14,7 +13,7 @@
 
 namespace Starry
 {
-	class Scene : public StarryAsset {
+	class STARRY_API Scene : public StarryAsset {
 	public:
 		Scene(const std::string name);
 		Scene(const std::string name, std::shared_ptr<Window>& window);

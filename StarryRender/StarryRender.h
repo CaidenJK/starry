@@ -1,6 +1,6 @@
 #pragma once
 
-#include "starryrender/RenderContext.h"
+#include "RenderContext.h"
 
 using Window = StarryRender::Window;
 using Vertex = StarryRender::Vertex;

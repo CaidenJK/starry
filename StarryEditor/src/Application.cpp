@@ -1,8 +1,5 @@
 #include "Application.h"
 
-#include "MeshObject.h"
-#include "CameraObject.h"
-
 #include <string>
 
 #define STARRY_INITIALIZE_SUCCESS \
@@ -23,7 +20,7 @@
 #define ERROR_HANDLER AssetManager::get().lock()
 #define ERROR_HANDLER_CHECK EXTERN_ERROR(ERROR_HANDLER)
 
-namespace Starry
+namespace Editor
 {
 	void Application::init() 
 	{

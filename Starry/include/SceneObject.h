@@ -7,7 +7,7 @@
 
 namespace Starry
 {
-	class SceneObject : public StarryAsset
+	class STARRY_API SceneObject : public StarryAsset
 	{
 		public:
 			SceneObject(std::string name) : name(name) {}
