@@ -13,11 +13,9 @@ FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
 set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
 
-# DEPENDENCIES
-# ---------------------------------------
+# Dependencies ----------------------------------
 
-set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Dependencies")
-include(FetchContent)
+set(DEPEND_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external")
 
 # Don't build bloat
 option(GLFW_BUILD_EXAMPLES OFF)
@@ -25,32 +23,8 @@ option(GLFW_BUILD_TESTS OFF)
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_INSTALL OFF)
 
-# GLFW
-FetchContent_Declare(
-    glfw
-    GIT_REPOSITORY https://github.com/glfw/glfw.git
-    GIT_TAG master
-    SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/glfw"
-)
-
-# GLM
-FetchContent_Declare(
-    glm
-    GIT_REPOSITORY https://github.com/g-truc/glm.git
-    GIT_TAG master
-    SOURCE_DIR "${FETCHCONTENT_BASE_DIR}/glm"
-)
-
-
-FetchContent_Populate(glfw)
-FetchContent_Populate(glm)
-
-FetchContent_MakeAvailable(glfw glm)
-
-add_subdirectory(${glm_SOURCE_DIR} ${glm_BINARY_DIR})
-add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
-
-# --------------------------------------------------------------
+add_subdirectory("${DEPEND_DIR}/glm" "${BUILD_DIR}/glm")
+add_subdirectory("${DEPEND_DIR}/glfw" "${BUILD_DIR}/glfw")
 
 # Vulkan
 include (FindVulkan)
@@ -81,9 +55,8 @@ add_library(${PROJECT_NAME} ${SOURCES})
 target_include_directories( ${PROJECT_NAME}
     PUBLIC
     ${INCLUDE_DIR}
-    ${glfw_SOURCE_DIR}/include
-    ${glad_SOURCE_DIR}/include
-    ${glm_SOURCE_DIR}
+    "${DEPEND_DIR}/glm/include"
+    "${DEPEND_DIR}/glfw/include"
     ${Vulkan_INCLUDE_DIRS}
 
     ${CMAKE_SOURCE_DIR}/StarryManager
