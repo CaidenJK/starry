@@ -43,7 +43,7 @@ namespace Editor
 
 		std::shared_ptr<MeshObject> radio = std::make_shared<MeshObject>("Radio");
 #ifdef MODEL_PATH
-		radio->loadMeshFromFile(MODEL_PATH "sphere.obj");
+		radio->loadMeshFromFile(MODEL_PATH "radio.obj");
 #else
 #error "MODEL_PATH not defined!"
 #endif

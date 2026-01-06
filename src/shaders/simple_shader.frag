@@ -21,8 +21,8 @@ float lightIntesity(vec3 sunDirection, vec3 surfaceNormal)
 }
 
 void main() {
-    vec3 sunDirection = vec3(0.1, -1.0, 0.1);
-    vec3 ambientLight = vec3(0.013, 0.015, 0.03);
-    // texture(texSampler, fragTexCoord)
-    outColor = vec4(0.9, 0.9, 0.9, 1.0) * lightIntesity(sunDirection, inNorm.xyz) + vec4(ambientLight, 1.0);
+    //vec3 sunDirection = vec3(0.1, -1.0, 0.1);
+    //vec3 ambientLight = vec3(0.013, 0.015, 0.03);
+    outColor = texture(texSampler, fragTexCoord);
+    //outColor = vec4(0.9, 0.9, 0.9, 1.0) * lightIntesity(sunDirection, inNorm.xyz) + vec4(ambientLight, 1.0);
 }
