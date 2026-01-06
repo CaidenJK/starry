@@ -16,6 +16,7 @@ namespace StarryManager
         public:
             ~AssetManager();
             static std::weak_ptr<AssetManager> get();
+            static void InitManager(const std::string& package);
 
             // Note references are always valid since they are unregistered on asset destruction
 		    void registerAsset(StarryAsset* asset);
@@ -85,12 +86,13 @@ namespace StarryManager
             ASSET_NAME("Asset Manager")
 
         private:
-            AssetManager();
+            AssetManager(const std::string& name);
             static std::shared_ptr<AssetManager> globalPointer;
 
             void findResources(std::shared_ptr<ResourceRequest>& request);
 
             std::atomic<bool> hasExitRights = false;
+            std::string packageName = "N/A";
 
             Logger* logger;
             FileHandler* fileHandler;

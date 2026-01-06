@@ -102,7 +102,7 @@ namespace StarryManager
 		if (toFlushBuffer.size() == 0) {
 			return;
 		}
-		std::cerr << "\n---> Caught alerts:\n" << std::endl;
+		//std::cerr << "\n---> Caught alerts:\n" << std::endl;
 		for (const auto& call : toFlushBuffer) {
 			if (logToFile.load()) {
 				dumpToFile(call);

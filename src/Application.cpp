@@ -22,6 +22,16 @@
 
 namespace Editor
 {
+	void Application::setConfig(const ApplicationConfig& config) 
+	{
+		AssetManager::InitManager(config.packageName);
+
+		auto manager = AssetManager::get().lock();
+		if (!manager) return;
+		manager->setFileLogging(config.enableFileLogging);
+		manager->setExitRights(config.managerExitRights);
+	}
+
 	void Application::init() 
 	{
 		m_scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;

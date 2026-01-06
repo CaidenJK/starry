@@ -8,18 +8,25 @@ namespace StarryManager
     std::atomic<bool> AssetManager::isDead = false;
     std::shared_ptr<AssetManager> AssetManager::globalPointer = nullptr;
 
+    void AssetManager::InitManager(const std::string& package)
+    {
+        if (globalPointer) return;
+
+        globalPointer.reset(new AssetManager(package));
+	}
+
     Logger::AssetCall AssetManager::getVersionAlert()
     {
         Logger::AssetCall call;
         call.callerName = "Program";
         call.callerUUID = 0;
         call.severity = BANNER;
-        call.message = std::string("Starry Version " VERSION " dev");
+        call.message = std::string("Package: ") + packageName + std::string(", Version " VERSION " dev");
         call.callTime = std::chrono::system_clock::now();
 		return call;
     }
 
-    AssetManager::AssetManager() : StarryAsset(false)
+    AssetManager::AssetManager(const std::string& name) : StarryAsset(false), packageName(name)
     {
         registerAsset(this);
         logger = new Logger();
@@ -56,7 +63,7 @@ namespace StarryManager
     {
         if (isDead) return {};
 		if (!globalPointer) {
-			globalPointer.reset(new AssetManager());
+            InitManager("starry-internal");
 		}
 		return std::weak_ptr<AssetManager>(globalPointer);
     }

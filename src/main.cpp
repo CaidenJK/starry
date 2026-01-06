@@ -1,8 +1,9 @@
 #include "Application.h"
 
 int main() {
-    Editor::Application::setManagerExitRights(true);
-    Editor::Application::enableFileLogging(false);
+    const Editor::ApplicationConfig config;
+
+	Editor::Application::setConfig(config);
 
     Editor::Application app;
     app.run();

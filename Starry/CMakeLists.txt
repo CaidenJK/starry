@@ -15,13 +15,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUILD_DIR}/bin)
 
 # Set Sources
-
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
-
-# Includes
 
 # Vulkan
 include (FindVulkan)
@@ -36,12 +33,6 @@ endif()
 
 add_subdirectory("${CMAKE_SOURCE_DIR}/StarryRender" "${CMAKE_CURRENT_SOURCE_DIR}/out/StarryRender")
 add_subdirectory("${CMAKE_SOURCE_DIR}/StarryManager" "${CMAKE_CURRENT_SOURCE_DIR}/out/StarryManager")
-
-set(StarryManager_DIR ${CMAKE_SOURCE_DIR}/StarryManager)
-set(StarryRender_DIR ${CMAKE_SOURCE_DIR}/StarryRender)
-
-find_package(StarryRender)
-find_package(StarryManager)
 
 # -------------------------
 add_library(${PROJECT_NAME} SHARED ${SOURCES})
@@ -79,11 +70,9 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   )
 endif()
 
-find_package(glm)
-
 # Link Libraries
 target_link_libraries(Starry 
-    PUBLIC 
+    PUBLIC
     StarryManager
 
     glm

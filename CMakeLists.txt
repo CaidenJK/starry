@@ -59,9 +59,7 @@ set(MODEL_DIR "${SOURCE_DIR}/models")
 get_filename_component(MODEL_DIR_ABS "${MODEL_DIR}" ABSOLUTE)
 file(TO_CMAKE_PATH "${MODEL_DIR_ABS}" MODEL_DIR_UNIX)
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/Starry ${CMAKE_SOURCE_DIR}/out/Starry)
-
-find_package(Starry)
+add_subdirectory(Starry)
 
 # add executable
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -73,7 +71,6 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "MODEL_PATH=\"${MODEL_DIR_UNI
 # link Libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE 
     Starry
-    imgui_lib
 )
 
 target_include_directories(${PROJECT_NAME} 

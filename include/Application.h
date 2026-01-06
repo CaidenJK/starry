@@ -6,6 +6,12 @@
  
 namespace Editor
 {
+    struct ApplicationConfig {
+		bool enableFileLogging = false;
+		bool managerExitRights = true;
+		const std::string packageName = "starry-editor";
+    };
+
     class Application : public StarryAsset {
     public:
         Application() {};
@@ -18,8 +24,7 @@ namespace Editor
 
         bool hasFatalError();
 
-        static void enableFileLogging(bool value) { AssetManager::get().lock()->setFileLogging(value); }
-        static void setManagerExitRights(bool value) { AssetManager::get().lock()->setExitRights(value); }
+		static void setConfig(const ApplicationConfig& config);
 
 		ASSET_NAME("Application")
 
