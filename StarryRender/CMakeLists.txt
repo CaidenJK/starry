@@ -58,7 +58,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE "VERSION=\"${VERSION}\"")
 target_include_directories( ${PROJECT_NAME}
     PUBLIC
     ${INCLUDE_DIR}
-    "${DEPEND_DIR}/glm/include"
+    "${DEPEND_DIR}/glm"
     "${DEPEND_DIR}/glfw/include"
     ${Vulkan_INCLUDE_DIRS}
 
