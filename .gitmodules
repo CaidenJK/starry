@@ -4,3 +4,7 @@
 [submodule "StarryRender/external/glm"]
 	path = StarryRender/external/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "StarryRender/external/imgui"]
+	path = StarryRender/external/imgui
+	url = https://github.com/ocornut/imgui/
+	branch = docking

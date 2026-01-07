@@ -25,8 +25,10 @@ namespace StarryRender
         ImGui::CreateContext();
         
         ImGuiIO& io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= 
+            ImGuiConfigFlags_NavEnableKeyboard |
+            ImGuiConfigFlags_NavEnableGamepad |
+            ImGuiConfigFlags_ViewportsEnable;
 
 
         if (auto wndw = config.window.lock()) {
@@ -51,7 +53,7 @@ namespace StarryRender
     {
         ImGui::StyleColorsDark();
 
-        ImGui::GetStyle().FontScaleMain = 1.5f;
+        ImGui::GetStyle().FontScaleMain = 1.0f;
     }
 
     void Canvas::Destroy()
