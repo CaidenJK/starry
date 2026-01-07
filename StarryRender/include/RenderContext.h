@@ -8,6 +8,7 @@
 #include "VertexBuffer.h"
 #include "ImageBuffer.h"
 #include "TextureImage.h"
+#include "Canvas.h"
 
 #define DEFAULT_SHADER_PATHS {}
 
@@ -28,7 +29,7 @@ namespace StarryRender
 			MSAA_64X = VK_SAMPLE_COUNT_64_BIT
 		};
 
-		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa);
+		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa, bool hasGUI);
 	}
 
 	class RenderContext : public StarryAsset
@@ -58,7 +59,9 @@ namespace StarryRender
 		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer);
 		void updateUniformBuffer(UniformBufferData& buffer);
 
-		bool getRenderErrorState() const { return AssetManager::get().lock()->isFatal(); }
+		void loadCanvas(std::shared_ptr<Canvas>& canvasRef) { canvas = canvasRef; };
+
+		bool getErrorState() const { return AssetManager::get().lock()->isFatal(); }
 		void dumpAlerts() const { AssetManager::get().lock()->isFatal(); }
 
 		//void windowPollEvents() const { m_window->pollEvents(); }
@@ -78,6 +81,8 @@ namespace StarryRender
 		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
 		std::shared_ptr<TextureImage> m_textureImage = nullptr;
 		std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
+
+		std::shared_ptr<Canvas> canvas = nullptr;
 	};
 
 	// call init

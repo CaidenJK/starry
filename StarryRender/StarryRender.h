@@ -8,6 +8,7 @@ using VertexBuffer = StarryRender::VertexBuffer;
 using UniformBufferData = StarryRender::UniformBufferData;
 using UniformBuffer = StarryRender::UniformBuffer;
 using TextureImage = StarryRender::TextureImage;
+using Canvas = StarryRender::Canvas;
 
 using RenderContext = StarryRender::RenderContext;
 using RenderConfig = StarryRender::RenderConfig;

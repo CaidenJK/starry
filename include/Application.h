@@ -3,6 +3,8 @@
 #include <Starry.h>
 
 #include <memory>
+
+#include "Interface.h"
  
 namespace Editor
 {
@@ -36,5 +38,6 @@ namespace Editor
 		std::shared_ptr<Renderer> m_renderer = nullptr;
 		std::shared_ptr<Window> m_window = nullptr;
         std::shared_ptr<Scene> m_scene = nullptr;
+        std::shared_ptr<Interface> m_interface = nullptr;
     };
 }

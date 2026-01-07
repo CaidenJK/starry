@@ -22,6 +22,8 @@ namespace StarryRender
 
             void createSets(uint64_t uniformBufferUUID, uint64_t imageTextureID); // Scale later
 
+            VkDescriptorPool getPool() { return descriptorPool; }
+
             ASSET_NAME("Descriptor")
         private:
             void createDescriptorSetLayout();

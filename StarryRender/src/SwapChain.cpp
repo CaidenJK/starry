@@ -156,7 +156,7 @@ namespace StarryRender
 		colorBuffer = std::make_shared<ImageBuffer>();
 
 		colorBuffer->createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, imageFormats[0], VK_IMAGE_TILING_OPTIMAL, 
-			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
 		colorBuffer->createImageView(imageFormats[0], VK_IMAGE_ASPECT_COLOR_BIT, 1);
 	}
 
@@ -249,7 +249,7 @@ namespace StarryRender
 		VkSurfaceFormatKHR currentSwapSurfaceFormat;
 		bool isSet = false;
 		for (const auto& availableFormat : availableFormats) {
-			// SRGB colorspace
+			// UNORM
 			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
 				currentSwapSurfaceFormat = availableFormat;
 				isSet = true;

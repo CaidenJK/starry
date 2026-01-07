@@ -20,6 +20,8 @@ namespace Starry
 
 			void Init();
 
+			void loadCanvas(std::shared_ptr<Canvas> canvas) { renderer.loadCanvas(canvas); }
+
 			void disbatchRenderer();
 			void joinRenderer();
 

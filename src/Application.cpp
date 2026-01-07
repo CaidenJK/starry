@@ -40,13 +40,17 @@ namespace Editor
 		RenderConfig config = constructRenderConfig(
 			SHADERS_PATH "vert.spv",
 			SHADERS_PATH "frag.spv",
-			MSAAOptions::MSAA_8X
+			MSAAOptions::MSAA_8X,
+			true
 		);
 #else
 #error "SHADERS_PATH not defined!"
 #endif
 		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
 		m_renderer->setScene(m_scene);
+
+		m_interface = std::make_shared<Interface>();
+		m_renderer->loadCanvas(m_interface);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
@@ -86,6 +90,7 @@ namespace Editor
 	void Application::cleanup() 
 	{
 		m_scene.reset();
+		m_interface.reset();
 		m_renderer.reset();
 		m_window.reset();
 

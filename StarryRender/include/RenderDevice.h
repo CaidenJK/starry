@@ -16,6 +16,7 @@
 #include "UniformBuffer.h"
 #include "TextureImage.h"
 #include "Descriptor.h"
+#include "Canvas.h"
 
 #define DEFAULT_NAME "My Starry App"
 
@@ -33,6 +34,7 @@ namespace StarryRender
 		std::string vertexShaderPath = {};
 		std::string fragmentShaderPath = {};
 		VkSampleCountFlagBits desiredMSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		bool hasGUI = false;
 	};
 
 	class RenderDevice : public StarryAsset {
@@ -55,6 +57,8 @@ namespace StarryRender
 		void loadUniformBuffer(std::shared_ptr<UniformBuffer>& bufferRef);
 		void loadImageBuffer(std::shared_ptr<TextureImage>& bufferRef);
 		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& bufferRef);
+
+		void loadCanvas(std::shared_ptr<Canvas>& canvasRef);
 		
 		void setDescriptors();
 
@@ -63,6 +67,8 @@ namespace StarryRender
 		void LoadPipeline(std::shared_ptr<RenderPipeline>& pipelineRef);
 		void InitDraw();
 		void Draw();
+
+		ImGUI_Config getImGUIConfig();
 
 		void WaitIdle();
 
@@ -194,6 +200,8 @@ namespace StarryRender
 
 		std::shared_ptr<RenderPipeline> pipeline = nullptr;
 		std::shared_ptr<SwapChain> swapChain = nullptr;
+
+		std::weak_ptr<Canvas> canvas = {};
 
 		static VulkanDebugger* debugger;
 	};

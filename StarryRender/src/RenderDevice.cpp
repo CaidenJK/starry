@@ -48,9 +48,7 @@ namespace StarryRender
 	}
 
 	void RenderDevice::debugMessengerCreateInfoFactory(VkDebugUtilsMessengerCreateInfoEXT& createInfo) 
-	{
-		
-
+	{	
 		createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -83,6 +81,10 @@ namespace StarryRender
 		pipeline.reset();
 		swapChain.reset();
 		descriptor.reset();
+
+		if (auto cnvs = canvas.lock()) {
+			cnvs->Destroy();
+		}
 
 		if (commandPool != VK_NULL_HANDLE) {
 			vkDestroyCommandPool(device, commandPool, nullptr);
@@ -182,6 +184,38 @@ namespace StarryRender
 			return SharedResources::MSAA_SAMPLES;
 		}
 		return INVALID_RESOURCE;
+	}
+
+	ImGUI_Config RenderDevice::getImGUIConfig()
+	{
+		if (!descriptor) {
+			registerAlert("Config requested before device was initilized!", CRITICAL);
+			return {};
+		}
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		//init_info.ApiVersion = VK_API_VERSION_1_3;
+		init_info.Instance = instance;
+		init_info.PhysicalDevice = physicalDevice;
+		init_info.Device = device;
+		init_info.QueueFamily = findQueueFamilies(physicalDevice).presentFamily.value();
+		init_info.Queue = presentQueue;
+		init_info.PipelineCache = nullptr;
+		init_info.DescriptorPool = descriptor->getPool();
+		init_info.MinImageCount = 2;
+		init_info.ImageCount = swapChain->getImageCount();
+		init_info.Allocator = nullptr;
+		init_info.PipelineInfoMain.RenderPass = pipeline->getRenderPass();
+		init_info.PipelineInfoMain.Subpass = 0;
+		init_info.PipelineInfoMain.MSAASamples = msaaSamples;
+		init_info.CheckVkResultFn = nullptr;
+
+		return ImGUI_Config(windowReference, init_info);
+	}
+
+	void RenderDevice::loadCanvas(std::shared_ptr<Canvas>& canvasRef)
+	{
+		canvasRef->registerCanvas(getImGUIConfig());
+		canvas = canvasRef;
 	}
 
 	void RenderDevice::initVulkan() 
@@ -776,6 +810,11 @@ namespace StarryRender
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(numberOfIndices), 1, 0, 0, 0);
+
+		if (auto cnvs = canvas.lock()) {
+			cnvs->Record(commandBuffer);
+		}
+
 		// End
 		vkCmdEndRenderPass(commandBuffer);
 
@@ -812,11 +851,11 @@ namespace StarryRender
 			registerAlert("Failed to acquire swap chain image!", FATAL);
 			return;
 		}
-
+		
+		recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
 		vkResetFences(device, 1, &inFlightFences[currentFrame]);
 
-		vkResetCommandBuffer(commandBuffers[currentFrame], 0);
-		recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+		//vkResetCommandBuffer(commandBuffers[currentFrame], 0);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

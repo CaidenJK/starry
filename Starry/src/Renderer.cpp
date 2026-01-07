@@ -17,6 +17,7 @@ namespace Starry
 		if (renderRunning.load()) {
 			joinRenderer();
 		}
+		activeScene.reset();
 	}
 
 	void Renderer::disbatchRenderer()
@@ -52,7 +53,7 @@ namespace Starry
 			activeScene->updateObjects(this); EXTERN_ERROR_PTR(activeScene);
 
 			// Error checks
-			if (renderer.getRenderErrorState()) {
+			if (renderer.getErrorState()) {
 				registerAlert("Fatal rendering error occurred!", FATAL);
 				renderRunning.store(false);
 				continue;
@@ -65,7 +66,7 @@ namespace Starry
 			renderer.Draw();
 
 			// Error checks
-			if (renderer.getRenderErrorState()) {
+			if (renderer.getErrorState()) {
 				registerAlert("Fatal rendering error occurred!", FATAL);
 				renderRunning.store(false);
 				continue;

@@ -16,16 +16,16 @@
 namespace StarryRender {
 
 	namespace RenderConfigOptions {
-		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa)
+		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa, bool hasGUI)
 		{
-			return RenderConfig{ vertShader, fragShader, (VkSampleCountFlagBits)msaa };
+			return RenderConfig{ vertShader, fragShader, (VkSampleCountFlagBits)msaa, hasGUI };
 		}
 	}
 
 	RenderContext::~RenderContext() 
 	{
 		Destroy();
-		if (!getRenderErrorState()) {
+		if (!getErrorState()) {
 			registerAlert(STARRY_RENDER_EXIT_SUCCESS, BANNER);
 		}
 	}
@@ -144,7 +144,7 @@ namespace StarryRender {
 		m_renderDevice->LoadShader(m_config.vertexShaderPath, m_config.fragmentShaderPath); EXTERN_ERROR(m_renderDevice);
 		m_renderDevice->InitDraw(); EXTERN_ERROR(m_renderDevice);
 
-		if (!getRenderErrorState()) {
+		if (!getErrorState()) {
 			m_isInitialized = true;
 			registerAlert(STARRY_RENDER_INITIALIZE_SUCCESS, BANNER);
 		}
@@ -161,6 +161,8 @@ namespace StarryRender {
 		m_renderDevice->loadUniformBuffer(m_uniformBuffer);
 		m_renderDevice->loadImageBuffer(m_textureImage);
 		m_renderDevice->setDescriptors();
+
+		if (canvas) m_renderDevice->loadCanvas(canvas);
 
 		for (auto buffer : m_vertexBuffers) {
 			m_renderDevice->loadVertexBuffer(buffer);
