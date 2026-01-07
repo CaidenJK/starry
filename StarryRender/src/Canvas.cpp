@@ -28,7 +28,8 @@ namespace StarryRender
         io.ConfigFlags |= 
             ImGuiConfigFlags_NavEnableKeyboard |
             ImGuiConfigFlags_NavEnableGamepad |
-            ImGuiConfigFlags_ViewportsEnable;
+            ImGuiConfigFlags_ViewportsEnable |
+            ImGuiConfigFlags_DockingEnable;
 
 
         if (auto wndw = config.window.lock()) {
@@ -66,7 +67,7 @@ namespace StarryRender
     void Canvas::Record(VkCommandBuffer commandBuffer)
     {
         ImGui_ImplVulkan_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
+        ImGui_ImplGlfw_NewFrame(); // This
         ImGui::NewFrame();
         
         Display(); // User API
@@ -74,5 +75,8 @@ namespace StarryRender
         ImGui::Render();
         ImDrawData* drawData = ImGui::GetDrawData();
         ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer);
+
+        ImGui::UpdatePlatformWindows(); // And This
+        ImGui::RenderPlatformWindowsDefault();
     }
 }

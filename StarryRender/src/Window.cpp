@@ -2,6 +2,14 @@
 
 namespace StarryRender 
 {
+	GLFWDebugger Window::debugger = {};
+
+	void GLFWDebugger::registerDebugAlert(int error, const char* description)
+	{
+		std::string message = std::string("Code: ") + std::to_string(error) + "| " + description;
+		registerAlert(message, FATAL);
+	}
+
 	Window::Window(const char* title)
 		: title(title), window(nullptr) 
 	{
@@ -16,6 +24,8 @@ namespace StarryRender
 	}
 	void Window::initWindow()
 	{
+		glfwSetErrorCallback(glfwErrorCallback);
+
 		if (!glfwInit()) {
 			registerAlert("GLFW initialization failed!", FATAL);
 			return;
@@ -33,8 +43,8 @@ namespace StarryRender
 
 		glfwSetWindowUserPointer(window, this);
 		glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
-
 	}
+
 	bool Window::shouldClose() const 
 	{
 		return glfwWindowShouldClose(window);
@@ -79,5 +89,10 @@ namespace StarryRender
 	{
 		auto app = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		app->framebufferResized.store(true);
+	}
+
+	void Window::glfwErrorCallback(int error, const char* description)
+	{
+		debugger.registerDebugAlert(error, description);
 	}
 }
