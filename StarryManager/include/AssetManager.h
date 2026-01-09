@@ -20,11 +20,11 @@ namespace StarryManager
 
             // Note references are always valid since they are unregistered on asset destruction
 		    void registerAsset(StarryAsset* asset);
-		    void unregisterAsset(uint64_t uuid);
-		    void updateAssetPointer(uint64_t uuid, StarryAsset* newPtr);
+		    void unregisterAsset(size_t uuid);
+		    void updateAssetPointer(size_t uuid, StarryAsset* newPtr);
 
             void dumpRegisteredAssets(bool names);
-            void registerAssetAlert(uint64_t uuid);
+            void registerAssetAlert(size_t uuid);
 
             bool isFatal() { return hasFatal.load(); }
 
@@ -32,7 +32,7 @@ namespace StarryManager
             void setExitRights(bool value) { hasExitRights.store(value); }
 
             template <typename T>
-            ResourceHandle<T> requestResource(uint64_t callerID, uint64_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
+            ResourceHandle<T> requestResource(size_t callerID, size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
             {
                 std::scoped_lock lock(resourceMutex);
                 registeryMutex.lock();
@@ -58,13 +58,13 @@ namespace StarryManager
             }
 
             template <typename T>
-            ResourceHandle<T> requestResource(uint64_t callerID, std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
+            ResourceHandle<T> requestResource(size_t callerID, std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
             {
                 std::scoped_lock lock(resourceMutex);
                 registeryMutex.lock();
                 for(auto& it : registeredAssets) {
                     if (it.second->getAssetName().compare(senderName) == 0) {
-                        uint64_t uuid = it.second->getUUID();
+                        size_t uuid = it.second->getUUID();
                         registeryMutex.unlock();
 
                         resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceName, resourceArgs));
@@ -94,7 +94,7 @@ namespace StarryManager
             FileHandler* fileHandler;
 
             std::recursive_mutex registeryMutex;
-            std::unordered_map<uint64_t, StarryAsset*> registeredAssets;
+            std::unordered_map<size_t, StarryAsset*> registeredAssets;
             
             std::mutex resourceMutex;
             std::queue<std::shared_ptr<ResourceRequest>> resourceRequests;
@@ -112,7 +112,7 @@ namespace StarryManager
     };
 
     template <typename T> 
-	ResourceHandle<T> StarryAsset::requestResource(uint64_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
+	ResourceHandle<T> StarryAsset::requestResource(size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
     {
         if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderID, resourceName, resourceArgs);
         return {};

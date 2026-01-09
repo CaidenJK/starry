@@ -29,13 +29,13 @@ namespace StarryManager
 
         void* resource = nullptr;
 
-        const uint64_t callerUUID;
-        const uint64_t senderUUID;
+        const size_t callerUUID;
+        const size_t senderUUID;
         
         private:
-            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, std::string resourceID, std::vector<size_t>& resourceArgs);
+            ResourceRequest(size_t callerUUID, size_t senderUUID, std::string resourceID, std::vector<size_t>& resourceArgs);
 
-            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, std::string id, std::vector<size_t>& args);
+            static std::shared_ptr<ResourceRequest> create(size_t caller, size_t sender, std::string id, std::vector<size_t>& args);
     };
 
     // Caller side API
@@ -133,7 +133,7 @@ namespace StarryManager
             ResourceRequest::ResourceState getState();
             
             std::string getID();
-            std::vector<uint64_t> getArguments();
+            std::vector<size_t> getArguments();
 
             void invalidate();
 

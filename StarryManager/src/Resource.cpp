@@ -2,12 +2,12 @@
 
 namespace StarryManager
 {
-    ResourceRequest::ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, std::string resourceID, std::vector<size_t>& resourceArgs) :
+    ResourceRequest::ResourceRequest(size_t callerUUID, size_t senderUUID, std::string resourceID, std::vector<size_t>& resourceArgs) :
     callerUUID(callerUUID), senderUUID(senderUUID), resourceID(resourceID), resourceArgs(resourceArgs)
     {
     }
 
-    std::shared_ptr<ResourceRequest> ResourceRequest::create(uint64_t caller, uint64_t sender, std::string id, std::vector<size_t>& args)
+    std::shared_ptr<ResourceRequest> ResourceRequest::create(size_t caller, size_t sender, std::string id, std::vector<size_t>& args)
     {
         return std::shared_ptr<ResourceRequest>(new ResourceRequest(caller, sender, id, args));
     }
@@ -33,7 +33,7 @@ namespace StarryManager
         return requestPointer->resourceID;
     }
 
-    std::vector<uint64_t> ResourceAsk::getArguments()
+    std::vector<size_t> ResourceAsk::getArguments()
     {
         return requestPointer->resourceArgs;
     }

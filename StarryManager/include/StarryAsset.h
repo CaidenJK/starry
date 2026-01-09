@@ -58,12 +58,12 @@ namespace StarryManager
 		virtual void askCallback(ResourceAsk& ask) {}
 		
 		template <typename T> 
-		ResourceHandle<T> requestResource(uint64_t senderID, std::string resourceName, std::vector<size_t> resourceArgs);
+		ResourceHandle<T> requestResource(size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs);
 		template <typename T> 
 		ResourceHandle<T> requestResource(std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs);
 
 		template <typename T> 
-		ResourceHandle<T> requestResource(uint64_t senderID, std::string resourceName)
+		ResourceHandle<T> requestResource(size_t senderID, std::string resourceName)
 		{
 			return requestResource<T>(senderID, resourceName, {});
 		}
@@ -76,14 +76,14 @@ namespace StarryManager
 
 		virtual const std::string getAssetName() = 0;
 
-		uint64_t getUUID() { return uuid; }
+		size_t getUUID() { return uuid; }
 
 	protected:
 		StarryAsset();
 		StarryAsset(bool autoRegister);
 		virtual void Alert(const std::string& message, CallSeverity severity);
 
-		static uint64_t generateUUID();
+		static size_t generateUUID();
 
 		std::vector<ResourceAsk> asks;
 
@@ -94,6 +94,6 @@ namespace StarryManager
 		CallSeverity assetState = NONE;
 		std::string alertMessage = "";
 
-		uint64_t uuid = 0;
+		size_t uuid = 0;
 	};
 }
