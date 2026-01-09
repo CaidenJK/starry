@@ -124,9 +124,8 @@ namespace StarryManager
     // Sender Side API
     class ResourceAsk
     {
-        friend class AssetManager;
-
         public:
+            ResourceAsk(std::shared_ptr<ResourceRequest> ref) : requestPointer(ref) {}
             ~ResourceAsk();
 
             void setResource(void* resource);
@@ -138,7 +137,6 @@ namespace StarryManager
             void invalidate();
 
         private:
-            ResourceAsk(std::shared_ptr<ResourceRequest> ref) : requestPointer(ref) {}
             std::shared_ptr<ResourceRequest> requestPointer = nullptr;
     };
 }

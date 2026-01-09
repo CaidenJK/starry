@@ -19,12 +19,14 @@ namespace StarryManager
 
     void ResourceAsk::setResource(void* resource)
     {
+        std::scoped_lock lock(requestPointer->mutex);
         requestPointer->resource = resource;
         requestPointer->resourceState = ResourceRequest::ResourceState::YES;
     }
 
     ResourceRequest::ResourceState ResourceAsk::getState()
     {
+        std::scoped_lock lock(requestPointer->mutex);
         return requestPointer->resourceState;
     }
 
@@ -40,6 +42,7 @@ namespace StarryManager
 
     void ResourceAsk::invalidate()
     {
+        std::scoped_lock lock(requestPointer->mutex);
         requestPointer->resource = nullptr;
         requestPointer->resourceState = ResourceRequest::ResourceState::DEAD;
     }

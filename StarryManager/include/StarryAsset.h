@@ -53,9 +53,9 @@ namespace StarryManager
 
 		void resetAlert();
 
-		void resourceAsk(ResourceAsk& ask);
+		void resourceAsk(std::shared_ptr<ResourceRequest>& request);
 		
-		virtual void askCallback(ResourceAsk& ask) {}
+		virtual void askCallback(std::shared_ptr<ResourceAsk>& ask) {}
 		
 		template <typename T> 
 		ResourceHandle<T> requestResource(size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs);
@@ -85,7 +85,7 @@ namespace StarryManager
 
 		static size_t generateUUID();
 
-		std::vector<ResourceAsk> asks;
+		std::vector<std::shared_ptr<ResourceAsk>> asks;
 
 	private:
 		static std::mt19937_64 randomGen;

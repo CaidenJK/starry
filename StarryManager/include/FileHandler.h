@@ -72,7 +72,7 @@ namespace StarryManager
                 CREATE_DIR = 128U
             };
 
-            void askCallback(ResourceAsk& ask) override;
+            void askCallback(std::shared_ptr<ResourceAsk>& ask) override;
 
             ASSET_NAME("File Handler")
         private:

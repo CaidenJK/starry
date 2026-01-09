@@ -70,28 +70,35 @@ namespace StarryRender
 
 	void Device::destroy()
 	{
-		if (m_commandPool != VK_NULL_HANDLE) {
-			vkDestroyCommandPool(m_device, m_commandPool, nullptr);
-		}
+		if (m_instance) {
+			if (m_commandPool != VK_NULL_HANDLE) {
+				vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+			}
 
-		for (auto imageAvailableSemaphore : m_imageAvailableSemaphores) {
-			vkDestroySemaphore(m_device, imageAvailableSemaphore, nullptr);
-		}
-		for (auto renderFinishedSemaphore : m_renderFinishedSemaphores) {
-			vkDestroySemaphore(m_device, renderFinishedSemaphore, nullptr);
-		}
-		for (auto inFlightFence : m_inFlightFences) {
-			vkDestroyFence(m_device, inFlightFence, nullptr);
-		}
+			for (auto imageAvailableSemaphore : m_imageAvailableSemaphores) {
+				vkDestroySemaphore(m_device, imageAvailableSemaphore, nullptr);
+			}
+			for (auto renderFinishedSemaphore : m_renderFinishedSemaphores) {
+				vkDestroySemaphore(m_device, renderFinishedSemaphore, nullptr);
+			}
+			for (auto inFlightFence : m_inFlightFences) {
+				vkDestroyFence(m_device, inFlightFence, nullptr);
+			}
 
-		vkDestroyDevice(m_device, nullptr); // ---- DEVICE DESTRUCTION ----
+			vkDestroyDevice(m_device, nullptr); // ---- DEVICE DESTRUCTION ----
 
-		if (m_enableValidationLayers) {
-			DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+			if (m_enableValidationLayers) {
+				DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
+			}
+			vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+
+			vkDestroyInstance(m_instance, nullptr); // ---- INSTANCE DESTRUCTION ----
+			m_instance = VK_NULL_HANDLE;
+
+			for (auto& ask : asks) {
+				ask->invalidate();
+			}
 		}
-		vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-
-		vkDestroyInstance(m_instance, nullptr); // ---- INSTANCE DESTRUCTION ----
 	}
 
 	void Device::initVulkan() 
@@ -106,6 +113,9 @@ namespace StarryRender
 
 		pickPhysicalDevice();
 		createLogicalDevice();
+
+		createCommmandPool();
+		createCommandBuffers();
 	}
 
 	void Device::setupDebugMessenger() 
@@ -435,7 +445,7 @@ namespace StarryRender
 		vkGetDeviceQueue(m_device, m_queueFamilyIndices.presentFamily.value(), 0, &m_presentQueue);
 	}
 
-	void Device::createCommmandPool(DependencyConfig& config)
+	void Device::createCommmandPool()
 	{
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -448,7 +458,7 @@ namespace StarryRender
 		}
 	}
 
-	void Device::createCommandBuffers(DependencyConfig& config)
+	void Device::createCommandBuffers()
 	{
 		m_commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
@@ -495,8 +505,9 @@ namespace StarryRender
 
 	void Device::createDependencies(DependencyConfig config)
 	{
-		if (m_commandPool != VK_NULL_HANDLE) {
-			vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+		if (m_commandPool == VK_NULL_HANDLE) {
+			createCommmandPool();
+			createCommandBuffers();
 		}
 		for (auto imageAvailableSemaphore : m_imageAvailableSemaphores) {
 			vkDestroySemaphore(m_device, imageAvailableSemaphore, nullptr);
@@ -510,9 +521,6 @@ namespace StarryRender
 			vkDestroyFence(m_device, inFlightFence, nullptr);
 		}
 		m_inFlightFences.clear();
-
-		createCommmandPool(config);
-		createCommandBuffers(config);
 
 		createSyncObjects(config);
 	}

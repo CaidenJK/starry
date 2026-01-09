@@ -201,15 +201,7 @@ namespace StarryManager
             }
         }
         */
-
-        if (request->resourceID.compare("self") == 0) {
-            request->resource = (void*)asset->second;
-            request->resourceState = ResourceRequest::ResourceState::YES;
-        }
-        else {
-            ResourceAsk ask(request);
-            asset->second->resourceAsk(ask);
-        }
+        asset->second->resourceAsk(request);
     }
 
 	void AssetManager::dumpRegisteredAssets(bool names)

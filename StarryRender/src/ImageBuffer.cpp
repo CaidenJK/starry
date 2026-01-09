@@ -22,9 +22,18 @@ namespace StarryRender
     void ImageBuffer::destroy()
     {
         if (device) {
-            if (imageView != VK_NULL_HANDLE) vkDestroyImageView((*device).getDevice(), imageView, nullptr);
-            if (image != VK_NULL_HANDLE && isOwning) vkDestroyImage((*device).getDevice(), image, nullptr);
-            if (imageMemory != VK_NULL_HANDLE) vkFreeMemory((*device).getDevice(), imageMemory, nullptr);
+            if (imageView != VK_NULL_HANDLE) {
+                vkDestroyImageView((*device).getDevice(), imageView, nullptr); 
+                imageView = VK_NULL_HANDLE;
+            }
+            if (image != VK_NULL_HANDLE && isOwning) {
+                vkDestroyImage((*device).getDevice(), image, nullptr);
+                image = VK_NULL_HANDLE;
+            }
+            if (imageMemory != VK_NULL_HANDLE) {
+                vkFreeMemory((*device).getDevice(), imageMemory, nullptr);
+                imageMemory = VK_NULL_HANDLE;
+            }
         }
     }
 

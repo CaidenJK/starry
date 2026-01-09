@@ -15,10 +15,8 @@ namespace StarryRender
 {
 	class GLFWDebugger : public StarryAsset {
 		public:
-
-		void registerDebugAlert(int error, const char* description);
-
-		ASSET_NAME("GLFW Debugger");
+			void registerDebugAlert(int error, const char* description);
+			ASSET_NAME("GLFW Debugger");
 	};
 	
 	class Window : public StarryAsset {
@@ -55,6 +53,6 @@ namespace StarryRender
 		std::atomic<bool> framebufferResized{ false };
 
 		static void glfwErrorCallback(int error, const char* description);
-		static GLFWDebugger debugger;
+		static GLFWDebugger* debugger;
 	};
 }

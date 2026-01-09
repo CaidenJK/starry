@@ -84,17 +84,17 @@ namespace StarryManager
         return true;
     }
 
-    void FileHandler::askCallback(ResourceAsk& ask)
+    void FileHandler::askCallback(std::shared_ptr<ResourceAsk>& ask)
     {
-        openFiles.emplace_back(createFile(ask.getID()));
+        openFiles.emplace_back(createFile(ask->getID()));
 
         //std::erase_if(openFiles, [](std::shared_ptr<RawFile>& file) { return file->dead(); }); // Need the request to signal back to sender
 
-        if (!openFile(openFiles.back(), ask.getArguments())) {
-            ask.invalidate();
+        if (!openFile(openFiles.back(), ask->getArguments())) {
+            ask->invalidate();
         }
         else {
-            ask.setResource((void*)&(openFiles.back()));
+            ask->setResource((void*)&(openFiles.back()));
         }
     }
 }
