@@ -218,6 +218,7 @@ namespace StarryRender
 			swapChainImageBuffers.clear(); swapChainImageBuffers = {};
 		}
 		if (depthBuffer) depthBuffer->destroy();
+		if (colorBuffer) colorBuffer->destroy();
 		
 		if (device) {
 			for (auto framebuffer : swapChainFramebuffers) {
