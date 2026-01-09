@@ -106,10 +106,9 @@ namespace StarryRender
 		void checkVKExtensions();
 		void createLogicalDevice();
 
-		void createSwapChain();
+		void createCommmandPool();
+		void createCommandBuffers();
 
-		void createCommmandPool(DependencyConfig& config);
-		void createCommandBuffers(DependencyConfig& config);
 		void createSyncObjects(DependencyConfig& config);
 
 		void recordCommandBuffer(DrawInfo& info, VkCommandBuffer commandBuffer, uint32_t imageIndex);
@@ -148,15 +147,13 @@ namespace StarryRender
 
 		const std::vector<const char*> m_deviceExtensions = {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			"VK_KHR_portability_subset",
-			"VK_KHR_surface"
+			"VK_KHR_portability_subset"
 		};
 #else
 		const std::vector<const char*> m_instanceExtensions;
 
 		const std::vector<const char*> m_deviceExtensions = {
-			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			"VK_KHR_surface"
+			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
 #endif
 		VkInstance m_instance = VK_NULL_HANDLE;

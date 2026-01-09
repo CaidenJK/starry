@@ -18,7 +18,6 @@ namespace Starry
 
 	void MeshObject::Init()
 	{
-		vertexBuffer = std::make_shared<VertexBuffer>();
 	}
 
 	void MeshObject::Destroy()
@@ -37,6 +36,7 @@ namespace Starry
 		indices = indicesInput;
 		isEmpty = vertices.empty() || indices.empty();
 
+		if (!vertexBuffer) vertexBuffer = std::make_shared<VertexBuffer>();
 		vertexBuffer->loadData(vertices, indices);
 	}
 

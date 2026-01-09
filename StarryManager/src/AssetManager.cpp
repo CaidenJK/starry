@@ -78,7 +78,7 @@ namespace StarryManager
 		registeryMutex.unlock();
 	}
 
-	void AssetManager::unregisterAsset(uint64_t uuid) 
+	void AssetManager::unregisterAsset(size_t uuid) 
 	{
 		if (logger == nullptr || Logger::isLoggerDead()) return;
 		
@@ -88,16 +88,17 @@ namespace StarryManager
 
         // Mark as dead
         for (auto it = closedRequests.begin(); it != closedRequests.end(); ++it) {
-            std::scoped_lock assetLock((*it)->mutex);
+            std::scoped_lock assetLock((*it)->mutex); // it is nullptr
             if ((*it)->senderUUID == uuid) {
                 (*it)->resourceState = ResourceRequest::DEAD;
             }
         }
+        
         // remove
         std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::DEAD;});
 	}
 
-	void AssetManager::updateAssetPointer(uint64_t uuid, StarryAsset* newPtr) 
+	void AssetManager::updateAssetPointer(size_t uuid, StarryAsset* newPtr) 
     {
 		if (uuid == 0 || newPtr == nullptr) {
 			Alert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
@@ -126,7 +127,7 @@ namespace StarryManager
         return call;
     }
     
-    void AssetManager::registerAssetAlert(uint64_t uuid)
+    void AssetManager::registerAssetAlert(size_t uuid)
     {
         Logger::AssetCall call;
         {
@@ -201,15 +202,7 @@ namespace StarryManager
             }
         }
         */
-
-        if (request->resourceID.compare("self") == 0) {
-            request->resource = (void*)asset->second;
-            request->resourceState = ResourceRequest::ResourceState::YES;
-        }
-        else {
-            ResourceAsk ask(request);
-            asset->second->resourceAsk(ask);
-        }
+        asset->second->resourceAsk(request);
     }
 
 	void AssetManager::dumpRegisteredAssets(bool names)

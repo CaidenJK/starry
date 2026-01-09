@@ -2,7 +2,7 @@
 
 namespace StarryRender 
 {
-	GLFWDebugger Window::debugger = {};
+	GLFWDebugger* Window::debugger = nullptr;
 
 	void GLFWDebugger::registerDebugAlert(int error, const char* description)
 	{
@@ -10,9 +10,9 @@ namespace StarryRender
 		Alert(message, FATAL);
 	}
 
-	Window::Window(const char* title)
-		: title(title), window(nullptr) 
+	Window::Window(const char* title) : title(title), window(nullptr) 
 	{
+		debugger = new GLFWDebugger;
 		initWindow();
 	}
 
@@ -21,6 +21,8 @@ namespace StarryRender
 		glfwDestroyWindow(window);
 
 		glfwTerminate();
+
+		delete debugger;
 	}
 	void Window::initWindow()
 	{
@@ -93,6 +95,6 @@ namespace StarryRender
 
 	void Window::glfwErrorCallback(int error, const char* description)
 	{
-		debugger.registerDebugAlert(error, description);
+		debugger->registerDebugAlert(error, description);
 	}
 }

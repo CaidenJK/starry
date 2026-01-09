@@ -46,7 +46,6 @@ namespace StarryRender
 				std::vector<VkPresentModeKHR> presentModes;
 
 				VkFormat depthBufferFormat;
-				VkSampleCountFlagBits msaaSamples;
 			};
 		public:
 			SwapChain();

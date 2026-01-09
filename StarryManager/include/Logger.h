@@ -18,7 +18,7 @@ namespace StarryManager
     class Logger : public StarryAsset {
     public:
 		struct AssetCall {
-			uint64_t callerUUID;
+			size_t callerUUID;
 			std::string callerName;
 			std::string message;
 			StarryAsset::CallSeverity severity;

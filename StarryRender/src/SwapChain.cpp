@@ -112,13 +112,14 @@ namespace StarryRender
 		swapChainExtent = extent;
 
 		for (int i = 0; i < swapChainImages.size(); i++) {
+			swapChainImageBuffers[i].init((*device).getUUID());
 			swapChainImageBuffers[i].setImage(swapChainImages[i], false);
 			swapChainImageBuffers[i].createImageView(imageFormats[0], VK_IMAGE_ASPECT_COLOR_BIT, 1);
 		}
 
 		imageFormats[1] = swapChainSupport.depthBufferFormat;
 
-		msaaSamples = swapChainSupport.msaaSamples;
+		msaaSamples = (*device).getConfig().desiredMSAASamples;
 
 		createColorResources();
 		createDepthResources();
@@ -154,7 +155,9 @@ namespace StarryRender
 
 	void SwapChain::createDepthResources()
 	{
-		depthBuffer = std::make_shared<ImageBuffer>();
+		if (!depthBuffer) depthBuffer = std::make_shared<ImageBuffer>();
+		depthBuffer->init((*device).getUUID());
+
 		depthBuffer->createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, imageFormats[1], VK_IMAGE_TILING_OPTIMAL,
 			VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 		depthBuffer->createImageView(imageFormats[1], VK_IMAGE_ASPECT_DEPTH_BIT, 1);
@@ -162,7 +165,8 @@ namespace StarryRender
 
 	void SwapChain::createColorResources()
 	{
-		colorBuffer = std::make_shared<ImageBuffer>();
+		if (!colorBuffer) colorBuffer = std::make_shared<ImageBuffer>();
+		colorBuffer->init((*device).getUUID());
 
 		colorBuffer->createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, imageFormats[0], VK_IMAGE_TILING_OPTIMAL, 
 			VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT);
@@ -211,8 +215,10 @@ namespace StarryRender
 				vkDestroyImageView((*device).getDevice(), ib.getImageView(), nullptr);
 				ib.getImageView() = VK_NULL_HANDLE;
 			}
+			swapChainImageBuffers.clear(); swapChainImageBuffers = {};
 		}
-		depthBuffer.reset();
+		if (depthBuffer) depthBuffer->destroy();
+		if (colorBuffer) colorBuffer->destroy();
 		
 		if (device) {
 			for (auto framebuffer : swapChainFramebuffers) {
@@ -220,8 +226,9 @@ namespace StarryRender
 			}
 		}
 		swapChainFramebuffers.clear();
-		if (device) {
+		if (device && swapChain) {
 			vkDestroySwapchainKHR((*device).getDevice(), swapChain, nullptr);
+			swapChain = VK_NULL_HANDLE;
 		}
 	}
 
@@ -248,7 +255,6 @@ namespace StarryRender
 		}
 
 		details.depthBufferFormat = findDepthFormat(device);
-		details.msaaSamples = VK_SAMPLE_COUNT_1_BIT;
 
 		return details;
 	}

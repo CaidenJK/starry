@@ -18,17 +18,25 @@ namespace StarryManager
 
 	StarryAsset::~StarryAsset()
 	{
-		asks.clear();
+		for (auto& ask : asks) {
+			ask->invalidate();
+		}
+
 		if (auto mgr = AssetManager::get().lock()) mgr->unregisterAsset(uuid);
 	}
 
-	void StarryAsset::resourceAsk(ResourceAsk& ask)
+	void StarryAsset::resourceAsk(std::shared_ptr<ResourceRequest>& request)
 	{
 		// remove STALE
-		std::erase_if(asks, [](ResourceAsk& ask) { return ask.getState() == ResourceRequest::STALE; });
+		std::erase_if(asks, [](std::shared_ptr<ResourceAsk>& ask) { return ask->getState() == ResourceRequest::STALE; });
 
-		asks.emplace_back(ask); 
-		askCallback(asks.back());
+		asks.emplace_back(std::make_shared<ResourceAsk>(request)); 
+		if (request->resourceID.compare("self") == 0) {
+			asks.back()->setResource((void*)this);
+		}
+		else {
+			askCallback(asks.back());
+		}
 	}
 
 	StarryAsset::StarryAsset(StarryAsset&& other) noexcept
@@ -76,7 +84,7 @@ namespace StarryManager
 		}
 	}
 
-	uint64_t StarryAsset::generateUUID()
+	size_t StarryAsset::generateUUID()
 	{
 		return randomGen();
 	}

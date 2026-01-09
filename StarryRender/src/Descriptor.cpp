@@ -27,9 +27,12 @@ namespace StarryRender
 
 	void Descriptor::destroy()
 	{
-		if (device) {
+		if (device && descriptorPool) {
 			vkDestroyDescriptorPool((*device).getDevice(), descriptorPool, nullptr);
+			descriptorPool = VK_NULL_HANDLE;
+
 			vkDestroyDescriptorSetLayout((*device).getDevice(), descriptorSetLayout, nullptr);
+			descriptorSetLayout = VK_NULL_HANDLE;
 		}
 	}
 
@@ -105,8 +108,8 @@ namespace StarryRender
             return;
         } */
 
-		auto ub = requestResource<UniformBuffer*>(ubUUID, "self");
-		auto tx = requestResource<TextureImage*>(txUUID, "self");
+		auto ub = requestResource<UniformBuffer>(ubUUID, "self");
+		auto tx = requestResource<TextureImage>(txUUID, "self");
 
 		if (descriptorPool == VK_NULL_HANDLE || descriptorSetLayout == VK_NULL_HANDLE) {
 			Alert("Descriptor pool or set layout not ready before allocating descriptor sets.", FATAL);
@@ -138,8 +141,8 @@ namespace StarryRender
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			auto bufferInfo = (*ub)->getDescriptorInfo(i);
-			auto imageInfo = (*tx)->getDescriptorInfo(i);
+			auto bufferInfo = (*ub).getDescriptorInfo(i);
+			auto imageInfo = (*tx).getDescriptorInfo(i);
 
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

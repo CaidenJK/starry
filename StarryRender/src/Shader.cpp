@@ -29,9 +29,11 @@ namespace StarryRender
 		if (device) {
 			if (vertShaderModule != VK_NULL_HANDLE) {
 				vkDestroyShaderModule((*device).getDevice(), vertShaderModule, nullptr);
+				vertShaderModule = VK_NULL_HANDLE;
 			}
 			if (fragShaderModule != VK_NULL_HANDLE) {
 				vkDestroyShaderModule((*device).getDevice(), fragShaderModule, nullptr);
+				fragShaderModule = VK_NULL_HANDLE;
 			}
 		}
 	}
