@@ -39,7 +39,7 @@ endif()
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/imgui")
 FILE(GLOB IMGUI_SOURCES "${IMGUI_DIR}/*.cpp")
 
-add_library(imgui_lib ${IMGUI_SOURCES} "${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp" "${IMGUI_DIR}/backends/imgui_impl_glfw.cpp")
+add_library(imgui_lib ${IMGUI_SOURCES} "${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp" "${IMGUI_DIR}/backends/imgui_impl_glfw.cpp" "include/Canvas.h")
 
 target_include_directories(imgui_lib
     PRIVATE
@@ -52,7 +52,7 @@ target_include_directories(imgui_lib
 )
 
 # ------------------------------
-add_library(${PROJECT_NAME} ${SOURCES})
+add_library(${PROJECT_NAME} ${SOURCES} "include/Canvas.h")
 # ------------------------------
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE "VERSION=\"${VERSION}\"")
