@@ -1,6 +1,6 @@
 #include "ImageBuffer.h"
 
-#define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
+#include "Device.h"
 
 namespace StarryRender
 {
@@ -11,10 +11,20 @@ namespace StarryRender
 
     ImageBuffer::~ImageBuffer()
     {
+        destroy();
+    }
+
+    void ImageBuffer::init(uint64_t deviceUUID)
+    {
+        device = requestResource<Device>(deviceUUID, "self");
+    }
+
+    void ImageBuffer::destroy()
+    {
         if (device) {
-            if (imageView != VK_NULL_HANDLE) vkDestroyImageView(*device, imageView, nullptr);
-            if (image != VK_NULL_HANDLE && isOwning) vkDestroyImage(*device, image, nullptr);
-            if (imageMemory != VK_NULL_HANDLE) vkFreeMemory(*device, imageMemory, nullptr);
+            if (imageView != VK_NULL_HANDLE) vkDestroyImageView((*device).getDevice(), imageView, nullptr);
+            if (image != VK_NULL_HANDLE && isOwning) vkDestroyImage((*device).getDevice(), image, nullptr);
+            if (imageMemory != VK_NULL_HANDLE) vkFreeMemory((*device).getDevice(), imageMemory, nullptr);
         }
     }
 
@@ -37,27 +47,27 @@ namespace StarryRender
         imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
             return;
 		}
 
-        if (vkCreateImage(*device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-            registerAlert("Failed to create image.", CRITICAL);
+        if (vkCreateImage((*device).getDevice(), &imageInfo, nullptr, &image) != VK_SUCCESS) {
+            Alert("Failed to create image.", CRITICAL);
         }
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(*device, image, &memRequirements);
+        vkGetImageMemoryRequirements((*device).getDevice(), image, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
+        allocInfo.memoryTypeIndex = (*device).findMemoryType(memRequirements.memoryTypeBits, properties);
 
-        if (vkAllocateMemory(*device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+        if (vkAllocateMemory((*device).getDevice(), &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate image memory!");
         }
 
-        vkBindImageMemory(*device, image, imageMemory, 0);
+        vkBindImageMemory((*device).getDevice(), image, imageMemory, 0);
     }
 
     void ImageBuffer::setImage(VkImage& image, bool isOwning)
@@ -80,19 +90,19 @@ namespace StarryRender
         viewInfo.subresourceRange.layerCount = 1;
 
         if (device.wait() != ResourceState::YES) {
-            registerAlert("Device died before it was ready to be used.", FATAL);
+            Alert("Device died before it was ready to be used.", FATAL);
             return;
         }
 
-        if (vkCreateImageView(*device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
-            registerAlert("Failed to create texture image view!", FATAL);
+        if (vkCreateImageView((*device).getDevice(), &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+            Alert("Failed to create texture image view!", FATAL);
             return;
         }
     }
 
     void ImageBuffer::transitionImageLayout(VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, uint32_t mipLevels)
     {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        VkCommandBuffer commandBuffer = (*device).beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -125,7 +135,8 @@ namespace StarryRender
             sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
             destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
         } else {
-            throw std::invalid_argument("unsupported layout transition!");
+            Alert("Unsupported layout transition!", CRITICAL);
+            return;
         }
 
         vkCmdPipelineBarrier(
@@ -138,11 +149,11 @@ namespace StarryRender
         );
 
         
-        endSingleTimeCommands(commandBuffer);
+        (*device).endSingleTimeCommands(commandBuffer);
     }
 
     void ImageBuffer::copyBufferToImage(VkBuffer& buffer, VkImage& image, uint32_t width, uint32_t height) {
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        VkCommandBuffer commandBuffer = (*device).beginSingleTimeCommands();
 
         VkBufferImageCopy region{};
         region.bufferOffset = 0;
@@ -171,23 +182,18 @@ namespace StarryRender
         );
 
 
-        endSingleTimeCommands(commandBuffer);
+        (*device).endSingleTimeCommands(commandBuffer);
     }
 
     void ImageBuffer::generateMipmaps(VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels) { // TODO: Pre-rendered MipMaps
-		if (physicalDevice.wait() != ResourceState::YES) {
-            registerAlert("Physical device died before it was ready to be used.", FATAL);
-            return;
-        }
-
         VkFormatProperties formatProperties;
-        vkGetPhysicalDeviceFormatProperties(*physicalDevice, imageFormat, &formatProperties);
+        vkGetPhysicalDeviceFormatProperties((*device).getPhysicalDevice(), imageFormat, &formatProperties);
         
         if (!(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
-			registerAlert("Texture image format does not support linear blitting!", FATAL);
+			Alert("Texture image format does not support linear blitting!", FATAL);
         }
         
-        VkCommandBuffer commandBuffer = beginSingleTimeCommands();
+        VkCommandBuffer commandBuffer = (*device).beginSingleTimeCommands();
 
         VkImageMemoryBarrier barrier{};
         barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -262,6 +268,6 @@ namespace StarryRender
             0, nullptr,
             1, &barrier);
 
-        endSingleTimeCommands(commandBuffer);
+        (*device).endSingleTimeCommands(commandBuffer);
     }
 }

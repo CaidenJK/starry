@@ -18,7 +18,17 @@ namespace StarryManager
 
 	StarryAsset::~StarryAsset()
 	{
+		asks.clear();
 		if (auto mgr = AssetManager::get().lock()) mgr->unregisterAsset(uuid);
+	}
+
+	void StarryAsset::resourceAsk(ResourceAsk& ask)
+	{
+		// remove STALE
+		std::erase_if(asks, [](ResourceAsk& ask) { return ask.getState() == ResourceRequest::STALE; });
+
+		asks.emplace_back(ask); 
+		askCallback(asks.back());
 	}
 
 	StarryAsset::StarryAsset(StarryAsset&& other) noexcept
@@ -48,7 +58,7 @@ namespace StarryManager
 		return *this;
 	}
 
-	void StarryAsset::registerAlert(const std::string& message, CallSeverity severity)
+	void StarryAsset::Alert(const std::string& message, CallSeverity severity)
 	{
 		hasAlert = true;
 		alertMessage = message;

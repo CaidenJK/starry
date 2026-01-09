@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StarryAsset.h"
+#include "Resource.h"
 
 #include <fstream>
 #include <string>
@@ -71,8 +72,7 @@ namespace StarryManager
                 CREATE_DIR = 128U
             };
 
-            GET_RESOURCE;
-            GET_RESOURCE_FROM_STRING;
+            void askCallback(ResourceAsk& ask) override;
 
             ASSET_NAME("File Handler")
         private:
@@ -81,6 +81,6 @@ namespace StarryManager
             RawFile* createFile(std::string path);
             bool openFile(RawFile*& file, std::vector<size_t> args);
 
-            std::unordered_map<size_t, RawFile*> openFiles;
+            std::vector<RawFile*> openFiles;
     };
 }

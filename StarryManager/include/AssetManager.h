@@ -36,24 +36,22 @@ namespace StarryManager
             {
                 std::scoped_lock lock(resourceMutex);
                 registeryMutex.lock();
-                size_t resourceID = INVALID_RESOURCE; 
                 StarryAsset* asset;
+
                 if (senderID == FILE_REQUEST) {
                     asset = (StarryAsset*)fileHandler;
                 }
                 else {
                     auto iter = registeredAssets.find(senderID);
                     if (iter == registeredAssets.end()) {
-                        registerAlert("No asset has given UUID.", CRITICAL); 
+                        Alert("No asset has given UUID.", CRITICAL); 
                         return {};
                     }
                     asset = iter->second;
                 }
-                resourceID = asset->getResourceIDFromString(resourceName);
                 registeryMutex.unlock();
 
-                resourceRequests.emplace(ResourceRequest::create(callerID, asset->getUUID(), resourceID, resourceArgs));
-                if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
+                resourceRequests.emplace(ResourceRequest::create(callerID, asset->getUUID(), resourceName, resourceArgs));
                 resourceCV.notify_all();
                 
                 return ResourceHandle<T>(resourceRequests.back());
@@ -67,11 +65,9 @@ namespace StarryManager
                 for(auto& it : registeredAssets) {
                     if (it.second->getAssetName().compare(senderName) == 0) {
                         uint64_t uuid = it.second->getUUID();
-                        size_t resourceID = it.second->getResourceIDFromString(resourceName);
                         registeryMutex.unlock();
 
-                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceID, resourceArgs));
-                        if (resourceID == INVALID_RESOURCE) resourceRequests.back()->resourceState = ResourceRequest::ResourceState::DEAD;
+                        resourceRequests.emplace(ResourceRequest::create(callerID, uuid, resourceName, resourceArgs));
 						resourceCV.notify_all();
 
                         return ResourceHandle<T>(resourceRequests.back());
@@ -79,7 +75,7 @@ namespace StarryManager
                 }
 
                 registeryMutex.unlock();
-                registerAlert(std::string("No sender of resource has given name: ") + senderName, WARNING);
+                Alert(std::string("No sender of resource has given name: ") + senderName, WARNING);
                 return {};
             }
 
@@ -89,7 +85,7 @@ namespace StarryManager
             AssetManager(const std::string& name);
             static std::shared_ptr<AssetManager> globalPointer;
 
-            void findResources(std::shared_ptr<ResourceRequest>& request);
+            void submitAsk(std::shared_ptr<ResourceRequest>& request);
 
             std::atomic<bool> hasExitRights = false;
             std::string packageName = "N/A";

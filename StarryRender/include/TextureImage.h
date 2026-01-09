@@ -5,22 +5,21 @@
 
 namespace StarryRender
 {
+    class Device;
+
     class TextureImage : public ImageBuffer
     {
         public:
             TextureImage();
             ~TextureImage();
-			void storeFilePath(const std::string& path) { filePath = path; }
 
+            void init(uint64_t deviceUUID) override;
+            void destroy() override;
+
+			void storeFilePath(const std::string& path) { filePath = path; }
             void loadFromFile();
 
-            enum SharedResources {
-                IMAGE_VIEW = 0,
-                SAMPLER = 1
-            };
-
-            GET_RESOURCE;
-            GET_RESOURCE_FROM_STRING;
+            VkDescriptorImageInfo getDescriptorInfo(int image);
 
             ASSET_NAME("TextureImage")
         private:

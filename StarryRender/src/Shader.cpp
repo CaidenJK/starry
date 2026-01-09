@@ -1,24 +1,38 @@
 #include "Shader.h"
 
-#include <fstream>
+#include "Device.h"
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
 namespace StarryRender 
 {
-	Shader::Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) : vertexShaderPath(vertexShaderPath), fragmentShaderPath(fragmentShaderPath) 
+	Shader::Shader()
 	{
-		device = requestResource<VkDevice>("Render Device", "VkDevice");
-		initShader();
 	}
 
 	Shader::~Shader()
 	{
-		if (vertShaderModule != VK_NULL_HANDLE && device.hasRequest()) {
-			vkDestroyShaderModule(*device, vertShaderModule, nullptr);
-		}
-		if (fragShaderModule != VK_NULL_HANDLE && device.hasRequest()) {
-			vkDestroyShaderModule(*device, fragShaderModule, nullptr);
+		destroy();
+	}
+
+	void Shader::init(uint64_t deviceUUID, ShaderConstructInfo info)
+	{
+		vertexShaderPath = info.vertexShaderPath;
+		fragmentShaderPath = info.fragmentShaderPath;
+
+		device = requestResource<Device>(deviceUUID, "self");
+		initShader();
+	}
+
+	void Shader::destroy()
+	{
+		if (device) {
+			if (vertShaderModule != VK_NULL_HANDLE) {
+				vkDestroyShaderModule((*device).getDevice(), vertShaderModule, nullptr);
+			}
+			if (fragShaderModule != VK_NULL_HANDLE) {
+				vkDestroyShaderModule((*device).getDevice(), fragShaderModule, nullptr);
+			}
 		}
 	}
 
@@ -29,22 +43,22 @@ namespace StarryRender
 
 		bool error = false;
 		while(!device) {} // wait
-		vertShaderModule = createShaderModule(*device, vertexShaderCode, error);
+		vertShaderModule = createShaderModule(vertexShaderCode, error);
 		if (error) {
-			registerAlert("Failed to create vertex shader module!", FATAL);
+			Alert("Failed to create vertex shader module!", FATAL);
 			return;
 		}
 
-		fragShaderModule = createShaderModule(*device, fragmentShaderCode, error);
+		fragShaderModule = createShaderModule(fragmentShaderCode, error);
 		if (error) {
-			registerAlert("Failed to create vertex shader module!", FATAL);
+			Alert("Failed to create vertex shader module!", FATAL);
 			return;
 		}
 
 		ERROR_VOLATILE(bindShaderStages());
 	}
 
-	VkShaderModule Shader::createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error) 
+	VkShaderModule Shader::createShaderModule(const std::vector<char>& code, bool& error) 
 	{
 		VkShaderModuleCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -52,7 +66,7 @@ namespace StarryRender
 		createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 		VkShaderModule shaderModule;
-		if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+		if (vkCreateShaderModule((*device).getDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
 			error = true;
 			return {};
 		}
@@ -82,7 +96,7 @@ namespace StarryRender
 		bool error = false;
 		vertexShaderCode = readFile(vertexShaderPath, error);
 		if (error) {
-			registerAlert("Failed to read vertex shader file: " + vertexShaderPath, FATAL);
+			Alert("Failed to read vertex shader file: " + vertexShaderPath, FATAL);
 		}
 	}
 
@@ -91,24 +105,25 @@ namespace StarryRender
 		bool error = false;
 		fragmentShaderCode = readFile(fragmentShaderPath, error);
 		if (error) {
-			registerAlert("Failed to read fragment shader file: " + fragmentShaderPath, FATAL);
+			Alert("Failed to read fragment shader file: " + fragmentShaderPath, FATAL);
 		}
 	}
 
 	std::vector<char> Shader::readFile(const std::string& filename, bool& error) 
 	{
-		std::ifstream file(filename, std::ios::ate | std::ios::binary);
+		auto file = requestResource<FILETYPE>(FILE_REQUEST, filename, { Flags::READ | Flags::APPEND_START | Flags::BINARY });
 
-		if (!file.is_open()) {
+		if (file.wait() != ResourceState::YES) {
 			error = true;
 			return {};
 		}
 
-		size_t fileSize = (size_t)file.tellg();
+		size_t fileSize = (size_t)(*file)->file.tellg();
 		std::vector<char> buffer(fileSize);
-		file.seekg(0);
-		file.read(buffer.data(), fileSize);
-		file.close();
+		(*file)->file.seekg(0);
+		(*file)->file.read(buffer.data(), fileSize);
+
+		(*file)->close();
 
 		error = false;
 		return buffer;

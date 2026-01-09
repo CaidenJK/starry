@@ -16,6 +16,11 @@ namespace Starry
 		Destroy();
 	}
 
+	void MeshObject::Init()
+	{
+		vertexBuffer = std::make_shared<VertexBuffer>();
+	}
+
 	void MeshObject::Destroy()
 	{
 		if (vertexBuffer != nullptr) {
@@ -31,21 +36,19 @@ namespace Starry
 		vertices = verticesInput;
 		indices = indicesInput;
 		isEmpty = vertices.empty() || indices.empty();
+
+		vertexBuffer->loadData(vertices, indices);
 	}
 
 	void MeshObject::Register(Renderer* renderer)
 	{
 		if (isEmptyMesh()) {
-			registerAlert("Cannot register empty mesh buffer!", FATAL);
+			Alert("Cannot register empty mesh buffer!", FATAL);
 			return;
 		}
-		vertexBuffer = std::make_shared<VertexBuffer>();
 
-		vertexBuffer->loadData(vertices, indices);
-		renderer->context().loadVertexBuffer(vertexBuffer);
-
-		textureImage->loadFromFile();
-		renderer->context().loadTextureImage(textureImage);
+		renderer->context().Load(vertexBuffer);
+		renderer->context().Load(textureImage);
 	}
 
 	void MeshObject::loadTextureFromFile(const std::string filePath)
@@ -59,7 +62,7 @@ namespace Starry
 		auto file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::READ | Flags::MODEL});
 
 		if (file.wait() != ResourceState::YES) {
-			registerAlert("Could not open mesh file.", CRITICAL);
+			Alert("Could not open mesh file.", CRITICAL);
 			return;
 		}
 

@@ -1,49 +1,58 @@
 #include "SwapChain.h"
 
 #include <vulkan/vk_enum_string_helper.h>
-
 #include <algorithm>
 
-#define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
-
-#define START_WEAK_PTR \
-	if (std::shared_ptr<Window> window = windowReference.lock()) {
-
-#define END_WEAK_PTR(x) \
-	} else { \
-		registerAlert("Window reference is expired!", FATAL); \
-		return x; \
-	}
+#include "Device.h"
 
 namespace StarryRender 
 {
-	SwapChain::SwapChain() {
-		device = requestResource<VkDevice>("Render Device", "VkDevice");
+	SwapChain::SwapChain() 
+	{
 	}
 
 	SwapChain::~SwapChain() 
 	{
+		destroy();
+	}
+
+	void SwapChain::init(uint64_t deviceUUID, SwapChainConstructInfo info)
+	{
+		device = requestResource<Device>(deviceUUID, "self");
+		window = requestResource<Window>(info.windowUUID, "self");
+
+		constructSwapChain();
+	}
+
+	void SwapChain::destroy()
+	{
 		cleanupSwapChain();
+	}
+
+	void SwapChain::needRecreate()
+	{
+		recreate = true;
+		(*window).resetFramebufferResizedFlag();
 	}
 	
-	void SwapChain::constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, VkSurfaceKHR& surface) 
+	void SwapChain::constructSwapChain()
 	{
-		auto windowReference = requestResource<std::weak_ptr<Window>>("Render Device", "Window");
+		if (device.wait() != ResourceState::YES || window.wait() != ResourceState::YES) {
+			Alert("Swap chain could not be created due to death of required resources.", FATAL);
+		}
+		auto supportDetails = querySwapChainSupport((*device).getPhysicalDevice(), (*device).getSurface());
 
 		cleanupSwapChain();
+		createSwapChain(supportDetails, (*device).getQueueFamilies(), (*device).getSurface());
 
-		if (windowReference.wait() != ResourceState::YES) {
-			registerAlert("Window died before it was ready to be used.", FATAL);
-			return;
-		}
-		ERROR_VOLATILE(createSwapChain(swapChainSupport, indices, *windowReference, surface));
+		recreate = false;
 	}
 
-	void SwapChain::createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface) 
+	void SwapChain::createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, VkSurfaceKHR& surface) 
 	{
 		VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
 		VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-		ERROR_VOLATILE(VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities, windowReference));
+		VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 
 		uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
 
@@ -85,19 +94,19 @@ namespace StarryRender
 		createInfo.oldSwapchain = nullptr;
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		if (vkCreateSwapchainKHR(*device, &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-			registerAlert("Failed to create swap chain!", FATAL);
+		if (vkCreateSwapchainKHR((*device).getDevice(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
+			Alert("Failed to create swap chain!", FATAL);
 			return;
 		}
 
-		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, nullptr);
+		vkGetSwapchainImagesKHR((*device).getDevice(), swapChain, &imageCount, nullptr);
 		swapChainImageBuffers.resize(imageCount);
 
 		std::vector<VkImage> swapChainImages; swapChainImages.resize(imageCount);
-		vkGetSwapchainImagesKHR(*device, swapChain, &imageCount, swapChainImages.data());
+		vkGetSwapchainImagesKHR((*device).getDevice(), swapChain, &imageCount, swapChainImages.data());
 
 		imageFormats[0] = surfaceFormat.format;
 		swapChainExtent = extent;
@@ -163,11 +172,11 @@ namespace StarryRender
 	void SwapChain::generateFramebuffers(VkRenderPass& renderPass)
 	{
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
 		for (auto framebuffer : swapChainFramebuffers) {
-			vkDestroyFramebuffer(*device, framebuffer, nullptr);
+			vkDestroyFramebuffer((*device).getDevice(), framebuffer, nullptr);
 		}
 
 		swapChainFramebuffers.resize(swapChainImageBuffers.size());
@@ -188,8 +197,8 @@ namespace StarryRender
 			framebufferInfo.height = swapChainExtent.height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(*device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
-				registerAlert("Failed to create a required framebuffers!", FATAL);
+			if (vkCreateFramebuffer((*device).getDevice(), &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
+				Alert("Failed to create a required framebuffers!", FATAL);
 				return;
 			}
 		}
@@ -199,7 +208,7 @@ namespace StarryRender
 	{
 		if (device) {
 			for (auto& ib : swapChainImageBuffers) {
-				vkDestroyImageView(*device, ib.getImageView(), nullptr);
+				vkDestroyImageView((*device).getDevice(), ib.getImageView(), nullptr);
 				ib.getImageView() = VK_NULL_HANDLE;
 			}
 		}
@@ -207,12 +216,12 @@ namespace StarryRender
 		
 		if (device) {
 			for (auto framebuffer : swapChainFramebuffers) {
-				vkDestroyFramebuffer(*device, framebuffer, nullptr);
+				vkDestroyFramebuffer((*device).getDevice(), framebuffer, nullptr);
 			}
 		}
 		swapChainFramebuffers.clear();
 		if (device) {
-			vkDestroySwapchainKHR(*device, swapChain, nullptr);
+			vkDestroySwapchainKHR((*device).getDevice(), swapChain, nullptr);
 		}
 	}
 
@@ -260,7 +269,7 @@ namespace StarryRender
 			currentSwapSurfaceFormat = availableFormats[0];
 		}
 		if (swapChainExtent.height == 0 || swapChainExtent.width == 0) {
-			registerAlert("Chosen Swap Surface Format: " + std::string(string_VkFormat(currentSwapSurfaceFormat.format)) + ", Color Space: " + std::string(string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace)) + "\n", INFO);
+			Alert("Chosen Swap Surface Format: " + std::string(string_VkFormat(currentSwapSurfaceFormat.format)) + ", Color Space: " + std::string(string_VkColorSpaceKHR(currentSwapSurfaceFormat.colorSpace)) + "\n", INFO);
 		}
 		return currentSwapSurfaceFormat;
 	}
@@ -282,21 +291,19 @@ namespace StarryRender
 		}
 
 		if (swapChainExtent.height == 0 || swapChainExtent.width == 0) {
-			registerAlert("Chosen Present Mode: " + std::string(string_VkPresentModeKHR(currentPresentMode)) + "\n", INFO);
+			Alert("Chosen Present Mode: " + std::string(string_VkPresentModeKHR(currentPresentMode)) + "\n", INFO);
 		}
 		return currentPresentMode;
 	}
 
-	VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const std::weak_ptr<Window>& windowReference) 
+	VkExtent2D SwapChain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) 
 	{
 		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 			return capabilities.currentExtent;
 		}
 		else {
 			int width, height;
-			START_WEAK_PTR
-				window->getFramebufferSize(width, height);
-			END_WEAK_PTR({})
+			(*window).getFramebufferSize(width, height);
 
 			VkExtent2D actualExtent = {
 				static_cast<uint32_t>(width),

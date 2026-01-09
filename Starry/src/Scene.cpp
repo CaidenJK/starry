@@ -36,11 +36,11 @@ namespace Starry
 	void Scene::loadObjects(Renderer* renderer)
 	{
 		if (sceneObjects.size() == 0) {
-			registerAlert("No objects in scene to render!", FATAL);
+			Alert("No objects in scene to render!", FATAL);
 			return;
 		}
 		if (renderer == nullptr) {
-			registerAlert("Renderer is null!", FATAL);
+			Alert("Renderer is null!", FATAL);
 			return;
 		}
 		for (auto& obj : sceneObjects) {
@@ -51,7 +51,7 @@ namespace Starry
 	void Scene::updateObjects(Renderer* renderer)
 	{
 		if (renderer == nullptr) {
-			registerAlert("Renderer is null!", FATAL);
+			Alert("Renderer is null!", FATAL);
 			return;
 		}
 		for (auto& obj : sceneObjects) {
@@ -62,6 +62,6 @@ namespace Starry
 		UniformBufferData mvpBuffer{ sceneObjects.find("Mesh, Radio")->second->getBufferData().model,
 				sceneObjects.find("Camera, Default")->second->getBufferData().view,
 				sceneObjects.find("Camera, Default")->second->getBufferData().proj };
-		renderer->context().updateUniformBuffer(mvpBuffer);
+		renderer->updateUniform(mvpBuffer);
 	}
 }

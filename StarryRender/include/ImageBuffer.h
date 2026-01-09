@@ -1,5 +1,5 @@
 #pragma once
-#include "Buffer.h"
+#include <StarryManager.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -8,11 +8,16 @@
 
 namespace StarryRender
 {
-	class ImageBuffer : public Buffer
+	class Device;
+
+	class ImageBuffer : public StarryAsset
 	{
 	public:
 		ImageBuffer();
 		~ImageBuffer();
+
+		virtual void init(uint64_t deviceUUID);
+		virtual void destroy();
 
 		void createImage(uint32_t width, uint32_t height, uint32_t mipLevels, VkSampleCountFlagBits numSamples, VkFormat format,
         VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties);
@@ -24,9 +29,6 @@ namespace StarryRender
 
 		VkImage& getImage() { return image; }
 		VkImageView& getImageView() { return imageView; }
-
-		virtual GET_RESOURCE { return {}; };
-        virtual GET_RESOURCE_FROM_STRING { return INVALID_RESOURCE; };
 
 		virtual ASSET_NAME("ImageBuffer")
 	protected:
@@ -41,5 +43,7 @@ namespace StarryRender
 		VkImageView imageView = VK_NULL_HANDLE;
 
 		bool isOwning = true;
+
+		ResourceHandle<Device> device;
 	};
 }

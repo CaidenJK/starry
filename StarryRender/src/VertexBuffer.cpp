@@ -1,5 +1,7 @@
 #include "VertexBuffer.h"
 
+#include "Device.h"
+
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
 namespace StarryRender 
@@ -51,70 +53,106 @@ namespace StarryRender
 
 	VertexBuffer::~VertexBuffer() 
 	{
+		destroy();
+	}
+
+	void VertexBuffer::init(uint64_t deviceUUID)
+	{
+		device = requestResource<Device>(deviceUUID, "self");
+
+		loadBufferToMemory();
+	}
+
+	void VertexBuffer::destroy()
+	{
 		if (device) {
 			if (vertexBuffer != VK_NULL_HANDLE) {
-				vkDestroyBuffer(*device, vertexBuffer, nullptr);
-				vkFreeMemory(*device, vertexBufferMemory, nullptr);
+				vkDestroyBuffer((*device).getDevice(), vertexBuffer, nullptr);
+				vkFreeMemory((*device).getDevice(), vertexBufferMemory, nullptr);
 			}
 
 			if (indexBuffer != VK_NULL_HANDLE) {
-				vkDestroyBuffer(*device, indexBuffer, nullptr);
-				vkFreeMemory(*device, indexBufferMemory, nullptr);
+				vkDestroyBuffer((*device).getDevice(), indexBuffer, nullptr);
+				vkFreeMemory((*device).getDevice(), indexBufferMemory, nullptr);
 			}
 
 			if (stagingBufferVertex != VK_NULL_HANDLE) {
-				vkDestroyBuffer(*device, stagingBufferVertex, nullptr);
+				vkDestroyBuffer((*device).getDevice(), stagingBufferVertex, nullptr);
 			}
 			if (stagingBufferMemoryVertex != VK_NULL_HANDLE) {
-				vkFreeMemory(*device, stagingBufferMemoryVertex, nullptr);
+				vkFreeMemory((*device).getDevice(), stagingBufferMemoryVertex, nullptr);
 			}
 			if (stagingBufferIndex != VK_NULL_HANDLE) {
-				vkDestroyBuffer(*device, stagingBufferIndex, nullptr);
+				vkDestroyBuffer((*device).getDevice(), stagingBufferIndex, nullptr);
 			}
 			if (stagingBufferMemoryIndex != VK_NULL_HANDLE) {
-				vkFreeMemory(*device, stagingBufferMemoryIndex, nullptr);
+				vkFreeMemory((*device).getDevice(), stagingBufferMemoryIndex, nullptr);
 			}
 		}
+		isReady = false;
+	}
+
+	void VertexBuffer::add(VertexBuffer& other)
+	{
+		isReady = false;
+
+		destroy();
+
+		vertices.insert(vertices.end(), other.vertices.begin(), other.vertices.end());
+		indices.insert(indices.end(), other.indices.begin(), other.indices.end());
 	}
 
 	void VertexBuffer::loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput) 
 	{
 		vertices = verticiesInput;
 		indices = indiciesInput;
+		isReady = false;
 	}
 
 	void VertexBuffer::createVertexBuffer() 
 	{
 		if (vertices.empty()) {
-			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
+			Alert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 
 		bufferSizeVertex = sizeof(vertices[0]) * vertices.size();
 
-		ERROR_VOLATILE(createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex));
-		ERROR_VOLATILE(fillVertexBufferData(stagingBufferMemoryVertex));
+		if (device.wait() != ResourceState::YES) {
+			Alert("Device not avalible!", FATAL);
+			return;
+		}
+
+		(*device).createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferVertex, stagingBufferMemoryVertex);
+		fillVertexBufferData(stagingBufferMemoryVertex);
+
 		if (vertexBuffer == VK_NULL_HANDLE) {
-			ERROR_VOLATILE(createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory));
+			(*device).createBuffer(bufferSizeVertex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vertexBuffer, vertexBufferMemory);
 		}
 	}
 
 	void VertexBuffer::createIndexBuffer() 
 	{
 		if (indices.empty()) {
-			registerAlert("No index data loaded into VertexBuffer!", FATAL);
+			Alert("No index data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 		bufferSizeIndex = sizeof(indices[0]) * indices.size();
 
-		ERROR_VOLATILE(createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferIndex, stagingBufferMemoryIndex));
-		ERROR_VOLATILE(fillIndexBufferData(stagingBufferMemoryIndex));
+		if (device.wait() != ResourceState::YES) {
+			Alert("Device not avalible!", FATAL);
+			return;
+		}
+
+		(*device).createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBufferIndex, stagingBufferMemoryIndex);
+		fillIndexBufferData(stagingBufferMemoryIndex);
+
 		if (indexBuffer == VK_NULL_HANDLE) {
-			ERROR_VOLATILE(createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory));
+			(*device).createBuffer(bufferSizeIndex, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+				 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, indexBuffer, indexBufferMemory);
 		}
 	}
 
@@ -129,70 +167,72 @@ namespace StarryRender
 			stagingBufferMemoryIndex == VK_NULL_HANDLE ||
 			vertexBuffer == VK_NULL_HANDLE ||
 			indexBuffer == VK_NULL_HANDLE) {
-				registerAlert("Load Buffer called before all buffers were created!", CRITICAL);
+				Alert("Load Buffer called before all buffers were created!", CRITICAL);
 				return;
 		}
 
-		copyBuffer(stagingBufferVertex, vertexBuffer, bufferSizeVertex);
-		copyBuffer(stagingBufferIndex, indexBuffer, bufferSizeIndex);
+		(*device).copyBuffer(stagingBufferVertex, vertexBuffer, bufferSizeVertex);
+		(*device).copyBuffer(stagingBufferIndex, indexBuffer, bufferSizeIndex);
 		
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		vkDestroyBuffer(*device, stagingBufferVertex, nullptr);
-		vkFreeMemory(*device, stagingBufferMemoryVertex, nullptr);
+		vkDestroyBuffer((*device).getDevice(), stagingBufferVertex, nullptr);
+		vkFreeMemory((*device).getDevice(), stagingBufferMemoryVertex, nullptr);
 		stagingBufferVertex = VK_NULL_HANDLE;
 		stagingBufferMemoryVertex = VK_NULL_HANDLE;
 
-		vkDestroyBuffer(*device, stagingBufferIndex, nullptr);
-		vkFreeMemory(*device, stagingBufferMemoryIndex, nullptr);
+		vkDestroyBuffer((*device).getDevice(), stagingBufferIndex, nullptr);
+		vkFreeMemory((*device).getDevice(), stagingBufferMemoryIndex, nullptr);
 		stagingBufferIndex = VK_NULL_HANDLE;
 		stagingBufferMemoryIndex = VK_NULL_HANDLE;
+
+		isReady = true;
 	}
 
 	void VertexBuffer::fillVertexBufferData(VkDeviceMemory& bufferMemory)
 	{
 		if (bufferMemory == VK_NULL_HANDLE) {
-			registerAlert("Vertex buffer not created before filling data!", FATAL);
+			Alert("Vertex buffer not created before filling data!", FATAL);
 			return;
 		}
 		if (vertices.empty()) {
-			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
+			Alert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 
 		void* data;
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		vkMapMemory(*device, bufferMemory, 0, bufferSizeVertex, 0, &data);
+		vkMapMemory((*device).getDevice(), bufferMemory, 0, bufferSizeVertex, 0, &data);
 		memcpy(data, vertices.data(), (size_t)bufferSizeVertex);
-		vkUnmapMemory(*device, bufferMemory);
+		vkUnmapMemory((*device).getDevice(), bufferMemory);
 	}
 
 	void VertexBuffer::fillIndexBufferData(VkDeviceMemory& bufferMemory) 
 	{
 		if (bufferMemory == VK_NULL_HANDLE) {
-			registerAlert("Vertex buffer not created before filling data!", FATAL);
+			Alert("Vertex buffer not created before filling data!", FATAL);
 			return;
 		}
 		if (indices.empty()) {
-			registerAlert("No vertex data loaded into VertexBuffer!", FATAL);
+			Alert("No vertex data loaded into VertexBuffer!", FATAL);
 			return;
 		}
 
 		void* data;
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		vkMapMemory(*device, bufferMemory, 0, bufferSizeIndex, 0, &data);
+		vkMapMemory((*device).getDevice(), bufferMemory, 0, bufferSizeIndex, 0, &data);
 		memcpy(data, indices.data(), (size_t)bufferSizeIndex);
-		vkUnmapMemory(*device, bufferMemory);
+		vkUnmapMemory((*device).getDevice(), bufferMemory);
 	}
 }
 // Possibly sendData() with asset handler

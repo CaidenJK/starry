@@ -10,6 +10,7 @@ namespace Starry
 	Renderer::Renderer(std::shared_ptr<Window>& windowRef, RenderConfig config)
 	{
 		renderer.Init(windowRef, config); EXTERN_ERROR(renderer);
+		uniformBuffer = std::make_shared<UniformBuffer>();
 	}
 
 	Renderer::~Renderer()
@@ -23,13 +24,14 @@ namespace Starry
 	void Renderer::disbatchRenderer()
 	{
 		if (renderer.getAlertSeverity() == FATAL) {
-			registerAlert("Render Context experienced a fatal error, could not disbatch renderer", FATAL);
+			Alert("Render Context experienced a fatal error, could not disbatch renderer", FATAL);
 			return;
 		}
 
 		activeScene->loadObjects(this); EXTERN_ERROR_PTR(activeScene);
 
-		renderer.LoadBuffers(); EXTERN_ERROR(renderer);
+		renderer.Load(uniformBuffer);
+		renderer.Ready(); EXTERN_ERROR(renderer);
 
 		renderRunning.store(true);
 		renderThread = std::thread(&Renderer::renderLoop, this);
@@ -54,7 +56,7 @@ namespace Starry
 
 			// Error checks
 			if (renderer.getErrorState()) {
-				registerAlert("Fatal rendering error occurred!", FATAL);
+				Alert("Fatal rendering error occurred!", FATAL);
 				renderRunning.store(false);
 				continue;
 			}
@@ -67,7 +69,7 @@ namespace Starry
 
 			// Error checks
 			if (renderer.getErrorState()) {
-				registerAlert("Fatal rendering error occurred!", FATAL);
+				Alert("Fatal rendering error occurred!", FATAL);
 				renderRunning.store(false);
 				continue;
 			}

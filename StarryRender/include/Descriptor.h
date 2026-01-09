@@ -7,20 +7,28 @@
 
 #include <vector>
 
+#include "UniformBuffer.h"
+#include "TextureImage.h"
+
 #define MAX_FRAMES_IN_FLIGHT 2
 
 namespace StarryRender
 {
+    class Device;
+
     class Descriptor : public StarryAsset
     {
         public:
             Descriptor();
             ~Descriptor();
+
+            void init(uint64_t deviceUUID);
+            void destroy();
             
             VkDescriptorSetLayout& getDescriptorSetLayout() { return descriptorSetLayout; }
 		    VkDescriptorSet& getDescriptorSet(uint32_t index) { return descriptorSets[index]; }
 
-            void createSets(uint64_t uniformBufferUUID, uint64_t imageTextureID); // Scale later
+            void createDescriptorSets(uint64_t ubUUID, uint64_t txUUID);
 
             VkDescriptorPool getPool() { return descriptorPool; }
 
@@ -28,13 +36,12 @@ namespace StarryRender
         private:
             void createDescriptorSetLayout();
             void createDescriptorPool();
-		    void createDescriptorSets(std::vector<VkBuffer>& uniformBuffers, VkImageView& textureImageView, VkSampler& textureImageSampler);
 
             VkDescriptorSetLayout descriptorSetLayout = VK_NULL_HANDLE;
 		    VkDescriptorPool descriptorPool = VK_NULL_HANDLE;
 
 		    std::vector<VkDescriptorSet> descriptorSets;
 
-            ResourceHandle<VkDevice> device;
+            ResourceHandle<Device> device;
     };
 }

@@ -8,7 +8,7 @@ namespace StarryManager
 {
     class AssetManager;
     
-    // Sender side API
+    // Core Request
     struct ResourceRequest
     {
         friend class AssetManager;
@@ -21,20 +21,21 @@ namespace StarryManager
             STALE // termination for caller
         };
 
-        const uint64_t resourceID;
+        const std::string resourceID;
         const std::vector<size_t> resourceArgs = {};
 
         std::recursive_mutex mutex;
         ResourceState resourceState = NO;
+
         void* resource = nullptr;
 
-        const uint64_t callerUUID; // Might not need
+        const uint64_t callerUUID;
         const uint64_t senderUUID;
         
         private:
-            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, size_t resourceID, std::vector<size_t>& resourceArgs);
+            ResourceRequest(uint64_t callerUUID, uint64_t senderUUID, std::string resourceID, std::vector<size_t>& resourceArgs);
 
-            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, size_t id, std::vector<size_t>& args);
+            static std::shared_ptr<ResourceRequest> create(uint64_t caller, uint64_t sender, std::string id, std::vector<size_t>& args);
     };
 
     // Caller side API
@@ -46,7 +47,7 @@ namespace StarryManager
         ResourceHandle() = default; // empty handle
         ~ResourceHandle()
         {
-            if (requestPointer && requestPointer.use_count() == 1) {
+            if (requestPointer && requestPointer.use_count() == 2) {
                 std::scoped_lock lock(requestPointer->mutex);
                 requestPointer->resourceState = ResourceRequest::STALE;
             }
@@ -116,7 +117,28 @@ namespace StarryManager
     private:
         ResourceHandle(std::shared_ptr<ResourceRequest> reference) : requestPointer(reference) {}
 
-        std::shared_ptr<ResourceRequest> requestPointer = {};
+        std::shared_ptr<ResourceRequest> requestPointer = nullptr;
         T* resourcePointer = nullptr;
+    };
+
+    // Sender Side API
+    class ResourceAsk
+    {
+        friend class AssetManager;
+
+        public:
+            ~ResourceAsk();
+
+            void setResource(void* resource);
+            ResourceRequest::ResourceState getState();
+            
+            std::string getID();
+            std::vector<uint64_t> getArguments();
+
+            void invalidate();
+
+        private:
+            ResourceAsk(std::shared_ptr<ResourceRequest> ref) : requestPointer(ref) {}
+            std::shared_ptr<ResourceRequest> requestPointer = nullptr;
     };
 }

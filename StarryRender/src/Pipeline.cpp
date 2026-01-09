@@ -1,62 +1,64 @@
-#include "RenderPipeline.h"
+#include "Pipeline.h"
+
+#include "Device.h"
 
 namespace StarryRender 
 {
-	RenderPipeline::RenderPipeline(std::shared_ptr<Shader>& shaderValue)
+	Pipeline::Pipeline()
 	{
-		device = requestResource<VkDevice>("Render Device", "VkDevice");
-		auto imageFormats = requestResource<std::array<VkFormat, 2>>("Render Device", "Swapchain Image Formats");
-		auto msaaSamples = requestResource<VkSampleCountFlagBits>("Render Device", "MSAA Samples");
-		auto descriptor = requestResource<std::shared_ptr<Descriptor>>("Render Device", "Descriptor");
+	}
 
-		shader = shaderValue;
-		if (shader == nullptr) {
-			registerAlert("Shader not loaded before pipeline construction!", WARNING);
-			return;
-		}
-		if (shader->getAlertSeverity() == FATAL) {
-			registerAlert("Shader has error after loading into pipeline!", FATAL);
-			return;
-		}
+	Pipeline::~Pipeline() 
+	{
+		destroy();
+	}
 
-		if (imageFormats.wait() != ResourceState::YES || 
+	void Pipeline::init(uint64_t deviceUUID, PipelineConstructInfo info)
+	{
+		device = requestResource<Device>(deviceUUID, "self");
+
+		auto shader = requestResource<Shader>(info.shaderUUID, "self");
+		auto descriptor = requestResource<Descriptor>(info.descriptorUUID, "self");
+		auto swapChain = requestResource<SwapChain>(info.swapChainUUID, "self");
+
+		if (device.wait() != ResourceState::YES ||
+			shader.wait() != ResourceState::YES ||
 			descriptor.wait() != ResourceState::YES ||
-			msaaSamples.wait() != ResourceState::YES) {
-			registerAlert("Resources died before they were ready to be used.", FATAL);
+			swapChain.wait() != ResourceState::YES) {
+			Alert("Resources died before they were ready to be used.", FATAL);
 			return;
 		}
-		constructPipeline(*imageFormats, *msaaSamples, *descriptor);
+		constructPipeline(*swapChain, *shader, *descriptor);
 	}
 
-	RenderPipeline::~RenderPipeline() 
+	void Pipeline::destroy()
 	{
-		ERROR_VOLATILE();
-		if (shader != nullptr) {
-			shader.reset();
-		}
 		if (device) {
-			vkDestroyPipelineLayout(*device, pipelineLayout, nullptr);
-			vkDestroyRenderPass(*device, renderPass, nullptr);
+			vkDestroyPipelineLayout((*device).getDevice(), pipelineLayout, nullptr);
+			vkDestroyRenderPass((*device).getDevice(), renderPass, nullptr);
 
-			vkDestroyPipeline(*device, graphicsPipeline, nullptr);
+			vkDestroyPipeline((*device).getDevice(), graphicsPipeline, nullptr);
 		}
 	}
 
-	void RenderPipeline::constructPipeline(std::array<VkFormat, 2>& imageFormats, VkSampleCountFlagBits& msaaSamples, std::shared_ptr<Descriptor>& descriptor)
+	void Pipeline::constructPipeline(SwapChain& swapChain, Shader& shader, Descriptor& descriptor)
 	{
 		if (graphicsPipeline != VK_NULL_HANDLE || getAlertSeverity() == FATAL) {
-			registerAlert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
+			Alert("Warning: constructPipeline called more than once. All calls other than the first are skipped.", WARNING);
 			return;
 		}
 
-		ERROR_VOLATILE(createRenderPass(imageFormats, msaaSamples));
-		ERROR_VOLATILE(constructPipelineLayout(descriptor, msaaSamples));
+		createRenderPass(swapChain);
+		constructPipelineLayout(shader, descriptor);
 
-		registerAlert("Successful Pipeline Creation!", INFO);
+		Alert("Successful Pipeline Creation!", INFO);
 	}
 
-	void RenderPipeline::createRenderPass(std::array<VkFormat, 2>& imageFormats, VkSampleCountFlagBits& msaaSamples)
+	void Pipeline::createRenderPass(SwapChain& swapChain)
 	{
+		auto msaaSamples = (*device).getConfig().desiredMSAASamples;
+		auto imageFormats = swapChain.getImageFormats();
+
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = imageFormats[0];
 		colorAttachment.samples = msaaSamples;
@@ -128,18 +130,20 @@ namespace StarryRender
 		renderPassInfo.pDependencies = &dependency;
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
 
-		if (vkCreateRenderPass(*device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-			registerAlert("Failed to create render pass!", FATAL);
+		if (vkCreateRenderPass((*device).getDevice(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
+			Alert("Failed to create render pass!", FATAL);
 			return;
 		}
 	}
 
-	void RenderPipeline::constructPipelineLayout(std::shared_ptr<Descriptor>& descriptor, VkSampleCountFlagBits& msaaSamples)
+	void Pipeline::constructPipelineLayout(Shader& shader, Descriptor& descriptor)
 	{
+		auto msaaSamples = (*device).getConfig().desiredMSAASamples;
+
 		// Verts
 		auto bindingDescription = Vertex::getBindingDescriptions();
 		auto attributeDescriptions = Vertex::getAttributeDescriptions();
@@ -224,20 +228,20 @@ namespace StarryRender
 		pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 		pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 
-		if (descriptor->getDescriptorSetLayout() == VK_NULL_HANDLE) {
-			registerAlert("Descriptor has error before pipeline construction!", FATAL);
+		if (descriptor.getDescriptorSetLayout() == VK_NULL_HANDLE) {
+			Alert("Descriptor has error before pipeline construction!", FATAL);
 			return;
 		}
 		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &(descriptor->getDescriptorSetLayout());
+		pipelineLayoutInfo.pSetLayouts = &(descriptor.getDescriptorSetLayout());
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
 
-		if (vkCreatePipelineLayout(*device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
-			registerAlert("Failed to create pipeline layout!", FATAL);
+		if (vkCreatePipelineLayout((*device).getDevice(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+			Alert("Failed to create pipeline layout!", FATAL);
 			return;
 		}
 
@@ -259,7 +263,7 @@ namespace StarryRender
 		VkGraphicsPipelineCreateInfo pipelineInfo{};
 		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 		pipelineInfo.stageCount = 2;
-		pipelineInfo.pStages = shader->getShaderStages().data();
+		pipelineInfo.pStages = shader.getShaderStages().data();
 
 		pipelineInfo.pVertexInputState = &vertexInputInfo;
 		pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -280,11 +284,11 @@ namespace StarryRender
 		pipelineInfo.basePipelineIndex = -1; // Optional
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		if (vkCreateGraphicsPipelines(*device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
-			registerAlert("Failed to create graphics pipeline!", FATAL);
+		if (vkCreateGraphicsPipelines((*device).getDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) != VK_SUCCESS) {
+			Alert("Failed to create graphics pipeline!", FATAL);
 			return;
 		}
 	}

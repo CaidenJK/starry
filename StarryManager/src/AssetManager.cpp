@@ -100,7 +100,7 @@ namespace StarryManager
 	void AssetManager::updateAssetPointer(uint64_t uuid, StarryAsset* newPtr) 
     {
 		if (uuid == 0 || newPtr == nullptr) {
-			registerAlert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
+			Alert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
             return;
 		}
 
@@ -109,7 +109,7 @@ namespace StarryManager
 			it->second = newPtr;
 		}
 		else {
-			registerAlert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
+			Alert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
             return;
 		}
 	}
@@ -167,7 +167,7 @@ namespace StarryManager
             while (!resourceRequests.empty()) {
                 {
                     std::scoped_lock requestLock(resourceRequests.front()->mutex);
-                    findResources(resourceRequests.front());
+                    submitAsk(resourceRequests.front());
                 }
                 if (resourceRequests.front()->resourceState == ResourceRequest::YES) {
                     closedRequests.push_back(resourceRequests.front());
@@ -177,7 +177,7 @@ namespace StarryManager
         }
     }
 
-    void AssetManager::findResources(std::shared_ptr<ResourceRequest>& request)
+    void AssetManager::submitAsk(std::shared_ptr<ResourceRequest>& request)
     {
         std::scoped_lock lock(registeryMutex);
         auto asset = registeredAssets.find(request->senderUUID);
@@ -189,6 +189,8 @@ namespace StarryManager
         // remove STALE
         std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::STALE; });
 
+        /* TODO Implement
+        // If already has
         for (auto it = closedRequests.begin(); it != closedRequests.end(); ++it) {
             if ((*it)->senderUUID == request->senderUUID && 
                 (*it)->resourceID == request->resourceID &&
@@ -198,14 +200,15 @@ namespace StarryManager
                 return;
             }
         }
+        */
 
-        std::optional<void*> result = asset->second->getResource(request->resourceID, request->resourceArgs);
-        if (result.has_value()) {
-            request->resource = result.value();
-            request->resourceState = ResourceRequest::YES;
+        if (request->resourceID.compare("self") == 0) {
+            request->resource = (void*)asset->second;
+            request->resourceState = ResourceRequest::ResourceState::YES;
         }
         else {
-            request->resourceState = ResourceRequest::DEAD;
+            ResourceAsk ask(request);
+            asset->second->resourceAsk(ask);
         }
     }
 
@@ -223,9 +226,9 @@ namespace StarryManager
 		}
 		registeryMutex.unlock();
 		
-		registerAlert("Logger: Asset Dump - Total = " + std::to_string(registeredAssetsSize) + "\n", INFO);
+		Alert("Logger: Asset Dump - Total = " + std::to_string(registeredAssetsSize) + "\n", INFO);
 		for (int i = 0; i < pointerArray.size(); i++) {
-			registerAlert(std::string("  Id = ") + idArray[i] + ", Address = " + pointerArray[i] + ", Name = " + nameArray[i] + "\n", INFO);
+			Alert(std::string("  Id = ") + idArray[i] + ", Address = " + pointerArray[i] + ", Name = " + nameArray[i] + "\n", INFO);
 		}
 		logger->toFlushCalls();
 	}

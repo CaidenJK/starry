@@ -2,13 +2,14 @@
 
 #include <StarryManager.h>
 
+#include <array>
+
 #include "Window.h"
-#include "RenderDevice.h"
+#include "Device.h"
 #include "UniformBuffer.h"
 #include "VertexBuffer.h"
 #include "ImageBuffer.h"
 #include "TextureImage.h"
-#include "Canvas.h"
 
 #define DEFAULT_SHADER_PATHS {}
 
@@ -18,7 +19,7 @@ namespace StarryRender
 		The Starry Render Engine API class. Manages and interfaces with the Vulkan rendering context.
 	*/
 
-	namespace RenderConfigOptions {
+	struct RenderConfig {
 		enum MSAAOptions {
 			MSAA_DISABLED = VK_SAMPLE_COUNT_1_BIT,
 			MSAA_2X = VK_SAMPLE_COUNT_2_BIT,
@@ -29,60 +30,65 @@ namespace StarryRender
 			MSAA_64X = VK_SAMPLE_COUNT_64_BIT
 		};
 
-		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa, bool hasGUI);
-	}
+		std::shared_ptr<Window> window = nullptr;
+
+		std::string vertexShader;
+		std::string fragmentShader;
+
+		VkSampleCountFlagBits msaaSamples;
+		glm::vec3 clearColor;
+
+		RenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa, glm::vec3 clearColor);
+		RenderConfig() {}
+	};
+
+	struct RenderState {
+		bool isInitialized = false;
+	};
 
 	class RenderContext : public StarryAsset
 	{
 	public:
-		RenderContext() = default;
+		RenderContext() {}
 		~RenderContext();
 
-		void Init(std::shared_ptr<Window>& window, RenderConfig config);
+		void Init(std::shared_ptr<Window> window, RenderConfig config);
 
-		void LoadBuffers();
+		void Load(std::shared_ptr<UniformBuffer>& buffer);
+		void Load(std::shared_ptr<TextureImage>& img);
+		void Load(std::shared_ptr<VertexBuffer>& buffer);
 		
+		void Ready();
 		void Draw();
 
-		void WaitIdle() { m_renderDevice->WaitIdle(); }
+		void WaitIdle() { m_renderDevice.waitIdle(); }
 		
 		void Destroy();
-
-		std::array<int, 2> getExtent();
-		
-		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer);
-		void loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index);
-		void clearVertexBuffers() { m_vertexBuffers.clear(); }
-
-		void loadTextureImage(std::shared_ptr<TextureImage>& imageBuffer);
-
-		void loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer);
-		void updateUniformBuffer(UniformBufferData& buffer);
-
-		void loadCanvas(std::shared_ptr<Canvas>& canvasRef) { canvas = canvasRef; };
 
 		bool getErrorState() const { return AssetManager::get().lock()->isFatal(); }
 		void dumpAlerts() const { AssetManager::get().lock()->isFatal(); }
 
-		//void windowPollEvents() const { m_window->pollEvents(); }
-		//bool windowShouldClose() const { return m_window->shouldClose(); }
+		std::array<unsigned int, 2> getExtent() { return { m_renderSwapchain.getExtent().width, m_renderSwapchain.getExtent().height }; }
 
-		ASSET_NAME("RenderContext")
+		ASSET_NAME("Render Context")
 	private:
-		const static int MAX_VERTEX_BUFFERS = 1;
-		void initRenderDevice(std::shared_ptr<Window>& window);
+		void recreateSwapchain();
 
-		bool m_isInitialized = false;
-
+		RenderState m_state;
 		RenderConfig m_config;
 
-		std::unique_ptr<RenderDevice> m_renderDevice = nullptr;
+		std::weak_ptr<Window> m_window;
 
-		std::shared_ptr<UniformBuffer> m_uniformBuffer = nullptr;
-		std::shared_ptr<TextureImage> m_textureImage = nullptr;
-		std::vector<std::shared_ptr<VertexBuffer>> m_vertexBuffers = {};
+		Device m_renderDevice;
+		Pipeline m_renderPipeline;
+		SwapChain m_renderSwapchain;
+		Shader m_shaders;
+		Descriptor m_descriptor;
 
-		std::shared_ptr<Canvas> canvas = nullptr;
+		// extern
+		std::weak_ptr<VertexBuffer> m_buffer;
+		std::weak_ptr<UniformBuffer> m_ub;
+		std::weak_ptr<TextureImage> m_tx;
 	};
 
 	// call init

@@ -9,7 +9,7 @@ namespace Starry
 		MeshObject(std::string nameInput = "Default");
 		~MeshObject();
 
-		void Init() override {}
+		void Init() override;
 		void Register(Renderer* renderer) override;
 		void Destroy() override;
 
@@ -29,5 +29,6 @@ namespace Starry
 
 		std::shared_ptr<VertexBuffer> vertexBuffer;
 		std::shared_ptr<TextureImage> textureImage;
+		//std::shared_ptr<UniformBuffer> uniformBuffer;
 	};
 }

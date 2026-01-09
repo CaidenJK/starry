@@ -42,7 +42,7 @@ namespace StarryManager
     FileHandler::~FileHandler()
     {
         for (auto file : openFiles) {
-            file.second->file.close();
+            file->file.close();
         }
     }
 
@@ -55,7 +55,7 @@ namespace StarryManager
     bool FileHandler::openFile(RawFile*& file, std::vector<size_t> args)
     {
         if (args.size() < 1) {
-            registerAlert("No arguments passed to file.", WARNING);
+            Alert("No arguments passed to file.", WARNING);
             return false;
         }
         size_t flags = args[0];
@@ -77,33 +77,24 @@ namespace StarryManager
         }
 
         if (!file->open(flags)) {
-            registerAlert(std::string("Could not open file: ") + file->path, WARNING);
+            Alert(std::string("Could not open file: ") + file->path, WARNING);
             return false;
         }
 
         return true;
     }
 
-    std::optional<void*> FileHandler::getResource(size_t resourceID, std::vector<size_t> resourceArgs)
+    void FileHandler::askCallback(ResourceAsk& ask)
     {
-        auto file = openFiles.find(resourceID);
-        if (file == openFiles.end()) {
-            return {};
-        }
+        openFiles.emplace_back(createFile(ask.getID()));
 
         //std::erase_if(openFiles, [](std::shared_ptr<RawFile>& file) { return file->dead(); }); // Need the request to signal back to sender
 
-        if (!openFile(file->second, resourceArgs)) {
-            return nullptr;
+        if (!openFile(openFiles.back(), ask.getArguments())) {
+            ask.invalidate();
         }
-        return (void*)&(file->second);
-    }
-
-    size_t FileHandler::getResourceIDFromString(std::string resourceString)
-    {
-        size_t fileID = generateUUID();
-        openFiles.emplace(fileID, createFile(resourceString));
-
-        return fileID;
+        else {
+            ask.setResource((void*)&(openFiles.back()));
+        }
     }
 }

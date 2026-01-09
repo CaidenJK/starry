@@ -44,7 +44,7 @@ namespace StarryRender
             ImGui_ImplGlfw_InitForVulkan(wndw->getGLFWwindow(), true);
         }
         else {
-            registerAlert("Canvas was passed an invalid window!", FATAL);
+            Alert("Canvas was passed an invalid window!", FATAL);
             return;
         }
         ImGui_ImplVulkan_Init(&config.initInfo);

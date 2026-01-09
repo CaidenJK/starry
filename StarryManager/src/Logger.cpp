@@ -31,7 +31,7 @@ namespace StarryManager
 		isDead = true;
 	}
 
-	void Logger::registerAlert(const std::string& message, CallSeverity severity)
+	void Logger::Alert(const std::string& message, CallSeverity severity)
 	{
 		AssetCall call;
 		call.callerUUID = getUUID();
@@ -151,7 +151,7 @@ namespace StarryManager
 		auto file = requestResource<FILETYPE>(FILE_REQUEST, LOG_FILE, {FileHandler::Flags::WRITE | FileHandler::Flags::APPEND_EACH});
 		
 		if (file.wait() != ResourceRequest::ResourceState::YES) {
-			registerAlert("Couldn't open Log File!", FATAL);
+			Alert("Couldn't open Log File!", FATAL);
 			return;
 		}
 

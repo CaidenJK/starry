@@ -15,157 +15,121 @@
 
 namespace StarryRender {
 
-	namespace RenderConfigOptions {
-		RenderConfig constructRenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa, bool hasGUI)
-		{
-			return RenderConfig{ vertShader, fragShader, (VkSampleCountFlagBits)msaa, hasGUI };
-		}
-	}
+	RenderConfig::RenderConfig(std::string vertShader, std::string fragShader, MSAAOptions msaa, glm::vec3 clearColor) :
+		vertexShader(vertShader), fragmentShader(fragShader), msaaSamples((VkSampleCountFlagBits)msaa), clearColor(clearColor) {}
 
 	RenderContext::~RenderContext() 
 	{
 		Destroy();
 		if (!getErrorState()) {
-			registerAlert(STARRY_RENDER_EXIT_SUCCESS, BANNER);
+			Alert(STARRY_RENDER_EXIT_SUCCESS, BANNER);
 		}
 	}
 
-	void RenderContext::Init(std::shared_ptr<Window>& window, RenderConfig config)
+	void RenderContext::Init(std::shared_ptr<Window> window, RenderConfig config)
 	{
 		m_config = config;
-		initRenderDevice(window);
+		auto deviceConfig = DeviceConfig{ m_config.msaaSamples, m_config.clearColor, window};
+		m_renderDevice.init(deviceConfig);
+
+		m_shaders.init(m_renderDevice.getUUID(), { config.vertexShader, config.fragmentShader });
+		m_descriptor.init(m_renderDevice.getUUID());
+		
+		m_renderSwapchain.init(m_renderDevice.getUUID(), { window->getUUID() });
+
+		PipelineConstructInfo info = { m_renderSwapchain.getUUID(), m_descriptor.getUUID(), m_shaders.getUUID() };
+		m_renderPipeline.init(m_renderDevice.getUUID(), info);
+
+		m_renderSwapchain.generateFramebuffers(m_renderPipeline.getRenderPass());
+
+		m_window = window;
 	}
 
-	void RenderContext::Draw() 
+	void RenderContext::Load(std::shared_ptr<UniformBuffer>& buffer)
 	{
-		if (!m_isInitialized) {
-			registerAlert("RenderContext not initialized before drawing!", FATAL);
+		buffer->init(m_renderDevice.getUUID());
+		m_ub = buffer;
+	}
+
+	void RenderContext::Load(std::shared_ptr<TextureImage>& img)
+	{
+		img->init(m_renderDevice.getUUID());
+		m_tx = img;
+	}
+
+	void RenderContext::Load(std::shared_ptr<VertexBuffer>& buffer)
+	{
+		buffer->init(m_renderDevice.getUUID());
+		m_buffer = buffer;
+	}
+
+	void RenderContext::Ready()
+	{
+		m_renderDevice.createDependencies({ (int)m_renderSwapchain.getImageCount() });
+
+		uint64_t ub = 0;
+		uint64_t tx = 0;
+
+		if (auto ubRef = m_ub.lock()) ub = ubRef->getUUID();
+		if (auto txRef = m_tx.lock()) tx = txRef->getUUID();
+		m_descriptor.createDescriptorSets(ub, tx);
+
+		m_state.isInitialized = true;
+	}
+
+	void RenderContext::recreateSwapchain()
+	{
+		if (auto wndw = m_window.lock()) {
+			if (wndw->isWindowMinimized()) { return; }
+		}
+		else {
+			Alert("Window reference expired.", FATAL);
+			m_state.isInitialized = false;
 			return;
 		}
-		m_renderDevice->Draw();
+		WaitIdle();
+
+		m_renderSwapchain.constructSwapChain();
+		m_renderSwapchain.generateFramebuffers(m_renderPipeline.getRenderPass());
+	}
+
+	void RenderContext::Draw()
+	{
+		if (!m_state.isInitialized) {
+			Alert("Render Context not fully initialized before drawing!", FATAL);
+			return;
+		}
+		bool framebufferResized = false;
+		if (auto wndw = m_window.lock()) {
+			framebufferResized = wndw->wasFramebufferResized();
+		}
+		else {
+			Alert("Window reference expired.", FATAL);
+			m_state.isInitialized = false;
+			return;
+		}
+
+		if (framebufferResized || m_renderSwapchain.shouldRecreate()) {
+			recreateSwapchain();
+		}
+
+		DrawInfo drawInfo = {
+			m_renderPipeline,
+			m_renderSwapchain,
+			m_descriptor,
+			m_ub,
+			m_buffer
+		};
+		m_renderDevice.draw(drawInfo);
 	}
 
 	void RenderContext::Destroy()
 	{
-		for (auto& vb : m_vertexBuffers) {
-			vb.reset();
-		}
+		m_shaders.destroy();
+		m_descriptor.destroy();
+		m_renderSwapchain.destroy();
+		m_renderPipeline.destroy();
 
-		m_uniformBuffer.reset();
-		m_textureImage.reset();
-		m_renderDevice.reset();
-	}
-
-	std::array<int, 2> RenderContext::getExtent()
-	{
-		if (m_renderDevice == nullptr) {
-			registerAlert("Render device not initialized before getting extent!", CRITICAL);
-			return { -1, -1 };
-		}
-		auto extent = requestResource<VkExtent2D>("Render Device", "Extent");
-		if (m_renderDevice->getAlertSeverity() == StarryAsset::FATAL) {
-			return { -1, -1 };
-		}
-
-		if (extent.wait() != ResourceState::YES) {
-			registerAlert("Render Device is null or has errors when requesting an extent.", CRITICAL);
-			return { -1, -1 };
-		}
-		return { static_cast<int>((*extent).width), static_cast<int>((*extent).height) };
-	}
-
-	void RenderContext::loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer)
-	{
-		if (m_vertexBuffers.size() >= MAX_VERTEX_BUFFERS) {
-			registerAlert("Maximum number of vertex buffers reached! Can't load more.", CRITICAL);
-			return;
-		}
-
-		m_vertexBuffers.push_back(vertexBuffer);
-
-		if (m_vertexBuffers.back()->getNumVertices() == 0 || m_vertexBuffers.back()->getNumIndices() == 0) {
-			registerAlert("No vertex or index data to attatch to mesh object!", CRITICAL);
-			return;
-		}
-		if (m_renderDevice == nullptr) {
-			registerAlert("Render Device is NULL, cannot load buffer.", FATAL);
-			return;
-		}
-	}
-
-	void RenderContext::loadVertexBuffer(std::shared_ptr<VertexBuffer>& vertexBuffer, size_t index)
-	{
-		if (index >= m_vertexBuffers.size()) {
-			registerAlert("Index out of bounds when loading vertex buffer!", CRITICAL);
-			return;
-		}
-
-		m_vertexBuffers[index] = vertexBuffer;
-
-		if (m_renderDevice == nullptr) {
-			registerAlert("Render Device is NULL, cannot load buffer.", FATAL);
-			return;
-		}
-	}
-
-	void RenderContext::loadTextureImage(std::shared_ptr<TextureImage>& imageBuffer)
-	{
-		m_textureImage = imageBuffer;
-		if (m_renderDevice == nullptr) {
-			registerAlert("Render Device is NULL, cannot load buffer.", FATAL);
-			return;
-		}
-	}
-
-	void RenderContext::loadUniformBuffer(std::unique_ptr<UniformBuffer>& uniformBuffer) 
-	{
-		m_uniformBuffer = std::move(uniformBuffer);
-	}
-
-	void RenderContext::updateUniformBuffer(UniformBufferData& buffer) 
-	{
-		m_uniformBuffer->setBuffer(buffer);
-	}
-
-	void RenderContext::initRenderDevice(std::shared_ptr<Window>& window) 
-	{
-		if (window == nullptr) {
-			registerAlert("Window not set before creating device!", FATAL);
-			return;
-		}
-		
-		m_renderDevice = std::make_unique<RenderDevice>(window, m_config); EXTERN_ERROR(m_renderDevice);
-
-		if (m_config.vertexShaderPath.empty() || m_config.fragmentShaderPath.empty()) {
-			registerAlert("Shader paths not set before creating device!", FATAL);
-			return;
-		}
-		
-		m_renderDevice->LoadShader(m_config.vertexShaderPath, m_config.fragmentShaderPath); EXTERN_ERROR(m_renderDevice);
-		m_renderDevice->InitDraw(); EXTERN_ERROR(m_renderDevice);
-
-		if (!getErrorState()) {
-			m_isInitialized = true;
-			registerAlert(STARRY_RENDER_INITIALIZE_SUCCESS, BANNER);
-		}
-	}
-
-	void RenderContext::LoadBuffers()
-	{
-		if (m_renderDevice == nullptr) {
-			registerAlert("LoadBuffers was called before Init.", CRITICAL);
-		}
-		if (m_uniformBuffer == nullptr) {
-			m_uniformBuffer = std::make_shared<UniformBuffer>();
-		}
-		m_renderDevice->loadUniformBuffer(m_uniformBuffer);
-		m_renderDevice->loadImageBuffer(m_textureImage);
-		m_renderDevice->setDescriptors();
-
-		if (canvas) m_renderDevice->loadCanvas(canvas);
-
-		for (auto buffer : m_vertexBuffers) {
-			m_renderDevice->loadVertexBuffer(buffer);
-		}
+		m_renderDevice.destroy();
 	}
 }

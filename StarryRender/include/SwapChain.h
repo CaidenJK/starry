@@ -31,6 +31,13 @@ namespace StarryRender
 		}
 	};
 
+	class Device;
+
+	struct SwapChainConstructInfo
+	{
+		uint64_t windowUUID;
+	};
+
 	class SwapChain : public StarryAsset {
 		public:
 			struct SwapChainSupportDetails {
@@ -48,13 +55,17 @@ namespace StarryRender
 			SwapChain operator=(const SwapChain&) = delete;
 			SwapChain(const SwapChain&) = delete;
 
-			void constructSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, VkSurfaceKHR& surface);
+			void init(uint64_t deviceUUID, SwapChainConstructInfo info);
+			void destroy();
+
+			void constructSwapChain();
 			void generateFramebuffers(VkRenderPass& renderPass);
+
+			void needRecreate();
+			bool shouldRecreate() { return recreate; }
 
 			std::vector<VkFramebuffer>& getFramebuffers() { return swapChainFramebuffers; }
 			VkSwapchainKHR& getSwapChain() { return swapChain; }
-
-
 			std::array<VkFormat, 2>& getImageFormats() { return imageFormats; }
 			VkExtent2D& getExtent() { return swapChainExtent; }
 			size_t getImageCount() { return swapChainImageBuffers.size(); }
@@ -63,7 +74,9 @@ namespace StarryRender
 
 			static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface);
 		private:
-			void createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, const std::weak_ptr<Window>& windowReference, VkSurfaceKHR& surface);
+			bool recreate = true;
+
+			void createSwapChain(SwapChainSupportDetails& swapChainSupport, QueueFamilyIndices& indices, VkSurfaceKHR& surface);
 			void createImageViews();
 
 			static VkFormat findSupportedFormat(VkPhysicalDevice& device, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -77,7 +90,7 @@ namespace StarryRender
 
 			VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 			VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-			VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, const std::weak_ptr<Window>& windowReference);
+			VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 
 			VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 
@@ -93,6 +106,7 @@ namespace StarryRender
 
 			std::vector<VkFramebuffer> swapChainFramebuffers;
 
-			ResourceHandle<VkDevice> device{};
+			ResourceHandle<Device> device{};
+			ResourceHandle<Window> window{};
 	};
 }

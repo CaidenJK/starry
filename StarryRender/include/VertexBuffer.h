@@ -10,7 +10,7 @@
 #include <vector>
 #include <array>
 
-#include "Buffer.h"
+#include <StarryManager.h>
 
 // Helpful debug colors
 #define RED_COLOR glm::vec3(1.0f, 0.0f, 0.0f)
@@ -36,13 +36,19 @@ namespace StarryRender
 		static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions();
 	};
 
-	class VertexBuffer : public Buffer {
+	class Device;
+
+	class VertexBuffer : public StarryAsset {
 		public:
 			VertexBuffer();
 			~VertexBuffer();
 
+			void init(uint64_t deviceUUID);
+			void destroy();
+
+			void add(VertexBuffer& other);
+
 			void loadData(const std::vector<Vertex>& verticiesInput, const std::vector<uint32_t>& indiciesInput);
-			void loadBufferToMemory();
 
 			size_t getNumVertices() { return vertices.empty() ? 0 : vertices.size(); }
 			size_t getNumIndices() { return indices.empty() ? 0 : indices.size(); }
@@ -52,6 +58,10 @@ namespace StarryRender
 			ASSET_NAME("Vertex Buffer")
 
 		private:
+			bool isReady = false;
+
+			void loadBufferToMemory();
+
 			void createVertexBuffer();
 			void createIndexBuffer();
 
@@ -74,6 +84,8 @@ namespace StarryRender
 
 			VkDeviceSize bufferSizeVertex = 0;
 			VkDeviceSize bufferSizeIndex = 0;
+
+			ResourceHandle<Device> device;
 	};
 }
 

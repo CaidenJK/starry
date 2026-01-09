@@ -11,19 +11,29 @@
 
 namespace StarryRender 
 {
+	class Device;
+
+	struct ShaderConstructInfo
+	{
+		std::string& vertexShaderPath;
+		std::string& fragmentShaderPath;
+	};
+
 	class Shader : public StarryAsset {
 		public:
-			Shader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+			Shader();
 			~Shader();
+
+			void init(uint64_t deviceUUID, ShaderConstructInfo info);
+			void destroy();
 
 			std::array<VkPipelineShaderStageCreateInfo, 2>& getShaderStages() { return shaderStages; }
 
 			ASSET_NAME("Shader")
 
 		private:
-			static VkShaderModule createShaderModule(VkDevice& device, const std::vector<char>& code, bool& error);
-
-			static std::vector<char> readFile(const std::string& filename, bool& error);
+			VkShaderModule createShaderModule(const std::vector<char>& code, bool& error);
+			std::vector<char> readFile(const std::string& filename, bool& error);
 
 			void initShader();
 
@@ -32,8 +42,8 @@ namespace StarryRender
 			void loadVertexShaderFromFile();
 			void loadFragmentShaderFromFile();
 
-			const std::string vertexShaderPath;
-			const std::string fragmentShaderPath;
+			std::string vertexShaderPath;
+			std::string fragmentShaderPath;
 
 			std::vector<char> vertexShaderCode = {};
 			std::vector<char> fragmentShaderCode = {};
@@ -43,6 +53,6 @@ namespace StarryRender
 
 			std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages = {};
 
-			ResourceHandle<VkDevice> device{};
+			ResourceHandle<Device> device{};
 	};
 }

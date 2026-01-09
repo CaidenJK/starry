@@ -49,7 +49,7 @@ namespace Starry
 		if (!toLog || !hasMetric()) { return; }
 
 		frameMetric.timeSinceFlush = 0;
-		registerAlert("Current FPS: " + std::to_string(getFPS()), INFO_URGANT);
+		Alert("Current FPS: " + std::to_string(getFPS()), INFO_URGANT);
 	}
 	int Timer::getFPS() 
 	{

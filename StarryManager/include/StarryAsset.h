@@ -11,6 +11,8 @@
 #include <cstdint>
 #include <chrono>
 
+#include "Resource.h"
+
 #define INVALID_RESOURCE 400
 
 #define ASSET_NAME(x) const std::string getAssetName() override { return x; }
@@ -51,8 +53,9 @@ namespace StarryManager
 
 		void resetAlert();
 
-		virtual std::optional<void*> getResource(const size_t resourceID, const std::vector<size_t> resourceArgs) { return {}; }
-		virtual size_t getResourceIDFromString(const std::string resourceName) { return INVALID_RESOURCE; }
+		void resourceAsk(ResourceAsk& ask);
+		
+		virtual void askCallback(ResourceAsk& ask) {}
 		
 		template <typename T> 
 		ResourceHandle<T> requestResource(uint64_t senderID, std::string resourceName, std::vector<size_t> resourceArgs);
@@ -78,9 +81,11 @@ namespace StarryManager
 	protected:
 		StarryAsset();
 		StarryAsset(bool autoRegister);
-		virtual void registerAlert(const std::string& message, CallSeverity severity);
+		virtual void Alert(const std::string& message, CallSeverity severity);
 
 		static uint64_t generateUUID();
+
+		std::vector<ResourceAsk> asks;
 
 	private:
 		static std::mt19937_64 randomGen;

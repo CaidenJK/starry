@@ -7,7 +7,7 @@ namespace StarryRender
 	void GLFWDebugger::registerDebugAlert(int error, const char* description)
 	{
 		std::string message = std::string("Code: ") + std::to_string(error) + "| " + description;
-		registerAlert(message, FATAL);
+		Alert(message, FATAL);
 	}
 
 	Window::Window(const char* title)
@@ -27,7 +27,7 @@ namespace StarryRender
 		glfwSetErrorCallback(glfwErrorCallback);
 
 		if (!glfwInit()) {
-			registerAlert("GLFW initialization failed!", FATAL);
+			Alert("GLFW initialization failed!", FATAL);
 			return;
 		}
 
@@ -37,7 +37,7 @@ namespace StarryRender
 
 		if (!window) {
 			glfwTerminate();
-			registerAlert("GLFW failed to create window!", FATAL);
+			Alert("GLFW failed to create window!", FATAL);
 			return;
 		}
 
@@ -63,7 +63,7 @@ namespace StarryRender
 	void Window::createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface) 
 	{
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
-			registerAlert("Failed to create window surface!", FATAL);
+			Alert("Failed to create window surface!", FATAL);
 			return;
 		}
 	}

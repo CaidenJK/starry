@@ -1,45 +1,42 @@
 #include "TextureImage.h"
 
+#include "Device.h"
+
 namespace StarryRender
 {
     TextureImage::TextureImage()
     {
-        device = requestResource<VkDevice>("Render Device", "VkDevice");
     }
 
     TextureImage::~TextureImage()
     {
+        destroy();
+    }
+
+    void TextureImage::init(uint64_t deviceUUID)
+    {
+        ImageBuffer::init(deviceUUID);
+
+        loadFromFile();
+    }
+
+    void TextureImage::destroy()
+    {
+        ImageBuffer::destroy();
+
         if (device) {
-            if (imageSampler != VK_NULL_HANDLE) vkDestroySampler(*device, imageSampler, nullptr);
+            if (imageSampler != VK_NULL_HANDLE) vkDestroySampler((*device).getDevice(), imageSampler, nullptr);
         }
     }
 
-    std::optional<void*> TextureImage::getResource(size_t resourceID, std::vector<size_t> resourceArgs)
+    VkDescriptorImageInfo TextureImage::getDescriptorInfo(int image)
     {
-        if (resourceID == SharedResources::IMAGE_VIEW &&
-            imageView != VK_NULL_HANDLE) {
-            return (void*)&imageView;
-        }
+        VkDescriptorImageInfo imageInfo{};
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        imageInfo.imageView = imageView;
+        imageInfo.sampler = imageSampler;
 
-        if (resourceID == SharedResources::SAMPLER &&
-            imageSampler != VK_NULL_HANDLE) {
-            return (void*)&imageSampler;
-        }
-
-        registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
-		return {};
-    }
-
-	size_t TextureImage::getResourceIDFromString(const std::string resourceName)
-    {
-        if (resourceName.compare("Image View") == 0) {
-            return SharedResources::IMAGE_VIEW;
-        }
-        if (resourceName.compare("Sampler") == 0) {
-            return SharedResources::SAMPLER;
-        }
-
-        return INVALID_RESOURCE;
+        return imageInfo;
     }
     
     void TextureImage::loadFromFile()
@@ -47,7 +44,7 @@ namespace StarryRender
         file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::IMAGE | Flags::READ, 4});
 
         if (file.wait() != ResourceState::YES) {
-            registerAlert("Failed to load image from file!", CRITICAL);
+            Alert("Failed to load image from file!", CRITICAL);
             return;
         }
         auto imageFile = dynamic_cast<ImageFile*>(*file);
@@ -69,8 +66,8 @@ namespace StarryRender
 
         generateMipmaps(VK_FORMAT_R8G8B8A8_SRGB, imageFile->width, imageFile->height, mipLevels);
 
-        vkDestroyBuffer(*device, stagingBuffer, nullptr);
-        vkFreeMemory(*device, stagingBufferMemory, nullptr);
+        vkDestroyBuffer((*device).getDevice(), stagingBuffer, nullptr);
+        vkFreeMemory((*device).getDevice(), stagingBufferMemory, nullptr);
         stagingBuffer = VK_NULL_HANDLE, stagingBufferMemory = VK_NULL_HANDLE;
 
         createImageView(VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_ASPECT_COLOR_BIT, mipLevels);
@@ -81,17 +78,17 @@ namespace StarryRender
 
     void TextureImage::loadImageToMemory(VkDeviceSize imageSize, ImageFile* file)
     {
-        createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+        (*device).createBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
 
         if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
             return;
 		}
 
         void* data;
-        vkMapMemory(*device, stagingBufferMemory, 0, imageSize, 0, &data);
+        vkMapMemory((*device).getDevice(), stagingBufferMemory, 0, imageSize, 0, &data);
         memcpy(data, file->pixels, static_cast<size_t>(imageSize));
-        vkUnmapMemory(*device, stagingBufferMemory);
+        vkUnmapMemory((*device).getDevice(), stagingBufferMemory);
     }
 
     void TextureImage::createSampler()
@@ -105,12 +102,8 @@ namespace StarryRender
         samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
         samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 
-        if (physicalDevice.wait() != ResourceState::YES) {
-            registerAlert("Physical Device died before it was ready to be used.", FATAL);
-            return;
-        }
         VkPhysicalDeviceProperties properties{};
-        vkGetPhysicalDeviceProperties(*physicalDevice, &properties);
+        vkGetPhysicalDeviceProperties((*device).getPhysicalDevice(), &properties); // Expose this struct instead of physicalDevice
 
         samplerInfo.anisotropyEnable = VK_TRUE;
         samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
@@ -126,8 +119,8 @@ namespace StarryRender
         samplerInfo.maxLod = VK_LOD_CLAMP_NONE;
         samplerInfo.mipLodBias = 0.0f;
 
-        if (vkCreateSampler(*device, &samplerInfo, nullptr, &imageSampler) != VK_SUCCESS) {
-            registerAlert("Failed to create texture sampler!", FATAL);
+        if (vkCreateSampler((*device).getDevice(), &samplerInfo, nullptr, &imageSampler) != VK_SUCCESS) {
+            Alert("Failed to create texture sampler!", FATAL);
             return;
         }
     }

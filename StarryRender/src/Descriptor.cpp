@@ -2,7 +2,7 @@
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
-#include "UniformBuffer.h"
+#include "Device.h"
 
 #include <array>
 
@@ -10,19 +10,28 @@ namespace StarryRender
 {
     Descriptor::Descriptor()
     {
-        device = requestResource<VkDevice>("Render Device", "VkDevice");
-
-        ERROR_VOLATILE(createDescriptorSetLayout());
-        createDescriptorPool();
     }
 
     Descriptor::~Descriptor()
     {
-        if (device) {
-            vkDestroyDescriptorPool(*device, descriptorPool, nullptr);
-		    vkDestroyDescriptorSetLayout(*device, descriptorSetLayout, nullptr);
-        }
+		destroy();
     }
+
+	void Descriptor::init(uint64_t deviceUUID)
+	{
+		device = requestResource<Device>(deviceUUID, "self");
+
+		createDescriptorSetLayout();
+		createDescriptorPool();
+	}
+
+	void Descriptor::destroy()
+	{
+		if (device) {
+			vkDestroyDescriptorPool((*device).getDevice(), descriptorPool, nullptr);
+			vkDestroyDescriptorSetLayout((*device).getDevice(), descriptorSetLayout, nullptr);
+		}
+	}
 
     void Descriptor::createDescriptorSetLayout()
 	{
@@ -48,11 +57,11 @@ namespace StarryRender
 		layoutInfo.pBindings = bindings.data();
 		
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		if (vkCreateDescriptorSetLayout(*device, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-			registerAlert("Failed to create descriptor set layout!", FATAL);
+		if (vkCreateDescriptorSetLayout((*device).getDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+			Alert("Failed to create descriptor set layout!", FATAL);
 		}
 	}
 
@@ -74,35 +83,33 @@ namespace StarryRender
 		poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT) * 2;
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		if (vkCreateDescriptorPool(*device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-			registerAlert("Failed to create descriptor pool!", FATAL);
+		if (vkCreateDescriptorPool((*device).getDevice(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+			Alert("Failed to create descriptor pool!", FATAL);
 			return;
 		}
 	}
 
-    void Descriptor::createSets(uint64_t uniformBufferUUID, uint64_t imageTextureID)
+    void Descriptor::createDescriptorSets(uint64_t ubUUID, uint64_t txUUID)
     {
-        auto uniformBuffers = requestResource<std::vector<VkBuffer>>(uniformBufferUUID, "VkBuffers");
+       /* auto uniformBuffers = requestResource<std::vector<VkBuffer>>(uniformBufferUUID, "VkBuffers");
         auto textureImageView = requestResource<VkImageView>(imageTextureID, "Image View");
         auto textureSampler = requestResource<VkSampler>(imageTextureID, "Sampler");
 
         if (uniformBuffers.wait() != ResourceState::YES || 
             textureImageView.wait() != ResourceState::YES || 
             textureSampler.wait() != ResourceState::YES) {
-            registerAlert("Supplied resources died before they were ready for use.", FATAL);
+            Alert("Supplied resources died before they were ready for use.", FATAL);
             return;
-        }
+        } */
 
-        createDescriptorSets(*uniformBuffers, *textureImageView, *textureSampler);
-    }
+		auto ub = requestResource<UniformBuffer*>(ubUUID, "self");
+		auto tx = requestResource<TextureImage*>(txUUID, "self");
 
-	void Descriptor::createDescriptorSets(std::vector<VkBuffer>& uniformBuffers, VkImageView& textureImageView, VkSampler& textureSampler)
-	{
 		if (descriptorPool == VK_NULL_HANDLE || descriptorSetLayout == VK_NULL_HANDLE) {
-			registerAlert("Descriptor pool or set layout not ready before allocating descriptor sets.", FATAL);
+			Alert("Descriptor pool or set layout not ready before allocating descriptor sets.", FATAL);
 			return;
 		}
 
@@ -117,24 +124,22 @@ namespace StarryRender
 		descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
-		if (vkAllocateDescriptorSets(*device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-			registerAlert("Failed to allocate descriptor sets!", FATAL);
+		if (vkAllocateDescriptorSets((*device).getDevice(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+			Alert("Failed to allocate descriptor sets!", FATAL);
+			return;
+		}
+
+		if (ub.wait() != ResourceState::YES || tx.wait() != ResourceState::YES) {
+			Alert("Invalid buffers passed to descriptor!", FATAL);
 			return;
 		}
 
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = uniformBuffers[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(UniformBufferData);
-
-            VkDescriptorImageInfo imageInfo{};
-            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            imageInfo.imageView = textureImageView;
-            imageInfo.sampler = textureSampler;
+			auto bufferInfo = (*ub)->getDescriptorInfo(i);
+			auto imageInfo = (*tx)->getDescriptorInfo(i);
 
 			std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 			descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -147,15 +152,15 @@ namespace StarryRender
 			descriptorWrites[0].pImageInfo = nullptr; // Optional
 			descriptorWrites[0].pTexelBufferView = nullptr; // Optional
 
-            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            descriptorWrites[1].dstSet = descriptorSets[i];
-            descriptorWrites[1].dstBinding = 1;
-            descriptorWrites[1].dstArrayElement = 0;
-            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            descriptorWrites[1].descriptorCount = 1;
-            descriptorWrites[1].pImageInfo = &imageInfo;
+			descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			descriptorWrites[1].dstSet = descriptorSets[i];
+			descriptorWrites[1].dstBinding = 1;
+			descriptorWrites[1].dstArrayElement = 0;
+			descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			descriptorWrites[1].descriptorCount = 1;
+			descriptorWrites[1].pImageInfo = &imageInfo;
 
-			vkUpdateDescriptorSets(*device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+			vkUpdateDescriptorSets((*device).getDevice(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
 		}
-	}
+    }
 }

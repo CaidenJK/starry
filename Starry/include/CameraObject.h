@@ -17,7 +17,7 @@ namespace Starry
 
 			void setClippingPlanes(float nearInput, float farInput) { nearPlane = nearInput; farPlane = farInput; calculateProjectionMatrix(); }
 			void setFOV(float fovInput) { FOV = fovInput; calculateProjectionMatrix(); }
-			void setExtent(const std::array<int, 2>& dimensionsInput) { dimensions = dimensionsInput; calculateProjectionMatrix(); }
+			void setExtent(std::array<unsigned int, 2> dimensionsInput) { dimensions = dimensionsInput; calculateProjectionMatrix(); }
 
 		private:
 			void calculateProjectionMatrix();
@@ -27,6 +27,6 @@ namespace Starry
 
 			float FOV = 45.0f;
 
-			std::array<int, 2> dimensions = { 800, 600 };
+			std::array<unsigned int, 2> dimensions = { 800, 600 };
 	};
 }

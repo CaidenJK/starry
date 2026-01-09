@@ -37,20 +37,17 @@ namespace Editor
 		m_scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
 		m_window = std::make_shared<Window>("Main Window"); ERROR_HANDLER_CHECK;
 #ifdef SHADERS_PATH
-		RenderConfig config = constructRenderConfig(
+		RenderConfig config(
 			SHADERS_PATH "vert.spv",
 			SHADERS_PATH "frag.spv",
-			MSAAOptions::MSAA_8X,
-			true
+			RenderConfig::MSAAOptions::MSAA_8X,
+			{0.05, 0.05, 0.05}
 		);
 #else
 #error "SHADERS_PATH not defined!"
 #endif
 		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
 		m_renderer->setScene(m_scene);
-
-		m_interface = std::make_shared<Interface>();
-		m_renderer->loadCanvas(m_interface);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
@@ -73,7 +70,7 @@ namespace Editor
 		m_scene->pushObjects(objects); ERROR_HANDLER_CHECK;
 
 		ERROR_HANDLER_CHECK;
-		registerAlert(STARRY_INITIALIZE_SUCCESS, BANNER);
+		Alert(STARRY_INITIALIZE_SUCCESS, BANNER);
 	}
 	void Application::mainLoop() 
 	{
@@ -90,16 +87,15 @@ namespace Editor
 	void Application::cleanup() 
 	{
 		m_scene.reset();
-		m_interface.reset();
 		m_renderer.reset();
 		m_window.reset();
 
 		if (ERROR_HANDLER->isFatal()) {
-			registerAlert("\n----------> Program ended prematurly due to an error.\n", BANNER);
+			Alert("\n----------> Program ended prematurly due to an error.\n", BANNER);
 			return;
 		}
 		AssetManager::get().lock()->dumpRegisteredAssets(true);
-		registerAlert(STARRY_EXIT_SUCCESS, BANNER);
+		Alert(STARRY_EXIT_SUCCESS, BANNER);
 	}
 
 	void Application::run() 

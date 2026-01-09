@@ -52,7 +52,7 @@ namespace StarryManager
 		void checkFlush();
 		void flushCalls();
 
-		void registerAlert(const std::string& message, CallSeverity severity) override;
+		void Alert(const std::string& message, CallSeverity severity) override;
 
 		static std::string severityToString(StarryAsset::CallSeverity severity);
 

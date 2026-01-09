@@ -2,39 +2,44 @@
 
 #define ERROR_VOLATILE(x) x; if (getAlertSeverity() == FATAL) { return; }
 
+#include "Device.h"
+
 namespace StarryRender
 {
 	UniformBuffer::UniformBuffer()
 	{
-		createUniformBuffers();
 	}
 	
 	UniformBuffer::~UniformBuffer()
 	{
+		destroy();
+	}
+
+	void UniformBuffer::init(uint64_t deviceUUID)
+	{
+		device = requestResource<Device>(deviceUUID, "self");
+
+		createUniformBuffers();
+	}
+
+	void UniformBuffer::destroy()
+	{
 		if (device) {
 			for (size_t i = 0; i < uniformBuffers.size(); i++) {
-				vkDestroyBuffer(*device, uniformBuffers[i], nullptr);
-				vkFreeMemory(*device, uniformBuffersMemory[i], nullptr);
+				vkDestroyBuffer((*device).getDevice(), uniformBuffers[i], nullptr);
+				vkFreeMemory((*device).getDevice(), uniformBuffersMemory[i], nullptr);
 			}
 		}
 	}
 
-	std::optional<void*> UniformBuffer::getResource(size_t resourceID, std::vector<size_t> resourceArgs)
+	VkDescriptorBufferInfo UniformBuffer::getDescriptorInfo(int image)
 	{
-		if (resourceID == SharedResources::VK_BUFFERS) {
-			return (void*)&uniformBuffers;
-		}
+		VkDescriptorBufferInfo bufferInfo{};
+		bufferInfo.buffer = uniformBuffers[image];
+		bufferInfo.offset = 0;
+		bufferInfo.range = sizeof(UniformBufferData);
 
-		registerAlert(std::string("No matching resource: ") + std::to_string(resourceID) + " available for sharing", WARNING);
-		return {};
-	}
-
-	size_t UniformBuffer::getResourceIDFromString(std::string resourceName)
-	{
-		if (resourceName.compare("VkBuffers") == 0) {
-			return SharedResources::VK_BUFFERS;
-		}
-		return INVALID_RESOURCE;
+		return bufferInfo;
 	}
 
 	void UniformBuffer::updateUniformBuffer(uint32_t currentFrame) 
@@ -51,13 +56,13 @@ namespace StarryRender
 		uniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
 
 		if (device.wait() != ResourceState::YES) {
-			registerAlert("Device died before it was ready to be used.", FATAL);
+			Alert("Device died before it was ready to be used.", FATAL);
 			return;
 		}
 		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-			createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+			(*device).createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
 
-			vkMapMemory(*device, uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
+			vkMapMemory((*device).getDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &uniformBuffersMapped[i]);
 		}
 	}
 }

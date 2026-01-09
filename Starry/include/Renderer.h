@@ -18,13 +18,10 @@ namespace Starry
 
 			void setShaderPaths(const std::array<std::string, 2>& paths);
 
-			void Init();
-
-			void loadCanvas(std::shared_ptr<Canvas> canvas) { renderer.loadCanvas(canvas); }
-
 			void disbatchRenderer();
 			void joinRenderer();
 
+			void updateUniform(UniformBufferData data) { uniformBuffer->setData(data); }
 			std::atomic<bool>& isRenderRunning() { return renderRunning; }
 
 			RenderContext& context() { return renderer; }
@@ -37,6 +34,8 @@ namespace Starry
 
 			std::array<std::string, 2> shaderPaths = DEFAULT_SHADER_PATHS;
 			RenderContext renderer;
+
+			std::shared_ptr<UniformBuffer> uniformBuffer;
 
 			std::thread renderThread;
 			std::atomic<bool> renderRunning{ false };
