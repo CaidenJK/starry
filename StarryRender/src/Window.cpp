@@ -10,8 +10,7 @@ namespace StarryRender
 		Alert(message, FATAL);
 	}
 
-	Window::Window(const char* title)
-		: title(title), window(nullptr) 
+	Window::Window(const char* title) : title(title), window(nullptr) 
 	{
 		debugger = new GLFWDebugger;
 		initWindow();

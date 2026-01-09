@@ -18,7 +18,10 @@ namespace StarryManager
 
 	StarryAsset::~StarryAsset()
 	{
-		asks.clear();
+		for (auto& ask : asks) {
+			ask->invalidate();
+		}
+
 		if (auto mgr = AssetManager::get().lock()) mgr->unregisterAsset(uuid);
 	}
 

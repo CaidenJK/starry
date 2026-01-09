@@ -155,7 +155,7 @@ namespace StarryRender
 
 	void SwapChain::createDepthResources()
 	{
-		depthBuffer = std::make_shared<ImageBuffer>();
+		if (!depthBuffer) depthBuffer = std::make_shared<ImageBuffer>();
 		depthBuffer->init((*device).getUUID());
 
 		depthBuffer->createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, imageFormats[1], VK_IMAGE_TILING_OPTIMAL,
@@ -165,7 +165,7 @@ namespace StarryRender
 
 	void SwapChain::createColorResources()
 	{
-		colorBuffer = std::make_shared<ImageBuffer>();
+		if (!colorBuffer) colorBuffer = std::make_shared<ImageBuffer>();
 		colorBuffer->init((*device).getUUID());
 
 		colorBuffer->createImage(swapChainExtent.width, swapChainExtent.height, 1, msaaSamples, imageFormats[0], VK_IMAGE_TILING_OPTIMAL, 

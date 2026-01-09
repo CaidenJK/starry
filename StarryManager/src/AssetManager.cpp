@@ -88,11 +88,12 @@ namespace StarryManager
 
         // Mark as dead
         for (auto it = closedRequests.begin(); it != closedRequests.end(); ++it) {
-            std::scoped_lock assetLock((*it)->mutex);
+            std::scoped_lock assetLock((*it)->mutex); // it is nullptr
             if ((*it)->senderUUID == uuid) {
                 (*it)->resourceState = ResourceRequest::DEAD;
             }
         }
+        
         // remove
         std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::DEAD;});
 	}
