@@ -51,7 +51,6 @@ namespace StarryRender
             void constructImGuiInfo(Pipeline& pipeline, SwapChain& swapChain, Descriptor& descriptor);
 
             void StartDraw(); // Main thread
-            void Draw();
             void EndDraw(); // Main thread
 
             std::atomic<int> drawStage = 0;

@@ -88,7 +88,6 @@ namespace StarryRender
     void Canvas::PollEvents()
     {
         StartDraw();
-        Draw();
         EndDraw();
     }
 
@@ -102,26 +101,24 @@ namespace StarryRender
         drawStage.store(1);
     }
 
-    void Canvas::Draw()
+    void Canvas::Record(VkCommandBuffer commandBuffer) // TODO: mutex for entire function
     {
         if (drawStage.load() != 1) return;
         Display(); // User API
         ImGui::Render();
         drawData = ImGui::GetDrawData(); // store
-
-        drawStage.store(2);
-    }
-
-    void Canvas::Record(VkCommandBuffer commandBuffer) // TODO: mutex for entire function
-    {
-        if (drawStage.load() != 2) return;
         if (drawData) ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer); // Can do this without updating
-        drawStage.store(3);
+        drawStage.store(2);
+
+        /*
+            TODO: This guard allows some frames to be drawn without a gui. This appears as flickering.
+            We should write intermediete frames to a image texture and draw that if Record is skipped.
+        */
     }
 
     void Canvas::EndDraw()
     {
-        if (drawStage.load() != 3) return;
+        if (drawStage.load() != 2) return;
         ImGui::EndFrame();
         ImGui::UpdatePlatformWindows(); // Main thread
         ImGui::RenderPlatformWindowsDefault();
