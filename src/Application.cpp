@@ -35,7 +35,7 @@ namespace Editor
 	void Application::init() 
 	{
 		m_scene = std::make_shared<Scene>("Main Scene"); ERROR_HANDLER_CHECK;
-		m_window = std::make_shared<Window>("Main Window"); ERROR_HANDLER_CHECK;
+		m_window = std::make_shared<RenderWindow>("Main Window"); ERROR_HANDLER_CHECK;
 #ifdef SHADERS_PATH
 		RenderConfig config(
 			SHADERS_PATH "vert.spv",
@@ -51,7 +51,7 @@ namespace Editor
 
 		m_interface = std::make_shared<Interface>();
 		m_interface->loadTimer(m_renderer->getUUID());
-		m_renderer->loadCanvas(m_interface);
+		m_renderer->loadInterface(m_interface);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);

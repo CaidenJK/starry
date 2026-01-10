@@ -54,7 +54,7 @@ namespace StarryRender
 		RenderContext() {}
 		~RenderContext();
 
-		void Init(std::shared_ptr<Window> window, RenderConfig config);
+		void Init(std::shared_ptr<Window>& window, RenderConfig config);
 
 		void Load(std::shared_ptr<UniformBuffer>& buffer);
 		void Load(std::shared_ptr<TextureImage>& img);
@@ -83,11 +83,11 @@ namespace StarryRender
 
 		std::weak_ptr<Window> m_window;
 
-		Device m_renderDevice;
-		Pipeline m_renderPipeline;
-		SwapChain m_renderSwapchain;
-		Shader m_shaders;
-		Descriptor m_descriptor;
+		Device m_renderDevice{};
+		Pipeline m_renderPipeline{};
+		SwapChain m_renderSwapchain{};
+		Shader m_shaders{};
+		Descriptor m_descriptor{};
 
 		// extern
 		std::weak_ptr<VertexBuffer> m_buffer;

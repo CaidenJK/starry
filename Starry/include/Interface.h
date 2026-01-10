@@ -1,10 +1,13 @@
 #pragma once
 
-#include <Starry.h>
+#include <StarryManager.h>
+#include <StarryRender.h>
 
-namespace Editor
+#include "Timer.h"
+
+namespace Starry
 {
-    class Interface : public Canvas
+    class STARRY_API Interface : public Canvas
     {
         public:
             Interface();
@@ -14,7 +17,7 @@ namespace Editor
 
             const std::string getAssetName() override { return "Interface"; }
         private:
-            void Display() override;
+            virtual void Display() override;
 
             void Overlay(std::string message);
             ResourceHandle<Timer> timer;

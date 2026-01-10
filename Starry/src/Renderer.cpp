@@ -7,9 +7,10 @@
 
 namespace Starry
 {
-	Renderer::Renderer(std::shared_ptr<Window>& windowRef, RenderConfig config)
+	Renderer::Renderer(std::shared_ptr<RenderWindow>& windowRef, RenderConfig config)
 	{
-		renderer.Init(windowRef, config); EXTERN_ERROR(renderer);
+		auto ptr = windowRef->getWindow();
+		renderer.Init(ptr, config); EXTERN_ERROR(renderer);
 		uniformBuffer = std::make_shared<UniformBuffer>();
 	}
 
@@ -28,9 +29,10 @@ namespace Starry
 		}
 	}
 
-	void Renderer::loadCanvas(std::shared_ptr<Canvas> cnvs)
+	void Renderer::loadInterface(std::shared_ptr<Interface>& cnvs)
 	{
-		renderer.Load(cnvs);
+		auto ptr = static_pointer_cast<Canvas>(cnvs);
+		renderer.Load(ptr);
 	}
 
 	void Renderer::disbatchRenderer()

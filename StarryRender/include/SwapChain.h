@@ -71,7 +71,7 @@ namespace StarryRender
 
 			ASSET_NAME("Swapchain")
 
-			static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface);
+			static SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR surface);
 		private:
 			bool recreate = true;
 

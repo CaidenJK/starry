@@ -4,6 +4,8 @@
 #include <StarryRender.h>
 
 #include "Timer.h"
+#include "RenderWindow.h"
+#include "Interface.h"
 
 namespace Starry
 {
@@ -11,11 +13,11 @@ namespace Starry
 
 	class STARRY_API Renderer : public StarryAsset {
 		public:
-			Renderer(std::shared_ptr<Window>& windowRef, RenderConfig config);
+			Renderer(std::shared_ptr<RenderWindow>& windowRef, RenderConfig config);
 			~Renderer();
 
-			void setScene(std::shared_ptr<Scene> scene) { activeScene = scene; }
-			void loadCanvas(std::shared_ptr<Canvas> cnvs);
+			void setScene(std::shared_ptr<Scene>& scene) { activeScene = scene; }
+			void loadInterface(std::shared_ptr<Interface>& cnvs);
 
 			void setShaderPaths(const std::array<std::string, 2>& paths);
 
@@ -35,7 +37,7 @@ namespace Starry
 			void renderLoop();
 
 			std::array<std::string, 2> shaderPaths = DEFAULT_SHADER_PATHS;
-			RenderContext renderer;
+			RenderContext renderer{};
 
 			std::thread renderThread;
 			std::atomic<bool> renderRunning{ false };

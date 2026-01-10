@@ -1,6 +1,6 @@
 #include "Interface.h"
 
-namespace Editor
+namespace Starry
 {
     Interface::Interface()
     {

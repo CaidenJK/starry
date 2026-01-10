@@ -233,13 +233,13 @@ namespace StarryRender
 		}
 	}
 
-	SwapChain::SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR& surface) 
+	SwapChain::SwapChainSupportDetails SwapChain::querySwapChainSupport(VkPhysicalDevice& device, VkSurfaceKHR surface) 
 	{
 		SwapChainSupportDetails details;
 
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
 
-		uint32_t formatCount;
+		uint32_t formatCount = 0;
 		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, nullptr);
 
 		if (formatCount != 0) {

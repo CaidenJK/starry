@@ -14,6 +14,7 @@ namespace StarryRender
 	{
 		debugger = new GLFWDebugger;
 		initWindow();
+		Alert(std::to_string(glfwVulkanSupported()), CRITICAL);
 	}
 
 	Window::~Window() 
@@ -64,6 +65,7 @@ namespace StarryRender
 
 	void Window::createVulkanSurface(VkInstance& instance, VkSurfaceKHR& surface) 
 	{
+		Alert(std::to_string(glfwVulkanSupported()), CRITICAL);
 		if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS) {
 			Alert("Failed to create window surface!", FATAL);
 			return;

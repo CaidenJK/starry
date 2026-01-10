@@ -26,7 +26,7 @@ namespace StarryRender {
 		}
 	}
 
-	void RenderContext::Init(std::shared_ptr<Window> window, RenderConfig config)
+	void RenderContext::Init(std::shared_ptr<Window>& window, RenderConfig config)
 	{
 		m_config = config;
 		auto deviceConfig = DeviceConfig{ m_config.msaaSamples, m_config.clearColor, window};
