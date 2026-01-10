@@ -2,6 +2,8 @@
 
 #include <Starry.h>
 
+#include "FrameMetricDisplay.h"
+
 #include <memory>
  
 namespace Editor
@@ -37,6 +39,6 @@ namespace Editor
 		std::shared_ptr<RenderWindow> m_window = nullptr;
         std::shared_ptr<Scene> m_scene = nullptr;
 
-        std::shared_ptr<Interface> m_interface = nullptr;
+        std::shared_ptr<FrameMetricDisplay> m_metricDisplay = nullptr;
     };
 }

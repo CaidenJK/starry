@@ -11,7 +11,12 @@ namespace Starry
 	{
 		auto ptr = windowRef->getWindow();
 		renderer.Init(ptr, config); EXTERN_ERROR(renderer);
+
 		uniformBuffer = std::make_shared<UniformBuffer>();
+
+		interface = std::make_shared<Interface>();
+		auto cnvs = static_pointer_cast<Canvas>(interface);
+		renderer.Load(cnvs);
 	}
 
 	Renderer::~Renderer()
@@ -29,10 +34,9 @@ namespace Starry
 		}
 	}
 
-	void Renderer::loadInterface(std::shared_ptr<Interface>& cnvs)
+	void Renderer::loadUIElement(std::shared_ptr<UIElement>& elmt, int drawOrder)
 	{
-		auto ptr = static_pointer_cast<Canvas>(cnvs);
-		renderer.Load(ptr);
+		interface->loadElement(elmt, drawOrder);
 	}
 
 	void Renderer::disbatchRenderer()

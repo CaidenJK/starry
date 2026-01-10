@@ -49,9 +49,10 @@ namespace Editor
 		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
 		m_renderer->setScene(m_scene);
 
-		m_interface = std::make_shared<Interface>();
-		m_interface->loadTimer(m_renderer->getUUID());
-		m_renderer->loadInterface(m_interface);
+		m_metricDisplay = std::make_shared<FrameMetricDisplay>();
+		m_metricDisplay->Init(m_renderer->getUUID());
+		auto ptr = static_pointer_cast<UIElement>(m_metricDisplay);
+		m_renderer->loadUIElement(ptr, 1);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
@@ -82,7 +83,7 @@ namespace Editor
 
 		while (!m_window->shouldClose() && m_renderer->isRenderRunning().load()) {
 			m_window->pollEvents();
-			m_interface->PollEvents();
+			m_renderer->UIPollEvents();
 		}
 		m_renderer->joinRenderer();
 	}

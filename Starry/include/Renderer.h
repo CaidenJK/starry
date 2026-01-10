@@ -17,12 +17,14 @@ namespace Starry
 			~Renderer();
 
 			void setScene(std::shared_ptr<Scene>& scene) { activeScene = scene; }
-			void loadInterface(std::shared_ptr<Interface>& cnvs);
+			void loadUIElement(std::shared_ptr<UIElement>& elmt, int drawOrder);
 
 			void setShaderPaths(const std::array<std::string, 2>& paths);
 
 			void disbatchRenderer();
 			void joinRenderer();
+			
+			void UIPollEvents() { interface->PollEvents(); }
 
 			void updateUniform(UniformBufferData data) { uniformBuffer->setData(data); }
 			std::atomic<bool>& isRenderRunning() { return renderRunning; }
@@ -45,6 +47,7 @@ namespace Starry
 			glm::mat4 modelViewProjection;
 
 			std::shared_ptr<Scene> activeScene = nullptr;
+			std::shared_ptr<Interface> interface = nullptr;
 
 			std::shared_ptr<UniformBuffer> uniformBuffer = nullptr;
 	};

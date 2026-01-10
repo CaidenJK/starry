@@ -7,19 +7,30 @@
 
 namespace Starry
 {
-    class STARRY_API Interface : public Canvas
+    class STARRY_API UIElement : public StarryAsset
+    {
+        public:
+            UIElement() = default;
+            ~UIElement() = default;
+
+            virtual void Draw() = 0;
+
+            virtual ASSET_NAME("UI Element");
+    };
+
+    class Interface : public Canvas
     {
         public:
             Interface();
             ~Interface();
 
-            void loadTimer(size_t rendererUUID);
+            void loadElement(std::shared_ptr<UIElement>& element, int drawOrder);
 
             const std::string getAssetName() override { return "Interface"; }
         private:
             virtual void Display() override;
 
-            void Overlay(std::string message);
+            std::map<int, std::shared_ptr<UIElement>> elements;
             ResourceHandle<Timer> timer;
     };
 }

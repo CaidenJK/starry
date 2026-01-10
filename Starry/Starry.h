@@ -17,7 +17,7 @@ using MeshObject = Starry::MeshObject;
 using CameraObject = Starry::CameraObject;
 using Timer = Starry::Timer;
 
-using Interface = Starry::Interface;
+using UIElement = Starry::UIElement;
 using RenderWindow = Starry::RenderWindow;
 
 #define STARRY_INCLUDE
