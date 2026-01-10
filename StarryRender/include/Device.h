@@ -17,6 +17,8 @@
 #include "TextureImage.h"
 #include "Descriptor.h"
 
+#include "Canvas.h"
+
 namespace StarryRender
 {
 	class VulkanDebugger : public StarryAsset {
@@ -47,6 +49,7 @@ namespace StarryRender
 
 		std::weak_ptr<UniformBuffer>& uniformBuffer;
 		std::weak_ptr<VertexBuffer>& vertexBuffer;
+		std::weak_ptr<Canvas>& canvas;
 	};
 
 	class Device : public StarryAsset {
@@ -89,6 +92,8 @@ namespace StarryRender
 
 		VkCommandBuffer beginSingleTimeCommands();
 		void endSingleTimeCommands(VkCommandBuffer& commandBuffer);
+
+		void fillImGuiInfo(ImGui_ImplVulkan_InitInfo* info);
 
 		ASSET_NAME("Render Device")
 

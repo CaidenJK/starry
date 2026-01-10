@@ -15,6 +15,7 @@ namespace Starry
 			~Renderer();
 
 			void setScene(std::shared_ptr<Scene> scene) { activeScene = scene; }
+			void loadCanvas(std::shared_ptr<Canvas> cnvs);
 
 			void setShaderPaths(const std::array<std::string, 2>& paths);
 
@@ -35,13 +36,13 @@ namespace Starry
 			std::array<std::string, 2> shaderPaths = DEFAULT_SHADER_PATHS;
 			RenderContext renderer;
 
-			std::shared_ptr<UniformBuffer> uniformBuffer;
-
 			std::thread renderThread;
 			std::atomic<bool> renderRunning{ false };
 
 			glm::mat4 modelViewProjection;
 
 			std::shared_ptr<Scene> activeScene = nullptr;
+
+			std::shared_ptr<UniformBuffer> uniformBuffer = nullptr;
 	};
 }

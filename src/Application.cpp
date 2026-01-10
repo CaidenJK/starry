@@ -49,6 +49,9 @@ namespace Editor
 		m_renderer = std::make_shared<Renderer>(m_window, config); ERROR_HANDLER_CHECK;
 		m_renderer->setScene(m_scene);
 
+		m_interface = std::make_shared<Interface>();
+		m_renderer->loadCanvas(m_interface);
+
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();
 		camera->setFOV(60.0f);
 
@@ -78,7 +81,7 @@ namespace Editor
 
 		while (!m_window->shouldClose() && m_renderer->isRenderRunning().load()) {
 			m_window->pollEvents();
-
+			m_interface->PollEvents();
 		}
 		m_renderer->joinRenderer();
 	}

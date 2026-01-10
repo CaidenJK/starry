@@ -21,6 +21,11 @@ namespace Starry
 		activeScene.reset();
 	}
 
+	void Renderer::loadCanvas(std::shared_ptr<Canvas> cnvs)
+	{
+		renderer.Load(cnvs);
+	}
+
 	void Renderer::disbatchRenderer()
 	{
 		if (renderer.getAlertSeverity() == FATAL) {

@@ -63,6 +63,24 @@ namespace StarryRender {
 		m_buffer = buffer;
 	}
 
+	void RenderContext::Load(std::shared_ptr<Canvas>& canvas)
+	{
+		if (auto window = m_window.lock()) {
+			CanvasConstructInfo info{
+				window->getUUID(),
+				m_renderPipeline.getUUID(),
+				m_renderSwapchain.getUUID(),
+				m_descriptor.getUUID()
+			};
+
+			canvas->init(m_renderDevice.getUUID(), info);
+			m_cnvs = canvas;
+		}
+		else {
+			Alert("Window ref is expired!", CRITICAL);
+		}
+	}
+
 	void RenderContext::Ready()
 	{
 		m_renderDevice.createDependencies({ (int)m_renderSwapchain.getImageCount() });
@@ -118,8 +136,10 @@ namespace StarryRender {
 			m_renderSwapchain,
 			m_descriptor,
 			m_ub,
-			m_buffer
+			m_buffer,
+			m_cnvs
 		};
+		
 		m_renderDevice.draw(drawInfo);
 	}
 

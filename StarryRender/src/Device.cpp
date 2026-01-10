@@ -101,6 +101,24 @@ namespace StarryRender
 		}
 	}
 
+	void Device::fillImGuiInfo(ImGui_ImplVulkan_InitInfo* info)
+	{
+		info->Instance = m_instance;
+		info->PhysicalDevice = m_physicalDevice;
+		info->Device = m_device;
+		info->QueueFamily = m_queueFamilyIndices.presentFamily.value();
+		info->Queue = m_presentQueue;
+		info->PipelineCache = nullptr;
+		info->DescriptorPool = nullptr;
+		info->MinImageCount = 2;
+		info->ImageCount = 0;
+		info->Allocator = nullptr;
+		info->PipelineInfoMain.RenderPass = nullptr;
+		info->PipelineInfoMain.Subpass = 0;
+		info->PipelineInfoMain.MSAASamples = m_config.desiredMSAASamples;
+		info->CheckVkResultFn = nullptr;
+	}
+
 	void Device::initVulkan() 
 	{
 		checkValidationLayerSupport();
@@ -603,6 +621,10 @@ namespace StarryRender
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		vkCmdDrawIndexed(commandBuffer, numberOfIndices, 1, 0, 0, 0);
+
+		if (auto canvas = info.canvas.lock()) {
+			canvas->Record(commandBuffer);
+		}
 
 		// End
 		vkCmdEndRenderPass(commandBuffer);

@@ -11,6 +11,8 @@
 #include "ImageBuffer.h"
 #include "TextureImage.h"
 
+#include "Canvas.h"
+
 #define DEFAULT_SHADER_PATHS {}
 
 namespace StarryRender
@@ -57,6 +59,8 @@ namespace StarryRender
 		void Load(std::shared_ptr<UniformBuffer>& buffer);
 		void Load(std::shared_ptr<TextureImage>& img);
 		void Load(std::shared_ptr<VertexBuffer>& buffer);
+
+		void Load(std::shared_ptr<Canvas>& canvas);
 		
 		void Ready();
 		void Draw();
@@ -89,6 +93,7 @@ namespace StarryRender
 		std::weak_ptr<VertexBuffer> m_buffer;
 		std::weak_ptr<UniformBuffer> m_ub;
 		std::weak_ptr<TextureImage> m_tx;
+		std::weak_ptr<Canvas> m_cnvs;
 	};
 
 	// call init
