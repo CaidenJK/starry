@@ -14,7 +14,7 @@ namespace Editor
 		const std::string packageName = "starry-editor";
     };
 
-    class Application : public StarryAsset {
+    class Application : public ManagedObject {
     public:
         Application() {};
         ~Application() {};
@@ -28,7 +28,7 @@ namespace Editor
 
 		static void setConfig(const ApplicationConfig& config);
 
-		ASSET_NAME("Application")
+		OBJECT_NAME("Application")
 
     private:
         void init();

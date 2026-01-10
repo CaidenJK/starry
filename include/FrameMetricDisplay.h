@@ -10,10 +10,10 @@ namespace Editor
             FrameMetricDisplay() {};
             ~FrameMetricDisplay() {};
 
-            const std::string getAssetName() override { return "Frame Metric"; }
-
             void Init(size_t rendererUUID);
             void Draw() override;
+
+            OBJECT_NAME("Frame Metric");
         private:
             void Overlay(std::string message);
 
