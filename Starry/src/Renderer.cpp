@@ -21,6 +21,13 @@ namespace Starry
 		activeScene.reset();
 	}
 
+	void Renderer::askCallback(std::shared_ptr<ResourceAsk>& ask)
+	{
+		if (ask->getID().compare("timer") == 0) {
+			ask->setResource((void*)&timer);
+		}
+	}
+
 	void Renderer::loadCanvas(std::shared_ptr<Canvas> cnvs)
 	{
 		renderer.Load(cnvs);

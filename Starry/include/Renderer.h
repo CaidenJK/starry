@@ -26,8 +26,9 @@ namespace Starry
 			std::atomic<bool>& isRenderRunning() { return renderRunning; }
 
 			RenderContext& context() { return renderer; }
-
 			Timer timer = {};
+
+			void askCallback(std::shared_ptr<ResourceAsk>& ask) override;
 
 			ASSET_NAME("Renderer")
 		private:

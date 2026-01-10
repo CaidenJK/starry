@@ -50,6 +50,7 @@ namespace Editor
 		m_renderer->setScene(m_scene);
 
 		m_interface = std::make_shared<Interface>();
+		m_interface->loadTimer(m_renderer->getUUID());
 		m_renderer->loadCanvas(m_interface);
 
 		std::shared_ptr<CameraObject> camera = std::make_shared<CameraObject>();

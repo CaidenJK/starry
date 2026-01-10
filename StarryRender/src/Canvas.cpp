@@ -110,11 +110,6 @@ namespace StarryRender
         drawData = ImGui::GetDrawData(); // store
         if (drawData) ImGui_ImplVulkan_RenderDrawData(drawData, commandBuffer); // Can do this without updating
         drawStage.store(2);
-
-        /*
-            TODO: This guard allows some frames to be drawn without a gui. This appears as flickering.
-            We should write intermediete frames to a image texture and draw that if Record is skipped.
-        */
     }
 
     void Canvas::EndDraw()

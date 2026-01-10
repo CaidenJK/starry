@@ -30,7 +30,7 @@ namespace Starry
 		}
 		currentTime = now;
 		deltaTime = delta;
-		if (frameMetric.isHot) { logFPS(); }
+		//if (frameMetric.isHot) { logFPS(); }
 	}
 	void Timer::stop() 
 	{

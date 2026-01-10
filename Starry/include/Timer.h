@@ -35,10 +35,15 @@ namespace Starry
 				return static_cast<float>(deltaTime) / static_cast<float>(FrameMetric::NANOS_IN_SECOND);
 			}
 
+			float getDeltaTimeMilliSeconds() const {
+				return static_cast<float>(deltaTime) / static_cast<float>(FrameMetric::NANOS_IN_SECOND/1000.0);
+			}
+
+			int getFPS();
+
 			ASSET_NAME("Timer")
 		private:
 			void logFPS();
-			int getFPS();
 			bool hasMetric() const {
 				return frameMetric.timeSinceFlush >= LOG_UPDATE_TIME;
 			}

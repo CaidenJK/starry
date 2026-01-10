@@ -9,6 +9,8 @@ using StarryAsset = StarryManager::StarryAsset;
 using CallSeverity = StarryManager::StarryAsset::CallSeverity;
 using AssetManager = StarryManager::AssetManager;
 using ResourceState = StarryManager::ResourceRequest::ResourceState;
+using ResourceAsk = StarryManager::ResourceAsk;
+
 using Flags = StarryManager::FileHandler::Flags;
 using RawFile = StarryManager::RawFile;
 using ImageFile = StarryManager::ImageFile;

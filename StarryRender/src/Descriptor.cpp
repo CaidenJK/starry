@@ -101,17 +101,6 @@ namespace StarryRender
 
     void Descriptor::createDescriptorSets(uint64_t ubUUID, uint64_t txUUID)
     {
-       /* auto uniformBuffers = requestResource<std::vector<VkBuffer>>(uniformBufferUUID, "VkBuffers");
-        auto textureImageView = requestResource<VkImageView>(imageTextureID, "Image View");
-        auto textureSampler = requestResource<VkSampler>(imageTextureID, "Sampler");
-
-        if (uniformBuffers.wait() != ResourceState::YES || 
-            textureImageView.wait() != ResourceState::YES || 
-            textureSampler.wait() != ResourceState::YES) {
-            Alert("Supplied resources died before they were ready for use.", FATAL);
-            return;
-        } */
-
 		auto ub = requestResource<UniformBuffer>(ubUUID, "self");
 		auto tx = requestResource<TextureImage>(txUUID, "self");
 
