@@ -7,15 +7,14 @@
 
 namespace Starry
 {
-	Renderer::Renderer(std::shared_ptr<RenderWindow>& windowRef, RenderConfig config)
+	Renderer::Renderer(std::shared_ptr<Window>& windowRef, RenderConfig config)
 	{
-		auto ptr = windowRef->getWindow();
-		renderer.Init(ptr, config); EXTERN_ERROR(renderer);
+		renderer.Init(windowRef, config); EXTERN_ERROR(renderer);
 
-		uniformBuffer = std::make_shared<UniformBuffer>();
+		Uniform = std::make_shared<Render::Uniform>();
 
 		interface = std::make_shared<Interface>();
-		auto cnvs = static_pointer_cast<Canvas>(interface);
+		auto cnvs = static_pointer_cast<Render::Canvas>(interface);
 		renderer.Load(cnvs);
 	}
 
@@ -27,7 +26,7 @@ namespace Starry
 		activeScene.reset();
 	}
 
-	void Renderer::askCallback(std::shared_ptr<ResourceAsk>& ask)
+	void Renderer::askCallback(std::shared_ptr<Manager::ResourceAsk>& ask)
 	{
 		if (ask->getID().compare("timer") == 0) {
 			ask->setResource((void*)&timer);
@@ -48,7 +47,7 @@ namespace Starry
 
 		activeScene->loadObjects(this); EXTERN_ERROR_PTR(activeScene);
 
-		renderer.Load(uniformBuffer);
+		renderer.Load(Uniform);
 		renderer.Ready(); EXTERN_ERROR(renderer);
 
 		renderRunning.store(true);
@@ -78,7 +77,7 @@ namespace Starry
 				renderRunning.store(false);
 				continue;
 			}
-			if (AssetManager::get().lock()->isFatal()) {
+			if (Manager::AssetManager::get().lock()->isFatal()) {
 				renderRunning.store(false);
 				continue;
 			}
@@ -91,7 +90,7 @@ namespace Starry
 				renderRunning.store(false);
 				continue;
 			}
-			if (AssetManager::get().lock()->isFatal()) {
+			if (Manager::AssetManager::get().lock()->isFatal()) {
 				renderRunning.store(false);
 				continue;
 			}

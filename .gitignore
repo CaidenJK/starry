@@ -18,6 +18,7 @@ scrap/
 .vscode/
 Dependencies/
 build/
+bin/
 tests/
 
 # User-specific files (MonoDevelop/Xamarin Studio)

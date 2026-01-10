@@ -1,4 +1,4 @@
-# Add project
+# ------------------------------- Project Settings -------------------------------
 cmake_minimum_required (VERSION 3.10)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -9,16 +9,23 @@ set(VERSION "0.0.6")
 
 project(${PROJECT_NAME} VERSION ${VERSION} LANGUAGES C CXX)
 
-set(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/out")
-
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${BUILD_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${BUILD_DIR}/bin)
+set(LIBRARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/bin/${CMAKE_SYSTEM_NAME}")
+set(INTERMEDITE_DIR "int")
+set(STATIC_DIR "${LIBRARY_DIR}/lib")
+set(SHARED_DIR "${LIBRARY_DIR}/dyn")
+set(EXPORT_DIR "${LIBRARY_DIR}/export")
+set(INSTALL_DIR "${LIBRARY_DIR}/install")
 
 # Set Sources
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
-set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include")
+set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starry")
 
 FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
+
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${STATIC_DIR})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SHARED_DIR})
+
+# ------------------------------- Vulkan -------------------------------
 
 # Vulkan
 include (FindVulkan)
@@ -31,38 +38,36 @@ else()
   find_package(Vulkan REQUIRED)
 endif()
 
-add_subdirectory("${CMAKE_SOURCE_DIR}/StarryRender" "${CMAKE_CURRENT_SOURCE_DIR}/out/StarryRender")
-add_subdirectory("${CMAKE_SOURCE_DIR}/StarryManager" "${CMAKE_CURRENT_SOURCE_DIR}/out/StarryManager")
+# ------------------------------- Subdirectories -------------------------------
 
-# -------------------------
-add_library(${PROJECT_NAME} SHARED ${SOURCES})
-target_compile_definitions(${PROJECT_NAME} PRIVATE STARRY_BUILD_DLL)
-target_compile_definitions(${PROJECT_NAME} PRIVATE "VERSION=\"${VERSION}\"")
-# -------------------------
+add_subdirectory(s_manager ${INTERMEDITE_DIR}/s_manager)
+add_subdirectory(s_renderer ${INTERMEDITE_DIR}/s_renderer)
 
-target_include_directories( ${PROJECT_NAME}
-    PUBLIC
-    ${INCLUDE_DIR}
-    ${glm_SOURCE_DIR}
-    ${Vulkan_INCLUDE_DIRS}
+# ------------------------------- GLFW Shared Lib -------------------------------
+# Don't build bloat
+option(GLFW_BUILD_EXAMPLES OFF)
+option(GLFW_BUILD_TESTS OFF)
+option(GLFW_BUILD_DOCS OFF)
 
-    ${CMAKE_CURRENT_SOURCE_DIR}
+set(GLFW_LIBRARY_TYPE SHARED)
+set(GLFW_DIR "s_renderer/external/glfw")
+
+add_subdirectory(${GLFW_DIR} "${INTERMEDITE_DIR}/glfw")
+
+# ------------------------------- Lib -------------------------------
+set (MAIN_LIB starry)
+add_library(${MAIN_LIB} STATIC 
+  ${SOURCES}
+  $<TARGET_OBJECTS:s_manager>
+  $<TARGET_OBJECTS:s_renderer> 
+  $<TARGET_OBJECTS:imgui_lib> 
 )
+target_compile_definitions(${MAIN_LIB} PRIVATE STARRY_BUILD)
+target_compile_definitions(${MAIN_LIB} PRIVATE "VERSION=\"${VERSION}\"")
 
-target_include_directories( ${PROJECT_NAME}
-    INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES
-  RUNTIME_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
-  LIBRARY_OUTPUT_DIRECTORY "${BUILD_DIR}/bin"
-  ARCHIVE_OUTPUT_DIRECTORY "${BUILD_DIR}/lib"
-  OUTPUT_NAME "${PROJECT_NAME}"
-)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  set_target_properties(${PROJECT_NAME} PROPERTIES
+  set_target_properties(${MAIN_LIB} PROPERTIES
     FRAMEWORK FALSE
     MACOSX_RPATH ON
     CMAKE_CXX_VISIBILITY_PRESET hidden
@@ -70,19 +75,50 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   )
 endif()
 
-# Link Libraries
-target_link_libraries(Starry 
-    PUBLIC
-    StarryManager
-
-    glm
-    glfw
-    Vulkan::Vulkan
-
-    StarryRender
-    imgui_lib
+set_target_properties(${MAIN_LIB} PROPERTIES
+  LIBRARY_OUTPUT_DIRECTORY "${STATIC_DIR}"
+  OUTPUT_NAME "${MAIN_LIB}"
 )
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-  find_library(IOSURFACE_FRAMEWORK IOSurface)
-  target_link_libraries(Starry PRIVATE ${IOSURFACE_FRAMEWORK})
-endif()
+
+# Consume usage requirements (include dirs, compile defs, etc.)
+# from the object libraries s_manager and s_renderer.
+target_link_libraries(${MAIN_LIB}
+  PUBLIC
+    s_manager
+    s_renderer
+)
+
+target_include_directories(${MAIN_LIB}
+  PUBLIC
+    $<BUILD_INTERFACE:${INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/s_renderer>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/s_manager>
+
+    $<INSTALL_INTERFACE:include>
+    $<INSTALL_INTERFACE:../../../include>
+    $<INSTALL_INTERFACE:../../../s_renderer/include>
+    $<INSTALL_INTERFACE:../../../s_renderer/external/glfw/include>
+    $<INSTALL_INTERFACE:../../../s_renderer/external/glm>
+    $<INSTALL_INTERFACE:../../../s_renderer/external/imgui>
+    $<INSTALL_INTERFACE:../../../s_renderer/external/imgui/backends>
+    $<INSTALL_INTERFACE:../../../s_manager/include>
+)
+
+# ------------------------------- Install/Export Target -------------------------------
+
+set(STARRY_TARGETS starryTargets)
+
+set(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
+
+install(TARGETS ${MAIN_LIB} s_manager s_renderer glfw
+  EXPORT ${STARRY_TARGETS}
+  ARCHIVE DESTINATION ${INSTALL_DIR}
+)
+
+install(EXPORT ${STARRY_TARGETS}
+  NAMESPACE Starry::
+  DESTINATION ${EXPORT_DIR}
+)
+
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StarryConfig.cmake"
+        DESTINATION ${EXPORT_DIR})

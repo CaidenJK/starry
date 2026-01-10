@@ -22,22 +22,22 @@ namespace Starry
 
 	void MeshObject::Destroy()
 	{
-		if (vertexBuffer != nullptr) {
-			vertexBuffer.reset();
+		if (Buffer != nullptr) {
+			Buffer.reset();
 		}
 		if (textureImage != nullptr) {
 			textureImage.reset();
 		}
 	}
 
-	void MeshObject::addVertexData(std::vector<Vertex>& verticesInput, std::vector<uint32_t> indicesInput) 
+	void MeshObject::addVertexData(std::vector<Render::Vertex>& verticesInput, std::vector<uint32_t> indicesInput) 
 	{
 		vertices = verticesInput;
 		indices = indicesInput;
 		isEmpty = vertices.empty() || indices.empty();
 
-		if (!vertexBuffer) vertexBuffer = std::make_shared<VertexBuffer>();
-		vertexBuffer->loadData(vertices, indices);
+		if (!Buffer) Buffer = std::make_shared<Render::Buffer>();
+		Buffer->loadData(vertices, indices);
 	}
 
 	void MeshObject::Register(Renderer* renderer)
@@ -47,32 +47,32 @@ namespace Starry
 			return;
 		}
 
-		renderer->context().Load(vertexBuffer);
+		renderer->context().Load(Buffer);
 		renderer->context().Load(textureImage);
 	}
 
 	void MeshObject::loadTextureFromFile(const std::string filePath)
 	{
-		textureImage = std::make_shared<TextureImage>();
+		textureImage = std::make_shared<Render::TextureImage>();
 		textureImage->storeFilePath(filePath);
 	}
 
 	void MeshObject::loadMeshFromFile(const std::string filePath)
 	{
-		auto file = Request<FILETYPE>(FILE_Request, filePath, {Flags::READ | Flags::MODEL});
+		auto file = Request<FILETYPE>(FILE_Request, filePath, {Manager::FileFlags::READ | Manager::FileFlags::MODEL});
 
-		if (file.wait() != ResourceState::YES) {
+		if (file.wait() != Manager::State::YES) {
 			Alert("Could not open mesh file.", CRITICAL);
 			return;
 		}
 
-		auto meshFile = dynamic_cast<ModelFile*>(*file);
+		auto meshFile = dynamic_cast<Manager::ModelFile*>(*file);
 
-		std::unordered_map<Vertex, uint32_t> uniqueVertices{};
+		std::unordered_map<Render::Vertex, uint32_t> uniqueVertices{};
 
 		for (const auto& shape : meshFile->shapes) {
 			for (const auto& index : shape.mesh.indices) {
-				Vertex vertex{};
+				Render::Vertex vertex{};
 				vertex.position = {
 					meshFile->attrib.vertices[3 * index.vertex_index + 0],
 					meshFile->attrib.vertices[3 * index.vertex_index + 1],
