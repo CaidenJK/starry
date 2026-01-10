@@ -22,6 +22,7 @@ namespace StarryRender
     {
         (*device).fillImGuiInfo(&guiInfo);
         guiInfo.DescriptorPool = descriptor.getPool();
+        guiInfo.MinImageCount = swapChain.getImageCount();
         guiInfo.ImageCount = swapChain.getImageCount();
         guiInfo.PipelineInfoMain.RenderPass = pipeline.getRenderPass();
     }
