@@ -20,7 +20,7 @@ namespace StarryRender
 		vertexShaderPath = info.vertexShaderPath;
 		fragmentShaderPath = info.fragmentShaderPath;
 
-		device = requestResource<Device>(deviceUUID, "self");
+		device = Request<Device>(deviceUUID, "self");
 		initShader();
 	}
 
@@ -113,7 +113,7 @@ namespace StarryRender
 
 	std::vector<char> Shader::readFile(const std::string& filename, bool& error) 
 	{
-		auto file = requestResource<FILETYPE>(FILE_REQUEST, filename, { Flags::READ | Flags::APPEND_START | Flags::BINARY });
+		auto file = Request<FILETYPE>(FILE_Request, filename, { Flags::READ | Flags::APPEND_START | Flags::BINARY });
 
 		if (file.wait() != ResourceState::YES) {
 			error = true;

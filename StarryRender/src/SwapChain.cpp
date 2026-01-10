@@ -18,8 +18,8 @@ namespace StarryRender
 
 	void SwapChain::init(uint64_t deviceUUID, SwapChainConstructInfo info)
 	{
-		device = requestResource<Device>(deviceUUID, "self");
-		window = requestResource<Window>(info.windowUUID, "self");
+		device = Request<Device>(deviceUUID, "self");
+		window = Request<Window>(info.windowUUID, "self");
 
 		constructSwapChain();
 	}

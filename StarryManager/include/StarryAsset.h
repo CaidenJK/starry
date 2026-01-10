@@ -53,25 +53,25 @@ namespace StarryManager
 
 		void resetAlert();
 
-		void resourceAsk(std::shared_ptr<ResourceRequest>& request);
+		void resourceAsk(std::shared_ptr<ResourceRequest>& Request);
 		
 		virtual void askCallback(std::shared_ptr<ResourceAsk>& ask) {}
 		
 		template <typename T> 
-		ResourceHandle<T> requestResource(size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs);
+		ResourceHandle<T> Request(size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs);
 		template <typename T> 
-		ResourceHandle<T> requestResource(std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs);
+		ResourceHandle<T> Request(std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs);
 
 		template <typename T> 
-		ResourceHandle<T> requestResource(size_t senderID, std::string resourceName)
+		ResourceHandle<T> Request(size_t senderID, std::string resourceName)
 		{
-			return requestResource<T>(senderID, resourceName, {});
+			return Request<T>(senderID, resourceName, {});
 		}
 
 		template <typename T> 
-		ResourceHandle<T> requestResource(std::string senderName, std::string resourceName)
+		ResourceHandle<T> Request(std::string senderName, std::string resourceName)
 		{
-			return requestResource<T>(senderName, resourceName, {});
+			return Request<T>(senderName, resourceName, {});
 		}
 
 		virtual const std::string getAssetName() = 0;

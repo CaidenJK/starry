@@ -88,7 +88,7 @@ namespace StarryManager
     {
         openFiles.emplace_back(createFile(ask->getID()));
 
-        //std::erase_if(openFiles, [](std::shared_ptr<RawFile>& file) { return file->dead(); }); // Need the request to signal back to sender
+        //std::erase_if(openFiles, [](std::shared_ptr<RawFile>& file) { return file->dead(); }); // Need the Request to signal back to sender
 
         if (!openFile(openFiles.back(), ask->getArguments())) {
             ask->invalidate();

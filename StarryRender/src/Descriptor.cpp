@@ -19,7 +19,7 @@ namespace StarryRender
 
 	void Descriptor::init(uint64_t deviceUUID)
 	{
-		device = requestResource<Device>(deviceUUID, "self");
+		device = Request<Device>(deviceUUID, "self");
 
 		createDescriptorSetLayout();
 		createDescriptorPool();
@@ -101,8 +101,8 @@ namespace StarryRender
 
     void Descriptor::createDescriptorSets(uint64_t ubUUID, uint64_t txUUID)
     {
-		auto ub = requestResource<UniformBuffer>(ubUUID, "self");
-		auto tx = requestResource<TextureImage>(txUUID, "self");
+		auto ub = Request<UniformBuffer>(ubUUID, "self");
+		auto tx = Request<TextureImage>(txUUID, "self");
 
 		if (descriptorPool == VK_NULL_HANDLE || descriptorSetLayout == VK_NULL_HANDLE) {
 			Alert("Descriptor pool or set layout not ready before allocating descriptor sets.", FATAL);

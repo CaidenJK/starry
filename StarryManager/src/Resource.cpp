@@ -19,31 +19,31 @@ namespace StarryManager
 
     void ResourceAsk::setResource(void* resource)
     {
-        std::scoped_lock lock(requestPointer->mutex);
-        requestPointer->resource = resource;
-        requestPointer->resourceState = ResourceRequest::ResourceState::YES;
+        std::scoped_lock lock(RequestPointer->mutex);
+        RequestPointer->resource = resource;
+        RequestPointer->resourceState = ResourceRequest::ResourceState::YES;
     }
 
     ResourceRequest::ResourceState ResourceAsk::getState()
     {
-        std::scoped_lock lock(requestPointer->mutex);
-        return requestPointer->resourceState;
+        std::scoped_lock lock(RequestPointer->mutex);
+        return RequestPointer->resourceState;
     }
 
     std::string ResourceAsk::getID()
     {
-        return requestPointer->resourceID;
+        return RequestPointer->resourceID;
     }
 
     std::vector<size_t> ResourceAsk::getArguments()
     {
-        return requestPointer->resourceArgs;
+        return RequestPointer->resourceArgs;
     }
 
     void ResourceAsk::invalidate()
     {
-        std::scoped_lock lock(requestPointer->mutex);
-        requestPointer->resource = nullptr;
-        requestPointer->resourceState = ResourceRequest::ResourceState::DEAD;
+        std::scoped_lock lock(RequestPointer->mutex);
+        RequestPointer->resource = nullptr;
+        RequestPointer->resourceState = ResourceRequest::ResourceState::DEAD;
     }
 }

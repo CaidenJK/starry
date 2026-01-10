@@ -15,11 +15,11 @@ namespace StarryRender
 
 	void Pipeline::init(uint64_t deviceUUID, PipelineConstructInfo info)
 	{
-		device = requestResource<Device>(deviceUUID, "self");
+		device = Request<Device>(deviceUUID, "self");
 
-		auto shader = requestResource<Shader>(info.shaderUUID, "self");
-		auto descriptor = requestResource<Descriptor>(info.descriptorUUID, "self");
-		auto swapChain = requestResource<SwapChain>(info.swapChainUUID, "self");
+		auto shader = Request<Shader>(info.shaderUUID, "self");
+		auto descriptor = Request<Descriptor>(info.descriptorUUID, "self");
+		auto swapChain = Request<SwapChain>(info.swapChainUUID, "self");
 
 		if (device.wait() != ResourceState::YES ||
 			shader.wait() != ResourceState::YES ||

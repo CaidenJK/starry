@@ -170,7 +170,7 @@ namespace StarryRender
 			}
 
 			if (!layerFound) {
-				Alert("Validation layer requested not available!", FATAL);
+				Alert("Validation layer Requested not available!", FATAL);
 				return;
 			}
 		}

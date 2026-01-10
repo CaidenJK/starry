@@ -41,7 +41,7 @@ namespace StarryRender
     
     void TextureImage::loadFromFile()
     {
-        file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::IMAGE | Flags::READ, 4});
+        file = Request<FILETYPE>(FILE_Request, filePath, {Flags::IMAGE | Flags::READ, 4});
 
         if (file.wait() != ResourceState::YES) {
             Alert("Failed to load image from file!", CRITICAL);

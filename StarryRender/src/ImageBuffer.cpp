@@ -16,7 +16,7 @@ namespace StarryRender
 
     void ImageBuffer::init(uint64_t deviceUUID)
     {
-        device = requestResource<Device>(deviceUUID, "self");
+        device = Request<Device>(deviceUUID, "self");
     }
 
     void ImageBuffer::destroy()

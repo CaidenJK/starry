@@ -29,12 +29,12 @@ namespace StarryRender
 
     void Canvas::init(size_t deviceUUID, CanvasConstructInfo info)
     {
-        device = requestResource<Device>(deviceUUID, "self");
-        window = requestResource<Window>(info.windowUUID, "self");
+        device = Request<Device>(deviceUUID, "self");
+        window = Request<Window>(info.windowUUID, "self");
 
-        auto pipeline = requestResource<Pipeline>(info.pipelineUUID, "self");
-        auto swapChain = requestResource<SwapChain>(info.swapChainUUID, "self");
-        auto descriptor = requestResource<Descriptor>(info.descriptorUUID, "self");
+        auto pipeline = Request<Pipeline>(info.pipelineUUID, "self");
+        auto swapChain = Request<SwapChain>(info.swapChainUUID, "self");
+        auto descriptor = Request<Descriptor>(info.descriptorUUID, "self");
 
         if (device.wait() != ResourceState::YES ||
             window.wait() != ResourceState::YES ||

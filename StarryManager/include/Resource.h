@@ -47,21 +47,21 @@ namespace StarryManager
         ResourceHandle() = default; // empty handle
         ~ResourceHandle()
         {
-            if (requestPointer && requestPointer.use_count() == 2) {
-                std::scoped_lock lock(requestPointer->mutex);
-                requestPointer->resourceState = ResourceRequest::STALE;
+            if (RequestPointer && RequestPointer.use_count() == 2) {
+                std::scoped_lock lock(RequestPointer->mutex);
+                RequestPointer->resourceState = ResourceRequest::STALE;
             }
         }
 
         ResourceHandle(const ResourceHandle& handle) noexcept
         {
-            requestPointer = handle.requestPointer;
+            RequestPointer = handle.RequestPointer;
             resourcePointer = handle.resourcePointer;
         }
 
         ResourceHandle& operator=(const ResourceHandle& handle) noexcept
         {
-            requestPointer = handle.requestPointer;
+            RequestPointer = handle.RequestPointer;
             resourcePointer = handle.resourcePointer;
 
             return *this;
@@ -69,21 +69,21 @@ namespace StarryManager
 
         std::optional<T*> get()
         {
-            std::scoped_lock lock(requestPointer->mutex);
-            if (requestPointer->resourceState == ResourceRequest::YES) return resourcePointer;
+            std::scoped_lock lock(RequestPointer->mutex);
+            if (RequestPointer->resourceState == ResourceRequest::YES) return resourcePointer;
             return {};
         }
 
-        ResourceRequest::ResourceState request()
+        ResourceRequest::ResourceState Request()
         {
-            if (!requestPointer) return ResourceRequest::STALE;
-            std::scoped_lock lock(requestPointer->mutex);
-            auto state = requestPointer->resourceState;
+            if (!RequestPointer) return ResourceRequest::STALE;
+            std::scoped_lock lock(RequestPointer->mutex);
+            auto state = RequestPointer->resourceState;
             if (state == ResourceRequest::YES && resourcePointer == nullptr) {
-                resourcePointer = static_cast<T*>(requestPointer->resource); // Need type checking
+                resourcePointer = static_cast<T*>(RequestPointer->resource); // Need type checking
 
                 if (resourcePointer == nullptr) {
-                    requestPointer->resourceState = ResourceRequest::STALE;
+                    RequestPointer->resourceState = ResourceRequest::STALE;
                     return ResourceRequest::STALE;
                 }
             }
@@ -92,13 +92,13 @@ namespace StarryManager
 
         bool hasRequest()
         {
-            return request() == ResourceRequest::ResourceState::YES;
+            return Request() == ResourceRequest::ResourceState::YES;
         }
 
         [[nodiscard]] ResourceRequest::ResourceState wait() {
             volatile ResourceRequest::ResourceState state;
             do {
-                state = request();
+                state = Request();
             }
             while (state == ResourceRequest::ResourceState::NO);
 
@@ -115,9 +115,9 @@ namespace StarryManager
         }
 
     private:
-        ResourceHandle(std::shared_ptr<ResourceRequest> reference) : requestPointer(reference) {}
+        ResourceHandle(std::shared_ptr<ResourceRequest> reference) : RequestPointer(reference) {}
 
-        std::shared_ptr<ResourceRequest> requestPointer = nullptr;
+        std::shared_ptr<ResourceRequest> RequestPointer = nullptr;
         T* resourcePointer = nullptr;
     };
 
@@ -125,7 +125,7 @@ namespace StarryManager
     class ResourceAsk
     {
         public:
-            ResourceAsk(std::shared_ptr<ResourceRequest> ref) : requestPointer(ref) {}
+            ResourceAsk(std::shared_ptr<ResourceRequest> ref) : RequestPointer(ref) {}
             ~ResourceAsk();
 
             void setResource(void* resource);
@@ -137,6 +137,6 @@ namespace StarryManager
             void invalidate();
 
         private:
-            std::shared_ptr<ResourceRequest> requestPointer = nullptr;
+            std::shared_ptr<ResourceRequest> RequestPointer = nullptr;
     };
 }

@@ -95,13 +95,13 @@ namespace StarryManager
         }
         
         // remove
-        std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::DEAD;});
+        std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& Request) { return Request->resourceState == ResourceRequest::DEAD;});
 	}
 
 	void AssetManager::updateAssetPointer(size_t uuid, StarryAsset* newPtr) 
     {
 		if (uuid == 0 || newPtr == nullptr) {
-			Alert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
+			Alert("Asset Manager received an update pointer Request to a NULL object", CRITICAL);
             return;
 		}
 
@@ -110,7 +110,7 @@ namespace StarryManager
 			it->second = newPtr;
 		}
 		else {
-			Alert("Asset Manager received an update pointer request to a NULL object", CRITICAL);
+			Alert("Asset Manager received an update pointer Request to a NULL object", CRITICAL);
             return;
 		}
 	}
@@ -167,7 +167,7 @@ namespace StarryManager
             if (hasFatal.load()) return;
             while (!resourceRequests.empty()) {
                 {
-                    std::scoped_lock requestLock(resourceRequests.front()->mutex);
+                    std::scoped_lock RequestLock(resourceRequests.front()->mutex);
                     submitAsk(resourceRequests.front());
                 }
                 if (resourceRequests.front()->resourceState == ResourceRequest::YES) {
@@ -178,31 +178,31 @@ namespace StarryManager
         }
     }
 
-    void AssetManager::submitAsk(std::shared_ptr<ResourceRequest>& request)
+    void AssetManager::submitAsk(std::shared_ptr<ResourceRequest>& Request)
     {
         std::scoped_lock lock(registeryMutex);
-        auto asset = registeredAssets.find(request->senderUUID);
+        auto asset = registeredAssets.find(Request->senderUUID);
         if (!asset->second) { // should be redundant
-            request->resourceState = ResourceRequest::DEAD;
+            Request->resourceState = ResourceRequest::DEAD;
             return;
         }
 
         // remove STALE
-        std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& request) { return request->resourceState == ResourceRequest::STALE; });
+        std::erase_if(closedRequests, [](std::shared_ptr<ResourceRequest>& Request) { return Request->resourceState == ResourceRequest::STALE; });
 
         /* TODO Implement
         // If already has
         for (auto it = closedRequests.begin(); it != closedRequests.end(); ++it) {
-            if ((*it)->senderUUID == request->senderUUID && 
-                (*it)->resourceID == request->resourceID &&
-                (*it)->resourceArgs == request->resourceArgs) {
-                request->resourceState = ResourceRequest::YES;
-                request->resource = (*it)->resource;
+            if ((*it)->senderUUID == Request->senderUUID && 
+                (*it)->resourceID == Request->resourceID &&
+                (*it)->resourceArgs == Request->resourceArgs) {
+                Request->resourceState = ResourceRequest::YES;
+                Request->resource = (*it)->resource;
                 return;
             }
         }
         */
-        asset->second->resourceAsk(request);
+        asset->second->resourceAsk(Request);
     }
 
 	void AssetManager::dumpRegisteredAssets(bool names)

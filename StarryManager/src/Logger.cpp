@@ -146,9 +146,9 @@ namespace StarryManager
 	void Logger::dumpToFile(const Logger::AssetCall& call)
 	{
 		if (!didLogToFile) {
-			requestResource<FILETYPE>(FILE_REQUEST, LOG_PATH, {FileHandler::CREATE_DIR});
+			Request<FILETYPE>(FILE_Request, LOG_PATH, {FileHandler::CREATE_DIR});
 		}
-		auto file = requestResource<FILETYPE>(FILE_REQUEST, LOG_FILE, {FileHandler::Flags::WRITE | FileHandler::Flags::APPEND_EACH});
+		auto file = Request<FILETYPE>(FILE_Request, LOG_FILE, {FileHandler::Flags::WRITE | FileHandler::Flags::APPEND_EACH});
 		
 		if (file.wait() != ResourceRequest::ResourceState::YES) {
 			Alert("Couldn't open Log File!", FATAL);

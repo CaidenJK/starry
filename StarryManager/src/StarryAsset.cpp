@@ -25,13 +25,13 @@ namespace StarryManager
 		if (auto mgr = AssetManager::get().lock()) mgr->unregisterAsset(uuid);
 	}
 
-	void StarryAsset::resourceAsk(std::shared_ptr<ResourceRequest>& request)
+	void StarryAsset::resourceAsk(std::shared_ptr<ResourceRequest>& Request)
 	{
 		// remove STALE
 		std::erase_if(asks, [](std::shared_ptr<ResourceAsk>& ask) { return ask->getState() == ResourceRequest::STALE; });
 
-		asks.emplace_back(std::make_shared<ResourceAsk>(request)); 
-		if (request->resourceID.compare("self") == 0) {
+		asks.emplace_back(std::make_shared<ResourceAsk>(Request)); 
+		if (Request->resourceID.compare("self") == 0) {
 			asks.back()->setResource((void*)this);
 		}
 		else {

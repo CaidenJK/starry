@@ -59,7 +59,7 @@ namespace Starry
 
 	void MeshObject::loadMeshFromFile(const std::string filePath)
 	{
-		auto file = requestResource<FILETYPE>(FILE_REQUEST, filePath, {Flags::READ | Flags::MODEL});
+		auto file = Request<FILETYPE>(FILE_Request, filePath, {Flags::READ | Flags::MODEL});
 
 		if (file.wait() != ResourceState::YES) {
 			Alert("Could not open mesh file.", CRITICAL);

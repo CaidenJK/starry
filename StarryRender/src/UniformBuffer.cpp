@@ -17,7 +17,7 @@ namespace StarryRender
 
 	void UniformBuffer::init(uint64_t deviceUUID)
 	{
-		device = requestResource<Device>(deviceUUID, "self");
+		device = Request<Device>(deviceUUID, "self");
 
 		createUniformBuffers();
 	}

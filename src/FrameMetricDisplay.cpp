@@ -4,7 +4,7 @@ namespace Editor
 {
     void FrameMetricDisplay::Init(size_t rendererUUID)
     {
-        timer = requestResource<Timer>(rendererUUID, "timer");
+        timer = Request<Timer>(rendererUUID, "timer");
         auto code = timer.wait();
     }
     void FrameMetricDisplay::Draw()

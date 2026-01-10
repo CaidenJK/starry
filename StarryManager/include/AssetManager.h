@@ -32,13 +32,13 @@ namespace StarryManager
             void setExitRights(bool value) { hasExitRights.store(value); }
 
             template <typename T>
-            ResourceHandle<T> requestResource(size_t callerID, size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
+            ResourceHandle<T> Request(size_t callerID, size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
             {
                 std::scoped_lock lock(resourceMutex);
                 registeryMutex.lock();
                 StarryAsset* asset;
 
-                if (senderID == FILE_REQUEST) {
+                if (senderID == FILE_Request) {
                     asset = (StarryAsset*)fileHandler;
                 }
                 else {
@@ -58,7 +58,7 @@ namespace StarryManager
             }
 
             template <typename T>
-            ResourceHandle<T> requestResource(size_t callerID, std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
+            ResourceHandle<T> Request(size_t callerID, std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
             {
                 std::scoped_lock lock(resourceMutex);
                 registeryMutex.lock();
@@ -85,7 +85,7 @@ namespace StarryManager
             AssetManager(const std::string& name);
             static std::shared_ptr<AssetManager> globalPointer;
 
-            void submitAsk(std::shared_ptr<ResourceRequest>& request);
+            void submitAsk(std::shared_ptr<ResourceRequest>& Request);
 
             std::atomic<bool> hasExitRights = false;
             std::string packageName = "N/A";
@@ -112,16 +112,16 @@ namespace StarryManager
     };
 
     template <typename T> 
-	ResourceHandle<T> StarryAsset::requestResource(size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
+	ResourceHandle<T> StarryAsset::Request(size_t senderID, std::string resourceName, std::vector<size_t> resourceArgs)
     {
-        if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderID, resourceName, resourceArgs);
+        if (auto ptr = AssetManager::get().lock()) return ptr->Request<T>(uuid, senderID, resourceName, resourceArgs);
         return {};
     }
 
 	template <typename T> 
-	ResourceHandle<T> StarryAsset::requestResource(std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
+	ResourceHandle<T> StarryAsset::Request(std::string senderName, std::string resourceName, std::vector<size_t> resourceArgs)
     {
-        if (auto ptr = AssetManager::get().lock()) return ptr->requestResource<T>(uuid, senderName, resourceName, resourceArgs);
+        if (auto ptr = AssetManager::get().lock()) return ptr->Request<T>(uuid, senderName, resourceName, resourceArgs);
         return {};
     }
 }

@@ -58,7 +58,7 @@ namespace StarryRender
 
 	void VertexBuffer::init(uint64_t deviceUUID)
 	{
-		device = requestResource<Device>(deviceUUID, "self");
+		device = Request<Device>(deviceUUID, "self");
 
 		loadBufferToMemory();
 	}
