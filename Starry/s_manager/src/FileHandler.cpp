@@ -6,12 +6,13 @@
 #include "FileHandler.h"
 
 #include <filesystem>
+#include <fstream>
 
 namespace Manager
 {   
     bool RawFile::open(size_t args)
     {
-        file.open(path, args);
+        file.open(path, (std::ios_base::openmode)args);
         return (bool)file;
     }
     void RawFile::close()

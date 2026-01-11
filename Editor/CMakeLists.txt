@@ -86,3 +86,13 @@ file(TO_CMAKE_PATH "${MODEL_DIR_ABS}" MODEL_DIR_UNIX)
 target_compile_definitions(${PROJECT_NAME} PRIVATE "SHADERS_PATH=\"${SHADER_DIR_UNIX}/\"")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "IMAGE_PATH=\"${IMAGE_DIR_UNIX}/\"")
 target_compile_definitions(${PROJECT_NAME} PRIVATE "MODEL_PATH=\"${MODEL_DIR_UNIX}/\"")
+
+# ------------------------------- Copy Resources -------------------------------
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+       add_custom_command(
+        TARGET StarryEditor POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_SOURCE_DIR}/Starry/bin/Windows/dyn/glfw3.dll
+                ${EXE_DIR}/glfw3.dll)
+    endif()

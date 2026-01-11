@@ -23,7 +23,9 @@ set(INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/include/starry")
 FILE(GLOB SOURCES "${SOURCE_DIR}/*.cpp")
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${STATIC_DIR})
+
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SHARED_DIR})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SHARED_DIR})
 
 # ------------------------------- Vulkan -------------------------------
 
@@ -44,15 +46,23 @@ add_subdirectory(s_manager ${INTERMEDITE_DIR}/s_manager)
 add_subdirectory(s_renderer ${INTERMEDITE_DIR}/s_renderer)
 
 # ------------------------------- GLFW Shared Lib -------------------------------
-# Don't build bloat
+set(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
+
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 option(GLFW_BUILD_DOCS OFF)
+set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
 
 set(GLFW_LIBRARY_TYPE SHARED)
 set(GLFW_DIR "s_renderer/external/glfw")
 
 add_subdirectory(${GLFW_DIR} "${INTERMEDITE_DIR}/glfw")
+
+set_target_properties(glfw PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${SHARED_DIR}
+  LIBRARY_OUTPUT_DIRECTORY ${SHARED_DIR}
+  ARCHIVE_OUTPUT_DIRECTORY ${STATIC_DIR}
+)
 
 # ------------------------------- Lib -------------------------------
 set (MAIN_LIB starry)
@@ -94,7 +104,6 @@ target_include_directories(${MAIN_LIB}
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/s_renderer>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/s_manager>
 
-    $<INSTALL_INTERFACE:include>
     $<INSTALL_INTERFACE:../../../include>
     $<INSTALL_INTERFACE:../../../s_renderer/include>
     $<INSTALL_INTERFACE:../../../s_renderer/external/glfw/include>
@@ -108,8 +117,6 @@ target_include_directories(${MAIN_LIB}
 
 set(STARRY_TARGETS starryTargets)
 
-set(CMAKE_INSTALL_PREFIX ${INSTALL_DIR})
-
 install(TARGETS ${MAIN_LIB} s_manager s_renderer glfw
   EXPORT ${STARRY_TARGETS}
   ARCHIVE DESTINATION ${INSTALL_DIR}
@@ -122,3 +129,8 @@ install(EXPORT ${STARRY_TARGETS}
 
 install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/StarryConfig.cmake"
         DESTINATION ${EXPORT_DIR})
+
+# GLFW nonsense
+install(DIRECTORY ${GLFW_DIR}/include/GLFW
+        DESTINATION ${INSTALL_DIR}/include
+        FILES_MATCHING PATTERN "*.h")
