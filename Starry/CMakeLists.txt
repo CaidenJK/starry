@@ -90,8 +90,6 @@ set_target_properties(${MAIN_LIB} PROPERTIES
   OUTPUT_NAME "${MAIN_LIB}"
 )
 
-# Consume usage requirements (include dirs, compile defs, etc.)
-# from the object libraries s_manager and s_renderer.
 target_link_libraries(${MAIN_LIB}
   PUBLIC
     s_manager

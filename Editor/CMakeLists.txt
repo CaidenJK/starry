@@ -36,6 +36,8 @@ set(SHADER_DIR "${SOURCE_DIR}/shaders")
 get_filename_component(SHADER_DIR_ABS "${SHADER_DIR}" ABSOLUTE)
 file(TO_CMAKE_PATH "${SHADER_DIR_ABS}" SHADER_DIR_UNIX)
 
+# ------------------------------- Shaders (for now) -------------------------------
+
 set(VERT_SHADER "simple_shader.vert")
 set(FRAG_SHADER "simple_shader.frag")
 

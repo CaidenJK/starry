@@ -11,12 +11,12 @@ project(${PROJECT_NAME} VERSION ${VERSION} LANGUAGES C CXX)
 
 # ------------------------------- Options -------------------------------
 
-option(BUILD_EDITOR "Build the Editor executable" ON)
-option(BUILD_STARRY_LIB "Build the Starry library only" OFF)
+option(BUILD_EDITOR "Build the Editor exe" ON)
+option(BUILD_STARRY_LIB "Build the Starry lib" ON)
 
 # ------------------------------- Subdirectories -------------------------------
 
-if(BUILD_STARRY_LIB OR BUILD_EDITOR)
+if(BUILD_STARRY_LIB)
     add_subdirectory(Starry ${CMAKE_SOURCE_DIR}/Starry/build)
 endif()
 
