@@ -1,0 +1,6 @@
+[submodule "Starry/s_renderer"]
+	path = Starry/s_renderer
+	url = https://github.com/CaidenJK/s_renderer
+[submodule "Starry/s_manager"]
+	path = Starry/s_manager
+	url = https://github.com/CaidenJK/s_manager
