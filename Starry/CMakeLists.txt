@@ -29,8 +29,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SHARED_DIR})
 
 # ------------------------------- Guards -------------------------------
 
-if (NOT (( CMAKE_SYSTEM_NAME STREQUAL "Darwin") OR (CMAKE_SYSTEM_NAME STREQUAL "Windows")))
-  message(FATAL_ERROR "Starry only supports 64bit MacOS and Windows systems!")
+if ((NOT (( CMAKE_SYSTEM_NAME STREQUAL "Darwin") OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))) OR (NOT CMAKE_SIZEOF_VOID_P EQUAL 8))
+  message(FATAL_ERROR "Starry only supports 64-bit MacOS and Windows systems!")
 endif()
 
 # ------------------------------- Vulkan -------------------------------
