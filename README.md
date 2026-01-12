@@ -23,4 +23,8 @@ Starry also has an internal project called "manager" which oversees object resou
 Editor is a project that utilizes the Starry API to present a render. A soon to be editor for scenes. Editor outputs it's executable to `[EDITOR_DIR]/bin/[SYSTEM_NAME]/run`
 
 ### Example render w/ radio.obj (Test model)
-![Example Render](/docs/media/example_radio.gif)
+Image:
+![Example Render GIF](/docs/media/example1.png)
+
+Gif:
+![Example Render GIF](/docs/media/example_radio.gif)
