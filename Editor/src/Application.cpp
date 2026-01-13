@@ -69,17 +69,19 @@ namespace Editor
 #else
 #error "IMAGE_PATH not defined!"
 #endif
-
-		std::vector<std::shared_ptr<Starry::SceneObject>> objects = { static_cast<std::shared_ptr<Starry::SceneObject>>(radio),  static_cast<std::shared_ptr<Starry::SceneObject>>(camera) };
-
-		m_scene->pushObjects(objects); ERROR_HANDLER_CHECK;
+		auto radioObject = static_pointer_cast<Starry::SceneObject>(radio);
+		m_scene->pushObject(radioObject); 
+		auto cameraObject = static_pointer_cast<Starry::SceneObject>(camera);
+		m_scene->pushObject(cameraObject);
 
 		ERROR_HANDLER_CHECK;
+
 		Alert(STARRY_INITIALIZE_SUCCESS, BANNER);
 	}
 	void Application::mainLoop() 
 	{
-		m_renderer->disbatchRenderer(); ERROR_HANDLER_CHECK;
+		m_renderer->disbatchRenderer(); 
+		ERROR_HANDLER_CHECK;
 
 		while (!m_window->shouldClose() && m_renderer->isRenderRunning().load()) {
 			m_window->pollEvents();

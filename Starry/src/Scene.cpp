@@ -28,7 +28,7 @@ namespace Starry
 	void Scene::pushObjects(std::vector<std::shared_ptr<SceneObject>>& objs)
 	{
 		for (auto& obj : objs) {
-			obj->Init();
+			obj->Init(); EXTERN_ERROR(obj);
 			sceneObjects.emplace(obj->getName(), obj);
 		}
 	}
@@ -54,14 +54,21 @@ namespace Starry
 			Alert("Renderer is null!", FATAL);
 			return;
 		}
+		glm::mat4 view(1);
+		glm::mat4 proj(1);
+
 		for (auto& obj : sceneObjects) {
 			obj.second->Update(renderer); EXTERN_ERROR(obj.second);
+			if (obj.second->getType() == SceneObject::Type::CAMERA) {
+				view = obj.second->getBufferData().view;
+				proj = obj.second->getBufferData().proj;
+			}
 		}
-		sceneObjects.find("Mesh, Radio")->second->rotate(renderer->timer.getDeltaTimeSeconds() * 0.25 * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-
-		Render::UniformData mvpBuffer{ sceneObjects.find("Mesh, Radio")->second->getBufferData().model,
-				sceneObjects.find("Camera, Default")->second->getBufferData().view,
-				sceneObjects.find("Camera, Default")->second->getBufferData().proj };
-		renderer->updateUniform(mvpBuffer);
+		for (auto& obj : sceneObjects) {
+			if (obj.second->getType() == SceneObject::Type::MESH) {
+				obj.second->setView(view);
+				obj.second->setProjection(proj);
+			}
+		}
 	}
 }

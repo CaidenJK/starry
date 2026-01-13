@@ -10,7 +10,14 @@ namespace Starry
 	class SceneObject : public Manager::StarryAsset
 	{
 		public:
-			SceneObject(std::string name) : name(name) {}
+			enum Type
+			{
+				MESH,
+				CAMERA,
+				NONE
+			};
+			
+			SceneObject(Type type, std::string name) : type(type), name(name) {}
 			~SceneObject() = default;
 
 			virtual void Init() {}
@@ -24,12 +31,19 @@ namespace Starry
 			void translate(const glm::vec3& translation);
 			void scale(const glm::vec3& scaleFactors);
 
+			void setProjection(const glm::mat4& proj);
+			void setView(const glm::mat4& view);
+
 			Render::UniformData& getBufferData() { return mvpBufferData; }
+
+			Type getType() {return type;}
 
 			virtual ASSET_NAME(std::string("Scene object: ") + const_cast<std::string&>(name))
 		protected:
 			std::string name;
 
 			Render::UniformData mvpBufferData = { 1.0f, 1.0f, 1.0f };
+		private:
+			Type type;
 	};
 }

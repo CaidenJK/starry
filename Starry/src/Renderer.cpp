@@ -11,8 +11,6 @@ namespace Starry
 	{
 		renderer.Init(windowRef, config); EXTERN_ERROR(renderer);
 
-		Uniform = std::make_shared<Render::Uniform>();
-
 		interface = std::make_shared<Interface>();
 		auto cnvs = static_pointer_cast<Render::Canvas>(interface);
 		renderer.Load(cnvs);
@@ -47,7 +45,6 @@ namespace Starry
 
 		activeScene->loadObjects(this); EXTERN_ERROR_PTR(activeScene);
 
-		renderer.Load(Uniform);
 		renderer.Ready(); EXTERN_ERROR(renderer);
 
 		renderRunning.store(true);

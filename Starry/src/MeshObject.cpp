@@ -6,9 +6,12 @@
 
 namespace Starry
 {
-	MeshObject::MeshObject(std::string nameInput) :  SceneObject(std::string("Mesh, ") + nameInput)
+	MeshObject::MeshObject(std::string nameInput) :  SceneObject(SceneObject::Type::MESH, std::string("Mesh, ") + nameInput)
 	{
-
+		buffer = std::make_shared<Render::Buffer>();
+		uniform = std::make_shared<Render::Uniform>();
+		textureImage = std::make_shared<Render::TextureImage>();
+		descriptorSet = std::make_shared<Render::DescriptorSet>();
 	}
 
 	MeshObject::~MeshObject() 
@@ -18,12 +21,13 @@ namespace Starry
 
 	void MeshObject::Init()
 	{
+		
 	}
 
 	void MeshObject::Destroy()
 	{
-		if (Buffer != nullptr) {
-			Buffer.reset();
+		if (buffer != nullptr) {
+			buffer.reset();
 		}
 		if (textureImage != nullptr) {
 			textureImage.reset();
@@ -36,8 +40,7 @@ namespace Starry
 		indices = indicesInput;
 		isEmpty = vertices.empty() || indices.empty();
 
-		if (!Buffer) Buffer = std::make_shared<Render::Buffer>();
-		Buffer->loadData(vertices, indices);
+		buffer->loadData(vertices, indices);
 	}
 
 	void MeshObject::Register(Renderer* renderer)
@@ -46,14 +49,20 @@ namespace Starry
 			Alert("Cannot register empty mesh buffer!", FATAL);
 			return;
 		}
+		descriptorSet->addDescriptors({ uniform->getUUID(), textureImage->getUUID() });
 
-		renderer->context().Load(Buffer);
-		renderer->context().Load(textureImage);
+		renderer->context().Load(buffer);
+		renderer->context().Load(descriptorSet);
+	}
+
+	void MeshObject::Update(Renderer* renderer)
+	{
+		rotate(renderer->timer.getDeltaTimeSeconds() * 0.25 * glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		uniform->setData(mvpBufferData);
 	}
 
 	void MeshObject::loadTextureFromFile(const std::string filePath)
 	{
-		textureImage = std::make_shared<Render::TextureImage>();
 		textureImage->storeFilePath(filePath);
 	}
 

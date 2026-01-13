@@ -28,7 +28,6 @@ namespace Starry
 			
 			void UIPollEvents() { interface->PollEvents(); }
 
-			void updateUniform(Render::UniformData data) { Uniform->setData(data); }
 			std::atomic<bool>& isRenderRunning() { return renderRunning; }
 
 			Render::RenderContext& context() { return renderer; }
@@ -46,11 +45,7 @@ namespace Starry
 			std::thread renderThread;
 			std::atomic<bool> renderRunning{ false };
 
-			glm::mat4 modelViewProjection;
-
 			std::shared_ptr<Scene> activeScene = nullptr;
 			std::shared_ptr<Interface> interface = nullptr;
-
-			std::shared_ptr<Render::Uniform> Uniform = nullptr;
 	};
 }

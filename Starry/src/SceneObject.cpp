@@ -16,4 +16,14 @@ namespace Starry
 	{
 		mvpBufferData.model = glm::scale(mvpBufferData.model, scaleFactors);
 	}
+
+	void SceneObject::setProjection(const glm::mat4& proj)
+	{	
+		mvpBufferData.proj = proj;
+	}
+
+	void SceneObject::setView(const glm::mat4& view)
+	{
+		mvpBufferData.view = view;
+	}
 }

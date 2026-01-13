@@ -31,6 +31,5 @@ namespace Starry
             virtual void Display() override;
 
             std::map<int, std::shared_ptr<UIElement>> elements;
-            Manager::ResourceHandle<Timer> timer;
     };
 }

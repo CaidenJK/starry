@@ -5,7 +5,7 @@
 
 namespace Starry
 {
-	CameraObject::CameraObject(std::string name) : SceneObject(std::string("Camera, ") + name)
+	CameraObject::CameraObject(std::string name) : SceneObject(SceneObject::Type::CAMERA, std::string("Camera, ") + name)
 	{
 	}
 
