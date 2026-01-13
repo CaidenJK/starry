@@ -1,14 +1,18 @@
-cd Starry/build
-echo CMAKE
+cd Starry
+mkdir build
+cd build
+echo "--------- CMAKE STARRY ---------"
 cmake ..
-echo MAKE
+echo "--------- MAKE STARRY ---------"
 make
-echo INSTALL
+echo "--------- INSTALL STARRY ---------"
 cmake --install .
 cd ../..
-cd Editor/build
-echo CMAKE
+cd Editor
+mkdir build
+cd build
+echo "--------- CMAKE EDITOR ---------"
 cmake ..
-echo MAKE
+echo "--------- MAKE EDITOR ---------"
 make
 cd ../..

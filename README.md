@@ -11,7 +11,7 @@
 
 ## Brief Info
 
-This project uses CMake. If you are testing the editor, make sure to build and install the Starry sub-project first.
+This project uses CMake. If you are testing the editor, make sure to build and install the Starry sub-project first. You can use the included `make.sh` to build all
 
 Currently, the Starry API is enclosed in the starry subproject that builds to a static library.
 Starry outputs to `[STARRY_DIR]/bin/[SYSTEM_NAME]`. The static library builds to `/lib` and the included glfw subproject builds to a shared library under `/dyn`.
